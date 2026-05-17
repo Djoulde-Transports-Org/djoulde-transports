@@ -1,0 +1,37 @@
+# Local development env, loaded by Figaro at boot.
+#
+# Copy this file to `config/application.yml` and fill in real values.
+# `config/application.yml` is gitignored. Never commit real secrets here.
+#
+# In docker-compose the same keys are provided via the `environment:` block
+# on the `rails` service, so application.yml is only needed for host-side
+# `bundle exec` workflows (e.g. running specs without docker).
+
+# DATABASE (used by config/database.yml via ENV.fetch)
+DATABASE_HOST: "127.0.0.1"
+DATABASE_PORT: "3306"
+DATABASE_USERNAME: "root"
+DATABASE_PASSWORD: "root"
+DATABASE_NAME: "djoulde_transports_development"
+DATABASE_NAME_TEST: "djoulde_transports_test"
+
+# REDIS (used by Rails cache, Action Cable, and rack middleware in ticket 04)
+REDIS_URL: "redis://127.0.0.1:6379/0"
+
+# RAILS
+SECRET_KEY_BASE: "REPLACE_ME_with_bundle_exec_rails_secret"
+RAILS_MAX_THREADS: "5"
+
+# CORS (ticket 11 / Grape API consumers)
+CORS_ORIGINS: "http://localhost:5173"
+
+# MAILER placeholders (ticket 09)
+SMTP_ADDRESS: "smtp.example.com"
+SMTP_PORT: "587"
+SMTP_USERNAME: "REPLACE_ME"
+SMTP_PASSWORD: "REPLACE_ME"
+SMTP_DOMAIN: "djoulde-transports.local"
+
+# DOORKEEPER / OAUTH placeholders (ticket 08)
+DOORKEEPER_APPLICATION_UID: "REPLACE_ME"
+DOORKEEPER_APPLICATION_SECRET: "REPLACE_ME"
