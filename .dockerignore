@@ -1,0 +1,57 @@
+# Git
+/.git/
+/.gitignore
+
+# Bundler config
+/.bundle
+
+# Env files
+/.env*
+
+# Secrets
+/config/master.key
+/config/credentials/*.key
+
+# Logs and tempfiles
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Storage and uploads
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Assets and JS deps
+/node_modules/
+/app/assets/builds/*
+!/app/assets/builds/.keep
+/public/assets
+
+# Frontend (SvelteKit) — added per ticket 02
+/frontend/node_modules
+/frontend/.svelte-kit
+/frontend/build
+
+# CI / Kamal / devcontainer
+/.github
+/config/deploy*.yml
+/.kamal
+/.devcontainer
+
+# Docker
+/.dockerignore
+/Dockerfile*
+/docker-compose*.yml
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Backups from scaffold
+*.bak
