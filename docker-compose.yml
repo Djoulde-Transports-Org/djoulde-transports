@@ -1,0 +1,26 @@
+# Skeleton Docker Compose for djoulde-transports.
+# Service names are reserved for the full stack; wiring is completed in tickets 02+.
+# Nothing starts unless you opt in (e.g. docker compose --profile skeleton config).
+
+services:
+  mysql:
+    image: mysql:8.0
+    profiles: ["skeleton"]
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["skeleton"]
+
+  rails:
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 'rails service placeholder — configure in ticket 02'"]
+    profiles: ["skeleton"]
+
+  frontend:
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 'frontend service placeholder — SvelteKit in ./frontend (ticket 13)'"]
+    profiles: ["skeleton"]
+
+  proxy:
+    image: nginx:1.27-alpine
+    profiles: ["skeleton"]
