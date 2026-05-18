@@ -43,6 +43,14 @@ gem "image_processing", "~> 1.2"
 # ENV-driven config loaded from config/application.yml [https://github.com/laserlemon/figaro]
 gem "figaro", "~> 1.2"
 
+# Redis client and the high-performance hiredis driver
+gem "redis", "~> 5.3"
+gem "hiredis-client", "~> 0.23"
+
+# Throttling + CORS middleware (config under config/initializers/)
+gem "rack-attack", "~> 6.7"
+gem "rack-cors", "~> 3.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
