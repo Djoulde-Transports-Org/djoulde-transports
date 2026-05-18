@@ -22,6 +22,10 @@ REDIS_URL: "redis://127.0.0.1:6379/0"
 SECRET_KEY_BASE: "REPLACE_ME_with_bundle_exec_rails_secret"
 RAILS_MAX_THREADS: "5"
 
+# Public hostname seen by the browser through the nginx proxy (ticket 05).
+# Production reads this into config.hosts; dev defaults to localhost.
+APP_HOST: "localhost:8080"
+
 # CORS (ticket 11 / Grape API consumers).
 # Comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.djoulde.example".
 # Empty value blocks all cross-origin requests.
