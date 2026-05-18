@@ -57,6 +57,29 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## Reverse proxy (ticket 05)
+
+The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/nginx.conf)) is the single public entry point.
+
+- **Public URL:** `http://localhost:8080`
+- **Path table:**
+  - `/up`, `/api`, `/oauth`, `/admin`, `/rails/active_storage` → Rails (`rails:3000`)
+  - everything else → SvelteKit frontend (`frontend:5173`)
+
+The `rails` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm rails bundle exec ...` for CLI tasks.
+
+**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. The four Rails prefixes return **404** until their owning tickets land (`/api` ticket 11, `/oauth` ticket 08, `/admin` ticket 12).
+
+### Doorkeeper redirect URIs (ticket 08)
+
+When ticket 08 registers OAuth applications, redirect URIs **must** use the public proxy URL (e.g. `http://localhost:8080/oauth/callback`), **never** the Docker-internal hostname (`http://rails:3000/...`). Browsers can't reach the internal hostname and the redirect will fail.
+
+### Production posture
+
+- TLS terminates at the proxy. Rails runs with `config.assume_ssl = true` and `config.force_ssl = true` (see `config/environments/production.rb`).
+- `config.action_dispatch.trusted_proxies` (in `config/application.rb`) trusts the docker bridge ranges so `request.remote_ip` reports the real client behind nginx's `X-Forwarded-For`.
+- `APP_HOST` controls the production `config.hosts` entry (see `config/application.yml.example`).
+
 ## Rate limiting and CORS (ticket 04)
 
 - **Rate limiting:** Rack::Attack is wired through `config/initializers/rack_attack.rb` and backed by `ActiveSupport::Cache::RedisCacheStore` against `REDIS_URL`. `/up` is safelisted; `POST /oauth/token` is throttled to 5 req/min/IP; `/api/*` is throttled to 300 req/min/IP. Override responses are JSON 429s.
