@@ -38,5 +38,14 @@ module App
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Ticket 05: trust docker bridge networks so request.remote_ip reflects
+    # the real client from X-Forwarded-For set by the nginx proxy.
+    config.action_dispatch.trusted_proxies = [
+      IPAddr.new("127.0.0.1"),
+      IPAddr.new("::1"),
+      IPAddr.new("172.16.0.0/12"),
+      IPAddr.new("192.168.0.0/16")
+    ]
   end
 end
