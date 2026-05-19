@@ -88,6 +88,23 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## Soft delete (ticket 07)
+
+The project uses the [`discard`](https://github.com/jhawthorn/discard) gem for soft deletes. Models that need soft delete include the `Discardable` concern (`app/models/concerns/discardable.rb`), which:
+
+- Adds `Discard::Model` (gives `.kept`, `.discarded`, `#discard`, `#undiscard`).
+- Registers a `before_discard` callback that stamps `discarded_by_id` from `Current.user`.
+
+**No `default_scope { kept }`.** Callers query `.kept` / `.discarded` explicitly. Implicit scopes were considered and rejected (foot-guns around joins, counters, and Active Admin views).
+
+`Current.user` (an `ActiveSupport::CurrentAttributes` subclass in `app/models/current.rb`) is the source of truth for "who discarded this row". Controllers that authenticate include `SetsCurrentUser` (`app/controllers/concerns/sets_current_user.rb`) once login lands in ticket 09.
+
+### Deferred to later tickets
+
+- Migrations adding `discarded_at` + `discarded_by_id` columns — added by ticket 08 (OauthApplication), ticket 09 (User), and ticket 10 (domain models).
+- `active_for_authentication?` on `User` to block login when discarded — ticket 09.
+- Cascade discard of `OauthApplication` rows when a `User` is discarded — ticket 09 via an `after_discard` callback on User (Discard has no `dependent: :discard`).
+
 ## Reverse proxy (ticket 05)
 
 The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/nginx.conf)) is the single public entry point.
