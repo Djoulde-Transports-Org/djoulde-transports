@@ -12,6 +12,35 @@ Implementation work is tracked in [`docs/tickets/00-INDEX.md`](../docs/tickets/0
 - **`frontend/`** — SvelteKit application (scaffolded per ticket 13).
 - **`../docs/tickets/`** — Markdown specs for each ticket (sibling folder next to this repository).
 
+## Local dev workflow (ticket 06)
+
+GNU Make targets wrap the most common `docker compose` invocations. Run `make help` to see the full list.
+
+| Target               | What it does                                                       |
+| -------------------- | ------------------------------------------------------------------ |
+| `make dev`           | Install deps, prep DB, start mysql + redis + rails + proxy + frontend |
+| `make up-detached`   | Start the same stack in the background                             |
+| `make down`          | Stop and remove services                                           |
+| `make logs`          | Tail rails + proxy logs                                            |
+| `make build`         | Rebuild the rails image                                            |
+| `make setup`         | Bundle install + `db:prepare` (idempotent)                         |
+| `make console`       | `bundle exec rails console` inside the running rails container     |
+| `make bash`          | Bash shell inside the running rails container                      |
+| `make rspec [PATH]`  | Run specs; pass paths after the target                             |
+| `make rubocop`       | Run rubocop                                                        |
+| `make vitest [PATH]` | Run Vitest in the frontend container (ticket 13+)                  |
+
+Path forwarding examples:
+
+```bash
+make rspec                                       # full suite
+make rspec spec/requests/health_spec.rb          # single file
+make rspec spec/requests                         # directory
+make vitest spec/frontend/components/foo.test.ts # SvelteKit (ticket 13+)
+```
+
+Requires GNU Make. macOS ships `/usr/bin/make` 3.81+, which is sufficient.
+
 ## Stack versions (ticket 02)
 
 - **Ruby:** 3.4.9. The ticket's primary target was Ruby 4.0.2, which is not released; the documented fallback (3.4.9) is in use.
