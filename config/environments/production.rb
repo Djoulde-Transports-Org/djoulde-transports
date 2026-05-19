@@ -87,4 +87,11 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Ticket 05: behind nginx the public hostname is APP_HOST and TLS is
+  # terminated at the proxy. assume_ssl + force_ssl honor X-Forwarded-Proto
+  # so Rails treats proxied HTTPS as secure and redirects plain-HTTP leaks.
+  config.hosts << ENV.fetch("APP_HOST", "djoulde-transports.local")
+  config.assume_ssl = true
+  config.force_ssl  = true
 end
