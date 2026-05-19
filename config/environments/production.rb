@@ -94,4 +94,16 @@ Rails.application.configure do
   config.hosts << ENV.fetch("APP_HOST", "djoulde-transports.local")
   config.assume_ssl = true
   config.force_ssl  = true
+
+  # Devise mailers (ticket 09) deliver via SMTP using Figaro keys from ticket 03.
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address:        ENV.fetch("SMTP_ADDRESS"),
+    port:           ENV.fetch("SMTP_PORT").to_i,
+    user_name:      ENV.fetch("SMTP_USERNAME"),
+    password:       ENV.fetch("SMTP_PASSWORD"),
+    authentication: :plain,
+    domain:         ENV.fetch("SMTP_DOMAIN")
+  }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST") }
 end

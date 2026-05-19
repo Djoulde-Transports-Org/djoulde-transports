@@ -28,22 +28,24 @@ Doorkeeper.configure do
   #
   # See: https://guides.rubyonrails.org/active_record_multiple_databases.html#activating-automatic-role-switching
 
-  # TODO(ticket-09): authenticate via the User model once it exists.
-  # `api_only` strips HTML flows that would normally hit this block, but we
-  # still need a valid lambda so Doorkeeper config validation passes.
+  # `api_only` strips the HTML flow that would normally hit this block, but
+  # Doorkeeper still requires a valid lambda. nil rejects any request that
+  # somehow reaches /oauth/authorize.
   resource_owner_authenticator do
     nil
   end
 
-  # TODO(ticket-09): look up the User by email/password for the password grant.
+  # /oauth/token's password grant is intentionally unimplemented: login is
+  # custom Grape (`POST /api/v1/sessions`, ticket 09) so we can apply the
+  # "user must have an OauthApplication" rule. See "Do not" in ticket 09.
   resource_owner_from_credentials do |_routes|
     nil
   end
 
-  # Token grants enabled for the SPA (password) and any future service-to-service
-  # callers (client_credentials). authorization_code stays off until we have a
-  # third-party integration that needs it.
-  grant_flows %w[password client_credentials]
+  # Only client_credentials is exposed through Doorkeeper's token endpoint
+  # (future service-to-service callers). Password grant is intentionally
+  # absent — see resource_owner_from_credentials above.
+  grant_flows %w[client_credentials]
 
   # Trusted first-party clients (SPA, Active Admin) — skip the consent screen.
   skip_authorization { true }
