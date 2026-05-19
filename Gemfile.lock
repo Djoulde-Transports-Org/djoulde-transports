@@ -96,6 +96,8 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
+    doorkeeper (5.9.0)
+      railties (>= 5)
     dotenv (3.2.0)
     drb (2.2.3)
     ed25519 (1.4.0)
@@ -369,6 +371,7 @@ DEPENDENCIES
   brakeman
   bundler-audit
   debug
+  doorkeeper (~> 5.7)
   figaro (~> 1.2)
   hiredis-client (~> 0.23)
   image_processing (~> 1.2)
