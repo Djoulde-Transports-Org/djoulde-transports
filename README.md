@@ -88,6 +88,25 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## OAuth applications (ticket 08)
+
+The project uses [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) as an OAuth 2 provider, mounted at `/oauth` and pre-routed by the proxy.
+
+- **Mode:** `api_only` — token endpoints only (`/oauth/token`, `/oauth/revoke`, `/oauth/introspect`). No HTML views. Admin UI for OauthApplications comes from Active Admin (ticket 12).
+- **Custom application class:** `app/models/oauth_application.rb`. Doorkeeper uses it via `Doorkeeper.config.application_class = "OauthApplication"`.
+- **Polymorphic owner:** every application belongs to an `owner` via `owner_type` + `owner_id`. A unique index on `[owner_type, owner_id]` enforces *one OauthApplication per owner*. The first (and currently only) owner type will be `User` once ticket 09 lands.
+- **Custom columns:** `owner_type`, `owner_id`, `created_by_id`, `calls_count` (default 0, not null), `last_used_at`, `discarded_at`, `discarded_by_id` — all added in a follow-up migration so Doorkeeper's generated schema migration stays untouched.
+- **Grant flows enabled:** `password` (SPA login, ticket 09) and `client_credentials` (service-to-service callers).
+
+### Deferred to later tickets
+
+- `User` model and the `has_one :oauth_application, as: :owner` association — ticket 09.
+- FK constraints from `oauth_applications.created_by_id` / `discarded_by_id` to `users` — ticket 09 (added alongside the User migration).
+- `resource_owner_from_credentials` and `resource_owner_authenticator` implementations — ticket 09. Both currently return `nil`, so password-grant token requests return 401 until login lands.
+- `include Discardable` in the OauthApplication model — pending ticket 07 reaching master. Columns already exist on the table, so it's a one-line add.
+- Grape `before` hook that resolves `doorkeeper_token.application`, increments `calls_count`, and stamps `last_used_at` — ticket 11.
+- Active Admin screen for OauthApplications — ticket 12.
+
 ## Reverse proxy (ticket 05)
 
 The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/nginx.conf)) is the single public entry point.
