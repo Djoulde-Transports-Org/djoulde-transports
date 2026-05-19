@@ -12,9 +12,37 @@ Implementation work is tracked in [`docs/tickets/00-INDEX.md`](../docs/tickets/0
 - **`frontend/`** — SvelteKit application (scaffolded per ticket 13).
 - **`../docs/tickets/`** — Markdown specs for each ticket (sibling folder next to this repository).
 
+## Stack versions (ticket 02)
+
+- **Ruby:** 3.4.9. The ticket's primary target was Ruby 4.0.2, which is not released; the documented fallback (3.4.9) is in use.
+- **Rails:** 8.1.3
+- **MySQL image:** `mysql:8.0`
+- **Redis image:** `redis:7-alpine`
+
 ## Docker Compose
 
-[`docker-compose.yml`](./docker-compose.yml) is a **skeleton only**: it reserves the service names `mysql`, `redis`, `rails`, `frontend`, and `proxy` for the full dev stack. It is **not** complete orchestration yet; details are filled in starting with ticket 02.
+[`docker-compose.yml`](./docker-compose.yml) now wires `mysql`, `redis`, and `rails` as a working dev stack. `frontend` and `proxy` remain skeleton placeholders (filled in by tickets 13 and 05).
+
+### Bring the stack up
+
+```bash
+docker compose build rails
+docker compose up -d mysql redis
+docker compose run --rm rails bundle exec rails db:prepare
+docker compose up -d rails
+```
+
+### Verification one-liners
+
+```bash
+docker compose config                                        # validates compose file
+docker compose run --rm rails bundle exec rails -v           # => Rails 8.1.x
+docker compose run --rm rails bundle exec rails db:version   # => current schema version
+```
+
+### Secrets
+
+`config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `rails` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
 
 ## Cursor agents
 

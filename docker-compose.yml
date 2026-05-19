@@ -1,20 +1,62 @@
-# Skeleton Docker Compose for djoulde-transports.
-# Service names are reserved for the full stack; wiring is completed in tickets 02+.
-# Nothing starts unless you opt in (e.g. docker compose --profile skeleton config).
+# Full dev stack for djoulde-transports.
+# Ticket 02 wires mysql, redis, and rails. frontend and proxy remain skeleton
+# placeholders so later tickets (13 SvelteKit, 05 nginx) can fill them in.
 
 services:
   mysql:
     image: mysql:8.0
-    profiles: ["skeleton"]
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DATABASE_NAME:-djoulde_transports_development}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7-alpine
-    profiles: ["skeleton"]
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   rails:
-    image: alpine:3.20
-    command: ["sh", "-c", "echo 'rails service placeholder — configure in ticket 02'"]
-    profiles: ["skeleton"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    command: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      DATABASE_HOST: mysql
+      DATABASE_PORT: "3306"
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      DATABASE_NAME: ${DATABASE_NAME:-djoulde_transports_development}
+      REDIS_URL: redis://redis:6379/0
+      RAILS_MAX_THREADS: "5"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
 
   frontend:
     image: alpine:3.20
@@ -24,3 +66,8 @@ services:
   proxy:
     image: nginx:1.27-alpine
     profiles: ["skeleton"]
+
+volumes:
+  mysql_data:
+  redis_data:
+  bundle_cache:
