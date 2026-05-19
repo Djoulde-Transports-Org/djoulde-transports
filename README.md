@@ -21,6 +21,7 @@ GNU Make targets wrap the most common `docker compose` invocations. Run `make he
 | `make dev`           | Install deps, prep DB, start mysql + redis + rails + proxy + frontend |
 | `make up-detached`   | Start the same stack in the background                             |
 | `make down`          | Stop and remove services                                           |
+| `make clean`         | Stop containers and remove orphans                                 |
 | `make logs`          | Tail rails + proxy logs                                            |
 | `make build`         | Rebuild the rails image                                            |
 | `make setup`         | Bring deps up, install gems, run `db:prepare` (idempotent)          |

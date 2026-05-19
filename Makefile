@@ -1,4 +1,4 @@
-.PHONY: help dev up-detached down logs build setup install_deps_rails console bash rspec rubocop vitest
+.PHONY: help dev up-detached down clean logs build setup install_deps_rails console bash rspec rubocop vitest
 
 .DEFAULT_GOAL := help
 
@@ -13,6 +13,7 @@ help:
 	@echo "  make dev            Start the full stack (mysql, redis, rails, proxy, frontend)"
 	@echo "  make up-detached    Start the stack in the background"
 	@echo "  make down           Stop and remove all services"
+	@echo "  make clean          Stop containers and remove orphans"
 	@echo "  make logs           Tail rails + proxy logs"
 	@echo "  make build          Rebuild the rails image"
 	@echo "  make setup          Bring deps up, install gems, run db:prepare"
@@ -39,6 +40,9 @@ up-detached:
 
 down:
 	$(COMPOSE) down
+
+clean:
+	$(COMPOSE) down --remove-orphans
 
 logs:
 	$(COMPOSE) logs -f --tail=100 rails proxy
