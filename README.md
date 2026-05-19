@@ -44,6 +44,35 @@ docker compose run --rm rails bundle exec rails db:version   # => current schema
 
 `config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `rails` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
 
+## Configuration (Figaro)
+
+Local env is loaded by **Figaro** from `config/application.yml` (gitignored). To bootstrap a host-side workflow:
+
+```bash
+cp config/application.yml.example config/application.yml
+# edit config/application.yml with real values
+```
+
+Inside docker-compose the same keys are injected via the `environment:` block on the `rails` service, so `application.yml` is only needed when running `bundle exec` directly on the host.
+
+`config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
+
+## Quality and testing (ticket 03)
+
+Linting via RuboCop (omakase + `rubocop-rspec`):
+
+```bash
+docker compose run --rm rails bundle exec rubocop
+```
+
+Specs via RSpec (`spec/` only — no `test/` Minitest dir):
+
+```bash
+docker compose run --rm rails bundle exec rspec
+```
+
+The smoke spec at `spec/requests/health_spec.rb` hits Rails 8's built-in `/up` health route.
+
 ## Cursor agents
 
 Before large edits across the tree, set the agent workspace to this repository (for example **cursor-app-control** → **move_agent_to_root** with path `/Users/alimouranabalde/Documents/djoulde-transports`).

@@ -50,4 +50,8 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Disable host authorization in tests; integration sessions default to
+  # `www.example.com`, which the Rails 8.1 default blocklist rejects.
+  config.hosts.clear
 end
