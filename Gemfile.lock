@@ -98,6 +98,8 @@ GEM
     diff-lcs (1.6.2)
     discard (1.4.0)
       activerecord (>= 4.2, < 9.0)
+    doorkeeper (5.9.0)
+      railties (>= 5)
     dotenv (3.2.0)
     drb (2.2.3)
     ed25519 (1.4.0)
@@ -372,6 +374,7 @@ DEPENDENCIES
   bundler-audit
   debug
   discard (~> 1.4)
+  doorkeeper (~> 5.7)
   figaro (~> 1.2)
   hiredis-client (~> 0.23)
   image_processing (~> 1.2)
