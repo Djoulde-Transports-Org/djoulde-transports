@@ -5,6 +5,14 @@ Doorkeeper.configure do
   # Check the list of supported ORMs here: https://github.com/doorkeeper-gem/doorkeeper#orms
   orm :active_record
 
+  # Strip Doorkeeper's HTML views; this app only exposes the OAuth token
+  # endpoints (/oauth/token, /oauth/revoke, /oauth/introspect). Admin UI
+  # for OauthApplications comes from Active Admin (ticket 12).
+  api_only
+
+  # Custom application class introduced in ticket 08.
+  application_class "OauthApplication"
+
   # Enable support for multiple database configurations with read replicas.
   # When enabled, Doorkeeper will wrap database write operations to ensure they
   # use the primary (writable) database when automatic role switching is enabled.
@@ -20,13 +28,25 @@ Doorkeeper.configure do
   #
   # See: https://guides.rubyonrails.org/active_record_multiple_databases.html#activating-automatic-role-switching
 
-  # This block will be called to check whether the resource owner is authenticated or not.
+  # TODO(ticket-09): authenticate via the User model once it exists.
+  # `api_only` strips HTML flows that would normally hit this block, but we
+  # still need a valid lambda so Doorkeeper config validation passes.
   resource_owner_authenticator do
-    raise "Please configure doorkeeper resource_owner_authenticator block located in #{__FILE__}"
-    # Put your resource owner authentication logic here.
-    # Example implementation:
-    #   User.find_by(id: session[:user_id]) || redirect_to(new_user_session_url)
+    nil
   end
+
+  # TODO(ticket-09): look up the User by email/password for the password grant.
+  resource_owner_from_credentials do |_routes|
+    nil
+  end
+
+  # Token grants enabled for the SPA (password) and any future service-to-service
+  # callers (client_credentials). authorization_code stays off until we have a
+  # third-party integration that needs it.
+  grant_flows %w[password client_credentials]
+
+  # Trusted first-party clients (SPA, Active Admin) — skip the consent screen.
+  skip_authorization { true }
 
   # If you didn't skip applications controller from Doorkeeper routes in your application routes.rb
   # file then you need to declare this block in order to restrict access to the web interface for
