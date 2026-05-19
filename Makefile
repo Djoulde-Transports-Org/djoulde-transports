@@ -1,4 +1,4 @@
-.PHONY: help dev up-detached down logs build setup console bash rspec rubocop vitest
+.PHONY: help dev up-detached down logs build setup install_deps_rails console bash rspec rubocop vitest
 
 .DEFAULT_GOAL := help
 
@@ -15,16 +15,19 @@ help:
 	@echo "  make down           Stop and remove all services"
 	@echo "  make logs           Tail rails + proxy logs"
 	@echo "  make build          Rebuild the rails image"
-	@echo "  make setup          Install bundle, install frontend deps, run db:prepare"
+	@echo "  make setup          Bring deps up, install gems, run db:prepare"
+	@echo "  make install_deps_rails  Install Rails application dependencies (bundle)"
 	@echo "  make console        Rails console (requires running stack)"
 	@echo "  make bash           Bash shell in the rails container (requires running stack)"
 	@echo "  make rspec [PATH]   Run RSpec; forwards path args"
 	@echo "  make rubocop        Run rubocop in the rails container"
 	@echo "  make vitest [PATH]  Run Vitest in the frontend container (ticket 13+)"
 
-setup:
-	$(COMPOSE) up -d mysql redis
+install_deps_rails:
 	$(COMPOSE) run --rm rails bash -c 'bundle check || bundle install'
+
+setup: install_deps_rails
+	$(COMPOSE) up -d mysql redis
 	# npm ci || npm install once ticket 13 lands a real frontend image
 	-$(COMPOSE) run --rm rails bundle exec rails db:prepare
 

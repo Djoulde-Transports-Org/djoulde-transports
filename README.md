@@ -23,7 +23,8 @@ GNU Make targets wrap the most common `docker compose` invocations. Run `make he
 | `make down`          | Stop and remove services                                           |
 | `make logs`          | Tail rails + proxy logs                                            |
 | `make build`         | Rebuild the rails image                                            |
-| `make setup`         | Bundle install + `db:prepare` (idempotent)                         |
+| `make setup`         | Bring deps up, install gems, run `db:prepare` (idempotent)          |
+| `make install_deps_rails` | Install Rails application dependencies (bundle)               |
 | `make console`       | `bundle exec rails console` inside the running rails container     |
 | `make bash`          | Bash shell inside the running rails container                      |
 | `make rspec [PATH]`  | Run specs; pass paths after the target                             |
