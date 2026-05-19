@@ -106,6 +106,22 @@ The project uses [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) as a
 - `include Discardable` in the OauthApplication model — pending ticket 07 reaching master. Columns already exist on the table, so it's a one-line add.
 - Grape `before` hook that resolves `doorkeeper_token.application`, increments `calls_count`, and stamps `last_used_at` — ticket 11.
 - Active Admin screen for OauthApplications — ticket 12.
+## Soft delete (ticket 07)
+
+The project uses the [`discard`](https://github.com/jhawthorn/discard) gem for soft deletes. Models that need soft delete include the `Discardable` concern (`app/models/concerns/discardable.rb`), which:
+
+- Adds `Discard::Model` (gives `.kept`, `.discarded`, `#discard`, `#undiscard`).
+- Registers a `before_discard` callback that stamps `discarded_by_id` from `Current.user`.
+
+**No `default_scope { kept }`.** Callers query `.kept` / `.discarded` explicitly. Implicit scopes were considered and rejected (foot-guns around joins, counters, and Active Admin views).
+
+`Current.user` (an `ActiveSupport::CurrentAttributes` subclass in `app/models/current.rb`) is the source of truth for "who discarded this row". Controllers that authenticate include `SetsCurrentUser` (`app/controllers/concerns/sets_current_user.rb`) once login lands in ticket 09.
+
+### Deferred to later tickets
+
+- Migrations adding `discarded_at` + `discarded_by_id` columns — added by ticket 08 (OauthApplication), ticket 09 (User), and ticket 10 (domain models).
+- `active_for_authentication?` on `User` to block login when discarded — ticket 09.
+- Cascade discard of `OauthApplication` rows when a `User` is discarded — ticket 09 via an `after_discard` callback on User (Discard has no `dependent: :discard`).
 
 ## Reverse proxy (ticket 05)
 

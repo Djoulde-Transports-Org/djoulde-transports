@@ -43,6 +43,9 @@ gem "image_processing", "~> 1.2"
 # ENV-driven config loaded from config/application.yml [https://github.com/laserlemon/figaro]
 gem "figaro", "~> 1.2"
 
+# Soft-delete via discarded_at columns, no global default_scope [https://github.com/jhawthorn/discard]
+gem "discard", "~> 1.4"
+
 # Redis client and the high-performance hiredis driver
 gem "redis", "~> 5.3"
 gem "hiredis-client", "~> 0.23"
