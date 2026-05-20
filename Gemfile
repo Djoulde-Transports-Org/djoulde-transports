@@ -58,7 +58,7 @@ gem "rack-cors", "~> 3.0"
 gem "doorkeeper", "~> 5.7"
 
 # User authentication (ticket 09): database_authenticatable, confirmable, lockable, trackable, recoverable
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0", ">= 5.0.4"
 
 # Role-based access control on User (ticket 09)
 gem "rolify", "~> 6.0"
