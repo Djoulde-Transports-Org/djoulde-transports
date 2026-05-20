@@ -88,6 +88,30 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## Domain models (ticket 10)
+
+Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects (ticket 11+).
+
+| Model              | Soft delete | Audited | Notes                                                                             |
+| ------------------ | ----------- | ------- | --------------------------------------------------------------------------------- |
+| `Truck`            | yes         | yes     | `plate_number` unique, `status` enum (`active` / `out_of_service`)                |
+| `Trip`             | yes         | yes     | `belongs_to :truck`; optional `:driver` (User); `status` enum (scheduled → cancelled) |
+| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum                  |
+| `Document`         | yes         | yes     | Polymorphic `:documentable`; `has_one_attached :file` (Active Storage)            |
+| `BillingPeriod`    | yes         | yes     | Unique `label`; `status` enum (`open` / `closed` / `billed`)                      |
+| `BillingStatement` | yes         | yes     | `belongs_to :billing_period`; unique `number`; `status` enum; `has_associated_audits` |
+| `BillingLineItem`  | yes         | yes     | `belongs_to :billing_statement`; optional `:trip`; audits roll up via `associated_with` |
+
+- **Active Storage** is installed (`active_storage_blobs` / `attachments` / `variant_records`). Documents attach files via `has_one_attached :file`.
+- **Audited YAML coder:** `config/initializers/audited.rb` registers `Date`, `Time`, `ActiveSupport::TimeWithZone`, `BigDecimal`, etc. on `ActiveRecord.yaml_column_permitted_classes` so `audited_changes` (stored as MySQL TEXT) can round-trip those value types under Psych safe-load.
+- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks deletes of aggregates that still have children; cascades land in ticket 11.
+
+### Deferred to later tickets
+
+- Grape endpoints exposing these models — ticket **11**.
+- Active Admin screens for trucks, trips, maintenance, documents, and billing — ticket **12**.
+- Role-based authorization on endpoints (e.g., `driver_readonly` cannot edit) — ticket **14**.
+
 ## Auth stack (ticket 09)
 
 User authentication is **Devise** + a custom **Grape** login endpoint that issues **Doorkeeper** tokens. Roles via **Rolify**.

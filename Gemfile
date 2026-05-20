@@ -46,6 +46,9 @@ gem "figaro", "~> 1.2"
 # Soft-delete via discarded_at columns, no global default_scope [https://github.com/jhawthorn/discard]
 gem "discard", "~> 1.4"
 
+# Audit trail of model changes; ticket 10 wires `audited` into business models [https://github.com/collectiveidea/audited]
+gem "audited", "~> 5.7"
+
 # Redis client and the high-performance hiredis driver
 gem "redis", "~> 5.3"
 gem "hiredis-client", "~> 0.23"
