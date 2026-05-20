@@ -80,4 +80,9 @@ Rails.application.configure do
   # ActionDispatch::HostAuthorization rejects proxied requests with 403.
   config.hosts << "localhost"
   config.hosts << /.+\.localhost\z/
+
+  # Devise emails open in the browser instead of sending; URLs in those
+  # emails point at the public proxy hostname (ticket 05).
+  config.action_mailer.delivery_method   = :letter_opener
+  config.action_mailer.default_url_options = { host: "localhost", port: 8080 }
 end

@@ -57,6 +57,16 @@ gem "rack-cors", "~> 3.0"
 # OAuth2 provider; custom application class lands in app/models/oauth_application.rb (ticket 08)
 gem "doorkeeper", "~> 5.7"
 
+# User authentication (ticket 09): database_authenticatable, confirmable, lockable, trackable, recoverable
+gem "devise", "~> 5.0", ">= 5.0.4"
+
+# Role-based access control on User (ticket 09)
+gem "rolify", "~> 6.0"
+
+# Grape mounts the JSON API at /api/v1 (sessions + me here; rest of the API in ticket 11)
+gem "grape", "~> 2.0"
+gem "grape-entity", "~> 1.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -80,4 +90,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Open Devise emails in the browser instead of sending them (ticket 09)
+  gem "letter_opener", "~> 1.10"
 end

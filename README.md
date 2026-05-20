@@ -88,6 +88,25 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## Auth stack (ticket 09)
+
+User authentication is **Devise** + a custom **Grape** login endpoint that issues **Doorkeeper** tokens. Roles via **Rolify**.
+
+- **User model** (`app/models/user.rb`) enables five Devise modules: `database_authenticatable`, `confirmable`, `lockable`, `trackable`, `recoverable`. Auto-confirmed in dev/test for spec ergonomics.
+- **Custom login:** `POST /api/v1/sessions` (Grape). Returns a Doorkeeper access token tied to the user's `OauthApplication`. Doorkeeper's `/oauth/token` password grant is intentionally disabled (see ticket 09 "do not").
+- **One-app-per-user contract:** users without an `OauthApplication` get **403** with stable error code `"api_access_denied_no_application"`. Other documented error codes from `/api/v1/sessions`: `"invalid_credentials"` (401), `"discarded"` (403), `"locked"` (403), `"unconfirmed"` (403).
+- **Authenticated endpoints** (e.g. `GET /api/v1/me`): bearer token required; token's `application.owner` must match `doorkeeper_token.resource_owner` (same User). Otherwise 401.
+- **Rolify** seeds 5 roles in `db/seeds.rb`: `super_admin`, `dispatcher`, `billing`, `maintenance`, `driver_readonly`. Assignment via Active Admin (ticket 12) or `user.add_role(:role_name)`.
+- **Mailer:** Devise sends confirmation/unlock/reset emails. Dev uses `letter_opener` (opens emails in the browser); production uses SMTP via the Figaro `SMTP_*` keys.
+- **Discard cascade:** when a User is discarded, an `after_discard` callback discards their `OauthApplication` too (Discard has no `dependent: :discard`).
+
+### Deferred to later tickets
+
+- Grape `before` hook that increments `oauth_application.calls_count` and stamps `last_used_at` — ticket 11.
+- Custom Grape endpoints for confirmation / password reset / unlock (currently driven by Devise's HTML views via email links) — possible future ticket.
+- SvelteKit login screen that consumes `/api/v1/sessions` — ticket 13.
+- Role-based authorization on specific endpoints — ticket 14.
+
 ## OAuth applications (ticket 08)
 
 The project uses [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) as an OAuth 2 provider, mounted at `/oauth` and pre-routed by the proxy.

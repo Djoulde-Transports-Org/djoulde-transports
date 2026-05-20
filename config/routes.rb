@@ -1,5 +1,11 @@
 Rails.application.routes.draw do
+  # Login is custom-Grape; registration is admin-only (ticket 12). Keep
+  # confirmations/passwords/unlocks since they're driven by email links.
+  devise_for :users, skip: [ :sessions, :registrations ]
+
   use_doorkeeper
+
+  mount API => "/"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
