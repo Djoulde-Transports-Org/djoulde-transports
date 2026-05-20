@@ -31,10 +31,10 @@ RSpec.describe Maintenance do
     expect(maintenance.kind).to eq("routine")
   end
 
-  it "rejects negative cost_cents" do
-    maintenance.cost_cents = -1
+  it "rejects negative cost" do
+    maintenance.cost = -1
     maintenance.validate
-    expect(maintenance.errors[:cost_cents]).to be_present
+    expect(maintenance.errors[:cost]).to be_present
   end
 
   it "does not hard-destroy on discard" do

@@ -11,6 +11,6 @@ class Maintenance < ApplicationRecord
   has_many :documents, as: :documentable, dependent: :restrict_with_error
 
   validates :performed_on, presence: true
-  validates :cost_cents,   numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :cost,         numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :odometer_km,  numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -65,55 +65,65 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
   end
 
   create_table "billing_line_items", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "amount_cents", null: false
+    t.integer "amount", null: false
     t.bigint "billing_statement_id", null: false
     t.datetime "created_at", null: false
-    t.string "description", null: false
+    t.string "delivery_note_number"
+    t.string "destination"
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
-    t.decimal "quantity", precision: 10, scale: 2, default: "1.0", null: false
-    t.bigint "trip_id"
-    t.integer "unit_price_cents", null: false
+    t.string "origin"
+    t.decimal "quantity_diesel_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "quantity_gasoline_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.integer "rate", default: 0, null: false
+    t.date "started_on"
+    t.bigint "trip_id", null: false
+    t.integer "tva", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["billing_statement_id", "trip_id"], name: "index_billing_line_items_on_statement_and_trip", unique: true
     t.index ["billing_statement_id"], name: "index_billing_line_items_on_billing_statement_id"
+    t.index ["delivery_note_number"], name: "index_billing_line_items_on_delivery_note_number"
     t.index ["discarded_at"], name: "index_billing_line_items_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_billing_line_items_on_discarded_by_id"
     t.index ["trip_id"], name: "index_billing_line_items_on_trip_id"
   end
 
-  create_table "billing_periods", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "discarded_at"
-    t.bigint "discarded_by_id"
-    t.date "ends_on", null: false
-    t.string "label", null: false
-    t.date "starts_on", null: false
-    t.integer "status", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.index ["discarded_at"], name: "index_billing_periods_on_discarded_at"
-    t.index ["discarded_by_id"], name: "index_billing_periods_on_discarded_by_id"
-    t.index ["label"], name: "index_billing_periods_on_label", unique: true
-    t.index ["starts_on"], name: "index_billing_periods_on_starts_on"
-  end
-
   create_table "billing_statements", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "billing_period_id", null: false
     t.datetime "created_at", null: false
-    t.bigint "customer_id"
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.date "due_on"
+    t.date "ends_on", null: false
+    t.integer "grand_total", default: 0, null: false
     t.date "issued_on"
+    t.date "month", null: false
     t.string "number", null: false
+    t.date "starts_on", null: false
     t.integer "status", default: 0, null: false
-    t.integer "total_cents", default: 0, null: false
+    t.integer "total_amount", default: 0, null: false
+    t.integer "total_tva", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.index ["billing_period_id"], name: "index_billing_statements_on_billing_period_id"
-    t.index ["customer_id"], name: "index_billing_statements_on_customer_id"
     t.index ["discarded_at"], name: "index_billing_statements_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_billing_statements_on_discarded_by_id"
+    t.index ["month"], name: "index_billing_statements_on_month", unique: true
     t.index ["number"], name: "index_billing_statements_on_number", unique: true
     t.index ["status"], name: "index_billing_statements_on_status"
+  end
+
+  create_table "delivery_notes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "delivered_on"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "number", null: false
+    t.decimal "quantity_diesel_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "quantity_gasoline_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_delivery_notes_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_delivery_notes_on_discarded_by_id"
+    t.index ["number"], name: "index_delivery_notes_on_number", unique: true
+    t.index ["trip_id"], name: "index_delivery_notes_on_trip_id", unique: true
   end
 
   create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -136,7 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
   end
 
   create_table "maintenances", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "cost_cents"
+    t.integer "cost"
     t.datetime "created_at", null: false
     t.text "description"
     t.datetime "discarded_at"
@@ -218,17 +228,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
   end
 
+  create_table "routes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "destination", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "origin", null: false
+    t.integer "rate", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_routes_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_routes_on_discarded_by_id"
+    t.index ["origin", "destination"], name: "index_routes_on_origin_and_destination", unique: true
+  end
+
   create_table "trips", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "actual_end_at"
     t.datetime "actual_start_at"
     t.text "cargo_description"
     t.datetime "created_at", null: false
-    t.string "destination", null: false
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.decimal "distance_km", precision: 10, scale: 2
     t.bigint "driver_id"
-    t.string "origin", null: false
+    t.bigint "route_id", null: false
     t.datetime "scheduled_end_at"
     t.datetime "scheduled_start_at"
     t.integer "status", default: 0, null: false
@@ -237,6 +259,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_trips_on_discarded_by_id"
     t.index ["driver_id"], name: "index_trips_on_driver_id"
+    t.index ["route_id"], name: "index_trips_on_route_id"
     t.index ["status"], name: "index_trips_on_status"
     t.index ["truck_id"], name: "index_trips_on_truck_id"
   end
@@ -303,10 +326,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
   add_foreign_key "billing_line_items", "billing_statements"
   add_foreign_key "billing_line_items", "trips"
   add_foreign_key "billing_line_items", "users", column: "discarded_by_id"
-  add_foreign_key "billing_periods", "users", column: "discarded_by_id"
-  add_foreign_key "billing_statements", "billing_periods"
-  add_foreign_key "billing_statements", "users", column: "customer_id"
   add_foreign_key "billing_statements", "users", column: "discarded_by_id"
+  add_foreign_key "delivery_notes", "trips"
+  add_foreign_key "delivery_notes", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "uploaded_by_id"
   add_foreign_key "maintenances", "trucks"
@@ -317,6 +339,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120800) do
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
   add_foreign_key "oauth_applications", "users", column: "created_by_id"
   add_foreign_key "oauth_applications", "users", column: "discarded_by_id"
+  add_foreign_key "routes", "users", column: "discarded_by_id"
+  add_foreign_key "trips", "routes"
   add_foreign_key "trips", "trucks"
   add_foreign_key "trips", "users", column: "discarded_by_id"
   add_foreign_key "trips", "users", column: "driver_id"

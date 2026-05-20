@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Route do
   let(:route) do
-    described_class.new(origin: "Conakry", destination: "Labe", rate_cents: 250_000)
+    described_class.new(origin: "Conakry", destination: "Labe", rate: 250)
   end
 
   it "includes Discardable" do
@@ -13,7 +13,7 @@ RSpec.describe Route do
     expect(described_class.audited_options).to be_present
   end
 
-  it "is valid with origin, destination, rate_cents" do
+  it "is valid with origin, destination, rate" do
     expect(route).to be_valid
   end
 
@@ -29,22 +29,22 @@ RSpec.describe Route do
     expect(route.errors[:destination]).to be_present
   end
 
-  it "requires non-negative rate_cents" do
-    route.rate_cents = -1
+  it "requires non-negative rate" do
+    route.rate = -1
     route.validate
-    expect(route.errors[:rate_cents]).to be_present
+    expect(route.errors[:rate]).to be_present
   end
 
   it "enforces case-insensitive uniqueness of (origin, destination)" do
-    described_class.create!(origin: "Conakry", destination: "Labe", rate_cents: 250_000)
-    duplicate = described_class.new(origin: "conakry", destination: "labe", rate_cents: 300_000)
+    described_class.create!(origin: "Conakry", destination: "Labe", rate: 250)
+    duplicate = described_class.new(origin: "conakry", destination: "labe", rate: 300)
     duplicate.validate
     expect(duplicate.errors[:origin]).to be_present
   end
 
   it "allows the same origin with a different destination" do
-    described_class.create!(origin: "Conakry", destination: "Labe", rate_cents: 250_000)
-    other = described_class.new(origin: "Conakry", destination: "Kindia", rate_cents: 150_000)
+    described_class.create!(origin: "Conakry", destination: "Labe", rate: 250)
+    other = described_class.new(origin: "Conakry", destination: "Kindia", rate: 150)
     expect(other).to be_valid
   end
 

@@ -6,7 +6,7 @@ RSpec.describe BillingLineItem do
   end
   let(:trip) do
     truck = Truck.create!(plate_number: "LI-1")
-    route = Route.create!(origin: "Conakry", destination: "Labe", rate_cents: 250)
+    route = Route.create!(origin: "Conakry", destination: "Labe", rate: 250)
     Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 12))
   end
   let(:line_item) do
@@ -15,9 +15,9 @@ RSpec.describe BillingLineItem do
                         delivery_note_number: "DN-1",
                         origin: "Conakry", destination: "Labe",
                         quantity_gasoline_liters: 1_000, quantity_diesel_liters: 500,
-                        rate_cents: 250,
-                        amount_cents: 375_000,
-                        tva_cents: 67_500)
+                        rate: 250,
+                        amount: 375_000,
+                        tva: 67_500)
   end
 
   it "includes Discardable" do
@@ -34,10 +34,10 @@ RSpec.describe BillingLineItem do
     expect(line_item.errors[:trip]).to be_present
   end
 
-  it "rejects negative amount_cents" do
-    line_item.amount_cents = -1
+  it "rejects a negative amount" do
+    line_item.amount = -1
     line_item.validate
-    expect(line_item.errors[:amount_cents]).to be_present
+    expect(line_item.errors[:amount]).to be_present
   end
 
   it "rejects negative quantities" do
@@ -81,14 +81,14 @@ RSpec.describe BillingLineItem do
       expect([ line.origin, line.destination ]).to eq([ "Conakry", "Labe" ])
     end
 
-    it "computes amount_cents as (qty_gas + qty_diesel) * rate_cents" do
+    it "computes amount as (qty_gas + qty_diesel) * rate" do
       line = described_class.from_trip(trip.reload, billing_statement: statement)
-      expect(line.amount_cents).to eq(375_000)
+      expect(line.amount).to eq(375_000)
     end
 
-    it "computes tva_cents as amount_cents * 0.18" do
+    it "computes tva as amount * 0.18" do
       line = described_class.from_trip(trip.reload, billing_statement: statement)
-      expect(line.tva_cents).to eq(67_500)
+      expect(line.tva).to eq(67_500)
     end
 
     it "snapshots the delivery note number" do

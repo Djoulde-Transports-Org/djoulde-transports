@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe DeliveryNote do
   let(:trip) do
     truck = Truck.create!(plate_number: "DN-1")
-    route = Route.create!(origin: "Conakry", destination: "Labe", rate_cents: 250)
+    route = Route.create!(origin: "Conakry", destination: "Labe", rate: 250)
     Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 12))
   end
   let(:note) do

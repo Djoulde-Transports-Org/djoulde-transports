@@ -14,7 +14,7 @@ class BillingStatement < ApplicationRecord
 
   validates :number, presence: true, uniqueness: { case_sensitive: false }
   validates :month, presence: true, uniqueness: true
-  validates :total_amount_cents, :total_tva_cents, :grand_total_cents,
+  validates :total_amount, :total_tva, :grand_total,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate  :month_is_first_of_month
   validate  :issued_on_in_window
@@ -34,9 +34,9 @@ class BillingStatement < ApplicationRecord
   end
 
   def recalculate_total!
-    amount = billing_line_items.kept.sum(:amount_cents)
-    tva    = billing_line_items.kept.sum(:tva_cents)
-    update!(total_amount_cents: amount, total_tva_cents: tva, grand_total_cents: amount + tva)
+    amount = billing_line_items.kept.sum(:amount)
+    tva    = billing_line_items.kept.sum(:tva)
+    update!(total_amount: amount, total_tva: tva, grand_total: amount + tva)
   end
 
   private

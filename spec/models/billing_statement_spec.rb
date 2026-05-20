@@ -55,9 +55,9 @@ RSpec.describe BillingStatement do
     expect(statement.status).to eq("draft")
   end
 
-  it "defaults total_amount_cents to 0" do
+  it "defaults total_amount to 0" do
     statement.save!
-    expect(statement.total_amount_cents).to eq(0)
+    expect(statement.total_amount).to eq(0)
   end
 
   describe "issue window (1st-10th of month + 1)" do
@@ -106,7 +106,7 @@ RSpec.describe BillingStatement do
   describe "#recalculate_total!" do
     let(:line) do
       truck = Truck.create!(plate_number: "BS-1")
-      route = Route.create!(origin: "A", destination: "B", rate_cents: 250)
+      route = Route.create!(origin: "A", destination: "B", rate: 250)
       trip  = Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 2))
       DeliveryNote.create!(trip: trip, number: "DN-BS-1",
                            quantity_gasoline_liters: 1_000, quantity_diesel_liters: 500,
@@ -114,19 +114,19 @@ RSpec.describe BillingStatement do
       BillingLineItem.from_trip(trip, billing_statement: statement)
     end
 
-    it "sums amounts onto total_amount_cents and tva onto total_tva_cents" do
+    it "sums amounts onto total_amount and tva onto total_tva" do
       statement.save!
       line.save!
       statement.recalculate_total!
-      expect([ statement.total_amount_cents, statement.total_tva_cents ])
+      expect([ statement.total_amount, statement.total_tva ])
         .to eq([ 375_000, 67_500 ])
     end
 
-    it "writes grand_total_cents as total_amount_cents + total_tva_cents" do
+    it "writes grand_total as total_amount + total_tva" do
       statement.save!
       line.save!
       statement.recalculate_total!
-      expect(statement.grand_total_cents).to eq(442_500)
+      expect(statement.grand_total).to eq(442_500)
     end
   end
 

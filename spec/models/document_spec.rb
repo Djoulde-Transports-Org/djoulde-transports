@@ -35,7 +35,7 @@ RSpec.describe Document do
   end
 
   it "can attach to a Trip via documentable" do
-    route = Route.create!(origin: "A", destination: "B", rate_cents: 100_000)
+    route = Route.create!(origin: "A", destination: "B", rate: 100)
     trip  = Trip.create!(truck: truck, route: route)
     doc   = described_class.create!(title: "Bill of lading", documentable: trip)
     expect(trip.documents).to include(doc)

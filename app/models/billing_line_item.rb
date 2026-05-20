@@ -2,8 +2,8 @@ class BillingLineItem < ApplicationRecord
   include Discardable
   audited associated_with: :billing_statement
 
-  # Statutory VAT for Guinea (18%). Per-line `tva_cents` is snapshotted at
-  # issue time, so historical bills are unaffected if the rate ever changes.
+  # Statutory VAT for Guinea (18%). Per-line `tva` is snapshotted at issue
+  # time, so historical bills are unaffected if the rate ever changes.
   TVA_RATE = BigDecimal("0.18")
 
   belongs_to :billing_statement
@@ -11,7 +11,7 @@ class BillingLineItem < ApplicationRecord
   belongs_to :discarded_by, class_name: "User", optional: true
 
   validates :trip_id, uniqueness: { scope: :billing_statement_id }
-  validates :amount_cents, :tva_cents, :rate_cents,
+  validates :amount, :tva, :rate,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :quantity_gasoline_liters, :quantity_diesel_liters,
             numericality: { greater_than_or_equal_to: 0 }
@@ -22,7 +22,7 @@ class BillingLineItem < ApplicationRecord
     note  = trip.delivery_note or raise ArgumentError, "trip #{trip.id} has no delivery_note"
     route = trip.route
     qty   = note.quantity_gasoline_liters + note.quantity_diesel_liters
-    amount = (qty * route.rate_cents).round.to_i
+    amount = (qty * route.rate).round.to_i
 
     new(
       billing_statement: billing_statement,
@@ -33,9 +33,9 @@ class BillingLineItem < ApplicationRecord
       destination: route.destination,
       quantity_gasoline_liters: note.quantity_gasoline_liters,
       quantity_diesel_liters:   note.quantity_diesel_liters,
-      rate_cents: route.rate_cents,
-      amount_cents: amount,
-      tva_cents: (BigDecimal(amount) * TVA_RATE).round.to_i
+      rate: route.rate,
+      amount: amount,
+      tva: (BigDecimal(amount) * TVA_RATE).round.to_i
     )
   end
 
