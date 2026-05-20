@@ -62,6 +62,10 @@ RSpec.describe Trip do
     expect(reflection.options[:as]).to eq(:documentable)
   end
 
+  it "associates has_one :delivery_note" do
+    expect(described_class.reflect_on_association(:delivery_note).macro).to eq(:has_one)
+  end
+
   describe ".started_in_month" do
     let!(:may_trip) do
       described_class.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 15, 8))

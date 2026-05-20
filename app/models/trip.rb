@@ -14,6 +14,7 @@ class Trip < ApplicationRecord
   belongs_to :driver,       class_name: "User", optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
+  has_one  :delivery_note, dependent: :restrict_with_error
   has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
