@@ -1,12 +1,8 @@
 require "rails_helper"
 
 RSpec.describe BillingStatement do
-  let(:period) do
-    BillingPeriod.create!(label: "2026-Q1", starts_on: Date.new(2026, 1, 1), ends_on: Date.new(2026, 3, 31))
-  end
-  let(:statement) do
-    described_class.new(billing_period: period, number: "INV-0001")
-  end
+  let(:may_2026) { Date.new(2026, 5, 1) }
+  let(:statement) { described_class.new(number: "INV-202605", month: may_2026) }
 
   it "includes Discardable" do
     expect(described_class.included_modules).to include(Discardable)
@@ -16,23 +12,42 @@ RSpec.describe BillingStatement do
     expect(described_class.audited_options).to be_present
   end
 
-  it "requires billing_period" do
-    blank = described_class.new(number: "INV-X")
-    blank.validate
-    expect(blank.errors[:billing_period]).to be_present
-  end
-
   it "requires number" do
     statement.number = nil
     statement.validate
     expect(statement.errors[:number]).to be_present
   end
 
+  it "requires month" do
+    statement.month = nil
+    statement.validate
+    expect(statement.errors[:month]).to be_present
+  end
+
+  it "rejects a month that is not the first of the month" do
+    statement.month = Date.new(2026, 5, 15)
+    statement.validate
+    expect(statement.errors[:month]).to be_present
+  end
+
+  it "derives starts_on and ends_on from month" do
+    statement.save!
+    expect([ statement.starts_on, statement.ends_on ])
+      .to eq([ may_2026, Date.new(2026, 5, 31) ])
+  end
+
   it "enforces unique number" do
     statement.save!
-    duplicate = described_class.new(billing_period: period, number: "INV-0001")
+    duplicate = described_class.new(number: "INV-202605", month: Date.new(2026, 6, 1))
     duplicate.validate
     expect(duplicate.errors[:number]).to be_present
+  end
+
+  it "enforces one statement per month" do
+    statement.save!
+    duplicate = described_class.new(number: "INV-202605-B", month: may_2026)
+    duplicate.validate
+    expect(duplicate.errors[:month]).to be_present
   end
 
   it "defaults status to draft" do
@@ -45,8 +60,64 @@ RSpec.describe BillingStatement do
     expect(statement.total_cents).to eq(0)
   end
 
-  it "has_many :billing_line_items" do
-    expect(described_class.reflect_on_association(:billing_line_items).macro).to eq(:has_many)
+  describe "issue window (1st-10th of month + 1)" do
+    it "accepts issued_on on the 1st of the following month" do
+      statement.issued_on = Date.new(2026, 6, 1)
+      expect(statement).to be_valid
+    end
+
+    it "accepts issued_on on the 10th of the following month" do
+      statement.issued_on = Date.new(2026, 6, 10)
+      expect(statement).to be_valid
+    end
+
+    it "rejects issued_on inside the billed month" do
+      statement.issued_on = Date.new(2026, 5, 31)
+      statement.validate
+      expect(statement.errors[:issued_on]).to be_present
+    end
+
+    it "rejects issued_on after the 10th" do
+      statement.issued_on = Date.new(2026, 6, 11)
+      statement.validate
+      expect(statement.errors[:issued_on]).to be_present
+    end
+  end
+
+  describe ".for_month" do
+    it "returns the statement for the given month" do
+      statement.save!
+      expect(described_class.for_month(Date.new(2026, 5, 14))).to contain_exactly(statement)
+    end
+  end
+
+  describe ".due_for_issue" do
+    it "returns draft statements whose billed month has ended" do
+      statement.save!
+      expect(described_class.due_for_issue(Date.new(2026, 6, 5))).to contain_exactly(statement)
+    end
+
+    it "excludes draft statements whose billed month is still in progress" do
+      statement.save!
+      expect(described_class.due_for_issue(Date.new(2026, 5, 31))).to be_empty
+    end
+  end
+
+  describe "#recalculate_total!" do
+    let(:line) do
+      truck = Truck.create!(plate_number: "BS-1")
+      route = Route.create!(origin: "A", destination: "B", rate_cents: 100_000)
+      trip  = Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 2))
+      BillingLineItem.new(billing_statement: statement, trip: trip,
+                          description: "A -> B", amount_cents: 100_000)
+    end
+
+    it "sums kept line item amounts onto total_cents" do
+      statement.save!
+      line.save!
+      statement.recalculate_total!
+      expect(statement.reload.total_cents).to eq(100_000)
+    end
   end
 
   it "does not hard-destroy on discard" do

@@ -1,13 +1,17 @@
 require "rails_helper"
 
 RSpec.describe BillingLineItem do
-  let(:period) do
-    BillingPeriod.create!(label: "2026-Q2", starts_on: Date.new(2026, 4, 1), ends_on: Date.new(2026, 6, 30))
+  let(:statement) do
+    BillingStatement.create!(number: "INV-202605", month: Date.new(2026, 5, 1))
   end
-  let(:statement) { BillingStatement.create!(billing_period: period, number: "INV-1001") }
+  let(:trip) do
+    truck = Truck.create!(plate_number: "LI-1")
+    route = Route.create!(origin: "Conakry", destination: "Labe", rate_cents: 250_000)
+    Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 12))
+  end
   let(:line_item) do
-    described_class.new(billing_statement: statement, description: "Trip Conakry to Labe",
-                        quantity: 1, unit_price_cents: 5_000, amount_cents: 5_000)
+    described_class.new(billing_statement: statement, trip: trip,
+                        description: "Conakry -> Labe", amount_cents: 250_000)
   end
 
   it "includes Discardable" do
@@ -24,16 +28,23 @@ RSpec.describe BillingLineItem do
     expect(line_item.errors[:description]).to be_present
   end
 
-  it "rejects zero quantity" do
-    line_item.quantity = 0
+  it "requires a trip" do
+    line_item.trip = nil
     line_item.validate
-    expect(line_item.errors[:quantity]).to be_present
+    expect(line_item.errors[:trip]).to be_present
   end
 
-  it "rejects negative unit_price_cents" do
-    line_item.unit_price_cents = -1
+  it "rejects negative amount_cents" do
+    line_item.amount_cents = -1
     line_item.validate
-    expect(line_item.errors[:unit_price_cents]).to be_present
+    expect(line_item.errors[:amount_cents]).to be_present
+  end
+
+  it "rejects two line items for the same trip on the same statement" do
+    line_item.save!
+    duplicate = line_item.dup.tap { |li| li.description = "duplicate" }
+    duplicate.validate
+    expect(duplicate.errors[:trip_id]).to be_present
   end
 
   it "does not hard-destroy on discard" do

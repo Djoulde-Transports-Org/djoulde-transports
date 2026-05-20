@@ -2,9 +2,8 @@ require "rails_helper"
 
 RSpec.describe Trip do
   let(:truck) { Truck.create!(plate_number: "PLATE-1") }
-  let(:trip) do
-    described_class.new(truck: truck, origin: "Conakry", destination: "Labe")
-  end
+  let(:route) { Route.create!(origin: "Conakry", destination: "Labe", rate_cents: 250_000) }
+  let(:trip)  { described_class.new(truck: truck, route: route) }
 
   it "includes Discardable" do
     expect(described_class.included_modules).to include(Discardable)
@@ -20,16 +19,10 @@ RSpec.describe Trip do
     expect(trip.errors[:truck]).to be_present
   end
 
-  it "requires origin" do
-    trip.origin = nil
+  it "requires a route" do
+    trip.route = nil
     trip.validate
-    expect(trip.errors[:origin]).to be_present
-  end
-
-  it "requires destination" do
-    trip.destination = nil
-    trip.validate
-    expect(trip.errors[:destination]).to be_present
+    expect(trip.errors[:route]).to be_present
   end
 
   it "defaults status to scheduled" do
@@ -40,6 +33,14 @@ RSpec.describe Trip do
   it "exposes the four status states" do
     expect(described_class.statuses.keys)
       .to contain_exactly("scheduled", "in_progress", "completed", "cancelled")
+  end
+
+  it "delegates origin to the route" do
+    expect(trip.origin).to eq("Conakry")
+  end
+
+  it "delegates destination to the route" do
+    expect(trip.destination).to eq("Labe")
   end
 
   it "rejects a scheduled_end_at earlier than scheduled_start_at" do
@@ -59,6 +60,23 @@ RSpec.describe Trip do
   it "associates has_many :documents as :documentable" do
     reflection = described_class.reflect_on_association(:documents)
     expect(reflection.options[:as]).to eq(:documentable)
+  end
+
+  describe ".started_in_month" do
+    let!(:may_trip) do
+      described_class.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 15, 8))
+    end
+    let!(:june_trip) do
+      described_class.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 6, 1, 0))
+    end
+
+    it "returns trips whose actual_start_at falls in the month" do
+      expect(described_class.started_in_month(2026, 5)).to contain_exactly(may_trip)
+    end
+
+    it "excludes trips that start in a different month" do
+      expect(described_class.started_in_month(2026, 5)).not_to include(june_trip)
+    end
   end
 
   it "does not hard-destroy on discard" do

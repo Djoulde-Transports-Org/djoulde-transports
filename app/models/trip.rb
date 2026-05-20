@@ -10,16 +10,29 @@ class Trip < ApplicationRecord
   }, default: :scheduled
 
   belongs_to :truck
+  belongs_to :route
   belongs_to :driver,       class_name: "User", optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  has_many :documents,         as: :documentable, dependent: :restrict_with_error
+  has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
-  validates :origin, :destination, presence: true
   validates :distance_km, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validate  :scheduled_window_ordered
   validate  :actual_window_ordered
+
+  scope :started_in_month, ->(year, month) {
+    start = Date.new(year, month, 1)
+    where(actual_start_at: start.beginning_of_day...start.next_month.beginning_of_day)
+  }
+
+  def origin
+    route&.origin
+  end
+
+  def destination
+    route&.destination
+  end
 
   private
 
