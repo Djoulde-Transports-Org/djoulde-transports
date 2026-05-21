@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: trips
@@ -43,7 +45,7 @@ class Trip < ApplicationRecord
     scheduled: 0,
     in_progress: 1,
     completed: 2,
-    cancelled: 3
+    cancelled: 3,
   }, default: :scheduled
 
   belongs_to :truck
@@ -55,7 +57,7 @@ class Trip < ApplicationRecord
   has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
-  validates :distance_km, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :distance_km, numericality: {greater_than_or_equal_to: 0}, allow_nil: true
   validate  :scheduled_window_ordered
   validate  :actual_window_ordered
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: billing_statements
@@ -38,24 +40,24 @@ class BillingStatement < ApplicationRecord
 
   ISSUE_WINDOW_DAYS = 9 # the bill is issued between day 1 and day 10 of `month + 1`
 
-  enum :status, { draft: 0, issued: 1, paid: 2, void: 3 }, default: :draft
+  enum :status, {draft: 0, issued: 1, paid: 2, void: 3}, default: :draft
 
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_many :billing_line_items, dependent: :restrict_with_error
   has_many :documents, as: :documentable, dependent: :restrict_with_error
 
-  validates :number, presence: true, uniqueness: { case_sensitive: false }
+  validates :number, presence: true, uniqueness: {case_sensitive: false}
   validates :month, presence: true, uniqueness: true
   validates :total_amount, :total_tva, :grand_total,
-            numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+            numericality: {only_integer: true, greater_than_or_equal_to: 0}
   validate  :month_is_first_of_month
   validate  :issued_on_in_window
 
   before_validation :derive_period_dates
 
   scope :for_month, ->(date) { where(month: date.to_date.beginning_of_month) }
-  scope :due_for_issue, ->(today = Date.current) {
+  scope :due_for_issue, ->(today = Time.zone.current) {
     draft.where(month: ..today.to_date.prev_month.beginning_of_month)
   }
 

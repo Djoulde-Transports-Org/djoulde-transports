@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: routes
@@ -32,6 +34,6 @@ class Route < ApplicationRecord
   has_many :trips, dependent: :restrict_with_error
 
   validates :origin, :destination, presence: true
-  validates :origin, uniqueness: { scope: :destination, case_sensitive: false }
-  validates :rate, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :origin, uniqueness: {scope: :destination, case_sensitive: false}
+  validates :rate, numericality: {only_integer: true, greater_than_or_equal_to: 0}
 end

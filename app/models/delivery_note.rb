@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: delivery_notes
@@ -33,10 +35,10 @@ class DeliveryNote < ApplicationRecord
   belongs_to :trip
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  validates :number, presence: true, uniqueness: { case_sensitive: false }
+  validates :number, presence: true, uniqueness: {case_sensitive: false}
   validates :trip_id, uniqueness: true
   validates :quantity_gasoline_liters, :quantity_diesel_liters,
-            numericality: { greater_than_or_equal_to: 0 }
+            numericality: {greater_than_or_equal_to: 0}
   validate  :at_least_one_product
 
   def product
