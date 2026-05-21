@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if Rails.env.production?
   Figaro.require_keys(
     "DATABASE_HOST",

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API::V1::Helpers
   module Auth
     extend Grape::API::Helpers
@@ -11,7 +13,11 @@ module API::V1::Helpers
     def current_user
       return nil unless doorkeeper_token
 
-      @current_user ||= User.kept.find_by(id: doorkeeper_token.resource_owner_id)
+      if defined?(@current_user)
+  @current_user
+      else
+  @current_user = User.kept.find_by(id: doorkeeper_token.resource_owner_id)
+      end
     end
 
     def authenticate!
@@ -24,7 +30,7 @@ module API::V1::Helpers
     end
 
     def unauthorized!
-      error!({ error: "unauthorized" }, 401)
+      error!({error: "unauthorized"}, 401)
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/attack"
 
 Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
@@ -21,11 +23,11 @@ end
 Rack::Attack.throttled_responder = lambda do |request|
   match_data = request.env["rack.attack.match_data"] || {}
   retry_after = match_data[:period].to_i
-  body = { error: "rate_limited", retry_after: retry_after }.to_json
+  body = {error: "rate_limited", retry_after: retry_after}.to_json
 
   [
     429,
-    { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s },
-    [ body ]
+    {"Content-Type" => "application/json", "Retry-After" => retry_after.to_s},
+    [ body ],
   ]
 end
