@@ -4,7 +4,17 @@ inherit_gem:
 
 # Layer rubocop-rspec on top
 plugins:
+  - rubocop-rails
   - rubocop-rspec
+  - rubocop-factory_bot
+  - rubocop-migration
+
+Bundler/OrderedGems:
+  TreatCommentsAsGroupSeparators: true
+
+inherit_mode:
+  merge:
+    - Exclude
 
 AllCops:
   NewCops: enable
@@ -19,3 +29,217 @@ AllCops:
     - "tmp/**/*"
     - "log/**/*"
     - "storage/**/*"
+    - "spec/rails_helper.rb"
+
+# Layout
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: variable
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/HashAlignment:
+  EnforcedLastArgumentHashStyle: always_ignore
+
+Layout/IndentationConsistency:
+  EnforcedStyle: normal
+
+Layout/IndentationWidth:
+  Width: 2
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  EnforcedStyle: with_fixed_indentation
+  IndentationWidth: 2
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+  EnforcedStyleForEmptyBraces: no_space
+
+Layout/TrailingEmptyLines:
+  EnforcedStyle: final_newline
+
+# Lint
+Lint/UnusedMethodArgument:
+  Enabled: false
+
+Lint/UnusedBlockArgument:
+  Enabled: false
+
+# Metrics
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/BlockLength:
+  CountComments: false
+  CountAsOne: ['array', 'hash', 'heredoc']
+
+Metrics/ClassLength:
+  CountComments: false
+  CountAsOne: ['array', 'hash', 'heredoc']
+  Max: 200
+
+Metrics/MethodLength:
+  CountComments: false
+  CountAsOne: ['array', 'hash', 'heredoc']
+  Max: 20
+
+Metrics/ModuleLength:
+  CountComments: false
+  CountAsOne: ['array', 'hash', 'heredoc']
+  Max: 200
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+# Naming
+Naming/AccessorMethodName:
+  Enabled: false
+
+# https://docs.rubocop.org/rubocop/cops_naming.html#namingmemoizedinstancevariablename
+Naming/MemoizedInstanceVariableName:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  PreferredName: error
+
+# Rails
+Rails:
+  Enabled: true
+
+Rails/Date:
+  EnforcedStyle: strict
+
+Rails/FilePath:
+  EnforcedStyle: arguments
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/Output:
+  Exclude:
+    - 'db/seeds.rb'
+
+Rails/TimeZone:
+  EnforcedStyle: strict
+
+# RSpec
+RSpec:
+  Enabled: true
+
+RSpec/ContextWording:
+  Prefixes:
+    - when
+    - with
+    - without
+    - for
+    - if
+    - unless
+
+RSpec/DescribedClass:
+  EnforcedStyle: described_class
+
+RSpec/ExampleLength:
+  CountAsOne: ['array', 'hash', 'heredoc', 'method_call']
+  Enabled: true
+  Max: 20
+
+RSpec/EmptyLineAfterSubject:
+  Exclude:
+    - 'spec/factories/**'
+
+RSpec/ExpectChange:
+  EnforcedStyle: block
+
+RSpec/InstanceVariable:
+  Enabled: false
+
+RSpec/IndexedLet:
+  Max: 0
+
+RSpec/LetSetup:
+  Enabled: false
+
+RSpec/MessageSpies:
+  EnforcedStyle: receive
+
+RSpec/MultipleExpectations:
+  Max: 1
+
+RSpec/NestedGroups:
+  Max: 4
+
+# Style
+Style/BlockDelimiters:
+  EnforcedStyle: semantic
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Style/HashAsLastArrayItem:
+  EnforcedStyle: no_braces
+
+Style/GuardClause:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%': '()'
+    '%i': '()'
+    '%I': '()'
+    '%q': '()'
+    '%Q': '()'
+    '%r': '()'
+    '%s': '()'
+    '%w': '()'
+    '%W': '()'
+
+Style/Proc:
+  Enabled: false
+
+Style/RegexpLiteral:
+  EnforcedStyle: percent_r
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: percent
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/WordArray:
+  EnforcedStyle: percent

@@ -352,6 +352,14 @@ GEM
     rubocop-ast (1.49.1)
       parser (>= 3.3.7.2)
       prism (~> 1.7)
+    rubocop-factory_bot (2.28.0)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.72, >= 1.72.1)
+    rubocop-migration (0.7.1)
+      activesupport
+      lint_roller (>= 1.1)
+      rubocop (>= 1.72.1)
+      rubocop-rails (>= 2.24)
     rubocop-performance (1.26.1)
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
@@ -457,6 +465,8 @@ DEPENDENCIES
   redis (~> 5.3)
   rolify (~> 6.0)
   rspec-rails (~> 7.1)
+  rubocop-factory_bot
+  rubocop-migration
   rubocop-rails-omakase
   rubocop-rspec
   solid_cable
