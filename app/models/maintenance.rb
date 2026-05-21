@@ -1,3 +1,35 @@
+# == Schema Information
+#
+# Table name: maintenances
+# Database name: primary
+#
+#  id              :bigint           not null, primary key
+#  cost            :integer
+#  description     :text(65535)
+#  discarded_at    :datetime
+#  kind            :integer          default("routine"), not null
+#  odometer_km     :integer
+#  performed_on    :date             not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  discarded_by_id :bigint
+#  performed_by_id :bigint
+#  truck_id        :bigint           not null
+#
+# Indexes
+#
+#  index_maintenances_on_discarded_at     (discarded_at)
+#  index_maintenances_on_discarded_by_id  (discarded_by_id)
+#  index_maintenances_on_performed_by_id  (performed_by_id)
+#  index_maintenances_on_performed_on     (performed_on)
+#  index_maintenances_on_truck_id         (truck_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (discarded_by_id => users.id)
+#  fk_rails_...  (performed_by_id => users.id)
+#  fk_rails_...  (truck_id => trucks.id)
+#
 class Maintenance < ApplicationRecord
   include Discardable
   audited

@@ -1,3 +1,35 @@
+# == Schema Information
+#
+# Table name: trucks
+# Database name: primary
+#
+#  id              :bigint           not null, primary key
+#  capacity_kg     :integer
+#  discarded_at    :datetime
+#  make            :string(255)
+#  model           :string(255)
+#  plate_number    :string(255)      not null
+#  status          :integer          default("active"), not null
+#  vin             :string(255)
+#  year            :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  created_by_id   :bigint
+#  discarded_by_id :bigint
+#
+# Indexes
+#
+#  index_trucks_on_created_by_id    (created_by_id)
+#  index_trucks_on_discarded_at     (discarded_at)
+#  index_trucks_on_discarded_by_id  (discarded_by_id)
+#  index_trucks_on_plate_number     (plate_number) UNIQUE
+#  index_trucks_on_vin              (vin) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (created_by_id => users.id)
+#  fk_rails_...  (discarded_by_id => users.id)
+#
 class Truck < ApplicationRecord
   include Discardable
   audited

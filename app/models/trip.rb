@@ -1,3 +1,40 @@
+# == Schema Information
+#
+# Table name: trips
+# Database name: primary
+#
+#  id                 :bigint           not null, primary key
+#  actual_end_at      :datetime
+#  actual_start_at    :datetime
+#  cargo_description  :text(65535)
+#  discarded_at       :datetime
+#  distance_km        :decimal(10, 2)
+#  scheduled_end_at   :datetime
+#  scheduled_start_at :datetime
+#  status             :integer          default("scheduled"), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  discarded_by_id    :bigint
+#  driver_id          :bigint
+#  route_id           :bigint           not null
+#  truck_id           :bigint           not null
+#
+# Indexes
+#
+#  index_trips_on_discarded_at     (discarded_at)
+#  index_trips_on_discarded_by_id  (discarded_by_id)
+#  index_trips_on_driver_id        (driver_id)
+#  index_trips_on_route_id         (route_id)
+#  index_trips_on_status           (status)
+#  index_trips_on_truck_id         (truck_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (discarded_by_id => users.id)
+#  fk_rails_...  (driver_id => users.id)
+#  fk_rails_...  (route_id => routes.id)
+#  fk_rails_...  (truck_id => trucks.id)
+#
 class Trip < ApplicationRecord
   include Discardable
   audited
