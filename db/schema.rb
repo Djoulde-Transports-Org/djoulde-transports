@@ -10,7 +10,160 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_175300) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "audits", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "action"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.text "audited_changes", size: :medium
+    t.string "comment"
+    t.datetime "created_at"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.integer "version", default: 0
+    t.index ["associated_type", "associated_id"], name: "associated_index"
+    t.index ["associated_type", "associated_id"], name: "index_audits_on_associated"
+    t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
+    t.index ["auditable_type", "auditable_id"], name: "index_audits_on_auditable"
+    t.index ["created_at"], name: "index_audits_on_created_at"
+    t.index ["request_uuid"], name: "index_audits_on_request_uuid"
+    t.index ["user_id", "user_type"], name: "user_index"
+    t.index ["user_type", "user_id"], name: "index_audits_on_user"
+  end
+
+  create_table "billing_line_items", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "amount", null: false
+    t.bigint "billing_statement_id", null: false
+    t.datetime "created_at", null: false
+    t.string "delivery_note_number"
+    t.string "destination"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "origin"
+    t.decimal "quantity_diesel_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "quantity_gasoline_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.integer "rate", default: 0, null: false
+    t.date "started_on"
+    t.bigint "trip_id", null: false
+    t.integer "tva", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_statement_id", "trip_id"], name: "index_billing_line_items_on_statement_and_trip", unique: true
+    t.index ["billing_statement_id"], name: "index_billing_line_items_on_billing_statement_id"
+    t.index ["delivery_note_number"], name: "index_billing_line_items_on_delivery_note_number"
+    t.index ["discarded_at"], name: "index_billing_line_items_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_billing_line_items_on_discarded_by_id"
+    t.index ["trip_id"], name: "index_billing_line_items_on_trip_id"
+  end
+
+  create_table "billing_statements", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.date "due_on"
+    t.date "ends_on", null: false
+    t.integer "grand_total", default: 0, null: false
+    t.date "issued_on"
+    t.date "month", null: false
+    t.string "number", null: false
+    t.date "starts_on", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "total_amount", default: 0, null: false
+    t.integer "total_tva", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_billing_statements_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_billing_statements_on_discarded_by_id"
+    t.index ["month"], name: "index_billing_statements_on_month", unique: true
+    t.index ["number"], name: "index_billing_statements_on_number", unique: true
+    t.index ["status"], name: "index_billing_statements_on_status"
+  end
+
+  create_table "delivery_notes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "delivered_on"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "number", null: false
+    t.decimal "quantity_diesel_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "quantity_gasoline_liters", precision: 12, scale: 2, default: "0.0", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_delivery_notes_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_delivery_notes_on_discarded_by_id"
+    t.index ["number"], name: "index_delivery_notes_on_number", unique: true
+    t.index ["trip_id"], name: "index_delivery_notes_on_trip_id", unique: true
+  end
+
+  create_table "documents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.integer "doc_type", default: 0, null: false
+    t.bigint "documentable_id", null: false
+    t.string "documentable_type", null: false
+    t.date "expires_on"
+    t.date "issued_on"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "uploaded_by_id"
+    t.index ["discarded_at"], name: "index_documents_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_documents_on_discarded_by_id"
+    t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
+    t.index ["expires_on"], name: "index_documents_on_expires_on"
+    t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
+  end
+
+  create_table "maintenances", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "cost"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.integer "kind", default: 0, null: false
+    t.integer "odometer_km"
+    t.bigint "performed_by_id"
+    t.date "performed_on", null: false
+    t.bigint "truck_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_maintenances_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_maintenances_on_discarded_by_id"
+    t.index ["performed_by_id"], name: "index_maintenances_on_performed_by_id"
+    t.index ["performed_on"], name: "index_maintenances_on_performed_on"
+    t.index ["truck_id"], name: "index_maintenances_on_truck_id"
+  end
+
   create_table "oauth_access_grants", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "application_id", null: false
     t.datetime "created_at", null: false
@@ -75,6 +228,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_175300) do
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
   end
 
+  create_table "routes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "destination", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "origin", null: false
+    t.integer "rate", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_routes_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_routes_on_discarded_by_id"
+    t.index ["origin", "destination"], name: "index_routes_on_origin_and_destination", unique: true
+  end
+
+  create_table "trips", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "actual_end_at"
+    t.datetime "actual_start_at"
+    t.text "cargo_description"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.decimal "distance_km", precision: 10, scale: 2
+    t.bigint "driver_id"
+    t.bigint "route_id", null: false
+    t.datetime "scheduled_end_at"
+    t.datetime "scheduled_start_at"
+    t.integer "status", default: 0, null: false
+    t.bigint "truck_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_trips_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_trips_on_discarded_by_id"
+    t.index ["driver_id"], name: "index_trips_on_driver_id"
+    t.index ["route_id"], name: "index_trips_on_route_id"
+    t.index ["status"], name: "index_trips_on_status"
+    t.index ["truck_id"], name: "index_trips_on_truck_id"
+  end
+
+  create_table "trucks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "capacity_kg"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "make"
+    t.string "model"
+    t.string "plate_number", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.string "vin"
+    t.integer "year"
+    t.index ["created_by_id"], name: "index_trucks_on_created_by_id"
+    t.index ["discarded_at"], name: "index_trucks_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_trucks_on_discarded_by_id"
+    t.index ["plate_number"], name: "index_trucks_on_plate_number", unique: true
+    t.index ["vin"], name: "index_trucks_on_vin", unique: true
+  end
+
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -112,10 +321,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_175300) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "billing_line_items", "billing_statements"
+  add_foreign_key "billing_line_items", "trips"
+  add_foreign_key "billing_line_items", "users", column: "discarded_by_id"
+  add_foreign_key "billing_statements", "users", column: "discarded_by_id"
+  add_foreign_key "delivery_notes", "trips"
+  add_foreign_key "delivery_notes", "users", column: "discarded_by_id"
+  add_foreign_key "documents", "users", column: "discarded_by_id"
+  add_foreign_key "documents", "users", column: "uploaded_by_id"
+  add_foreign_key "maintenances", "trucks"
+  add_foreign_key "maintenances", "users", column: "discarded_by_id"
+  add_foreign_key "maintenances", "users", column: "performed_by_id"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
   add_foreign_key "oauth_applications", "users", column: "created_by_id"
   add_foreign_key "oauth_applications", "users", column: "discarded_by_id"
+  add_foreign_key "routes", "users", column: "discarded_by_id"
+  add_foreign_key "trips", "routes"
+  add_foreign_key "trips", "trucks"
+  add_foreign_key "trips", "users", column: "discarded_by_id"
+  add_foreign_key "trips", "users", column: "driver_id"
+  add_foreign_key "trucks", "users", column: "created_by_id"
+  add_foreign_key "trucks", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "discarded_by_id"
 end

@@ -88,6 +88,52 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
+## Domain models (ticket 10)
+
+Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects (ticket 11+).
+
+| Model              | Soft delete | Audited | Notes                                                                                                  |
+| ------------------ | ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| `Truck`            | yes         | yes     | `plate_number` unique; `status` enum (`active` / `out_of_service`)                                     |
+| `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate (GNF) for that route     |
+| `Trip`             | yes         | yes     | `belongs_to :truck, :route`; optional `:driver` (User); `status` enum (scheduled → cancelled)          |
+| `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; gasoline / diesel liters; `product` derived          |
+| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum                                      |
+| `Document`         | yes         | yes     | Polymorphic `:documentable`; `has_one_attached :file` (Active Storage)                                 |
+| `BillingStatement` | yes         | yes     | One fleet-wide statement per calendar month (unique `month`); HT / TVA / TTC totals; `has_associated_audits` |
+| `BillingLineItem`  | yes         | yes     | One per trip on a statement; fat snapshot for invoice rendering (see below)                            |
+
+### Billing model
+
+- Billing is **monthly and fleet-wide**: one `BillingStatement` per calendar month (`month` = first day of that month, unique). No `BillingPeriod` table — the period is the statement.
+- **`Route.rate` is per liter**, scoped by `(origin, destination)`. Stored as a whole-GNF integer (no subunits in Guinean franc). Rates are expected to be stable for years; updates apply going forward.
+- Every billable `Trip` has a `DeliveryNote` recording `quantity_gasoline_liters` and `quantity_diesel_liters`. The derived `product` is `:gasoline`, `:diesel`, or `:both`.
+- A statement aggregates every `Trip` whose `actual_start_at` falls inside the month. `BillingLineItem.from_trip(trip, billing_statement:)` builds the line by snapshotting **everything needed to render the invoice row**, so historical bills don't change if a trip / route / delivery note is corrected later:
+  - `started_on`, `delivery_note_number`, `origin`, `destination`
+  - `quantity_gasoline_liters`, `quantity_diesel_liters`
+  - `rate` (snapshot of `route.rate`)
+  - `amount` = `(qty_gasoline + qty_diesel) × rate` (HT)
+  - `tva` = `amount × 0.18` (`BillingLineItem::TVA_RATE`, Guinea statutory VAT)
+- **Statement totals** are HT / TVA / TTC. `BillingStatement#recalculate_total!` writes all three:
+  - `total_amount` = Σ line `amount` (HT)
+  - `total_tva` = Σ line `tva`
+  - `grand_total` = `total_amount + total_tva` (TTC, what the client pays)
+- **Issue window:** `issued_on` must fall between day 1 and day 10 of the month *after* `month` (`BillingStatement#issue_window`). Validated on save.
+- `BillingStatement.due_for_issue(today)` returns draft statements whose billed month has ended. The job that creates a draft statement on the 1st of each month and materializes line items via `BillingLineItem.from_trip` lands in ticket 11.
+
+### Implementation notes
+
+- **Active Storage** is installed (`active_storage_blobs` / `attachments` / `variant_records`). Documents attach files via `has_one_attached :file`.
+- **Audited YAML coder:** `config/initializers/audited.rb` registers `Date`, `Time`, `ActiveSupport::TimeWithZone`, `BigDecimal`, etc. on `ActiveRecord.yaml_column_permitted_classes` so `audited_changes` (stored as MySQL TEXT) can round-trip those value types under Psych safe-load.
+- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks deletes of aggregates that still have children; cascades land in ticket 11.
+
+### Deferred to later tickets
+
+- Grape endpoints exposing these models — ticket **11**.
+- Service object / job that creates a draft `BillingStatement` for last month on day 1 and materializes one `BillingLineItem` per trip — ticket **11**.
+- Active Admin screens for trucks, routes, trips, maintenance, documents, and billing — ticket **12**.
+- Role-based authorization on endpoints (e.g., `driver_readonly` cannot edit) — ticket **14**.
+
 ## Auth stack (ticket 09)
 
 User authentication is **Devise** + a custom **Grape** login endpoint that issues **Doorkeeper** tokens. Roles via **Rolify**.
