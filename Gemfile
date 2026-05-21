@@ -96,4 +96,8 @@ group :development do
 
   # Open Devise emails in the browser instead of sending them (ticket 09)
   gem "letter_opener", "~> 1.10"
+
+  # Annotate models with schema info as comments
+  # Maintained fork of `annotate` with Rails 8 support [https://github.com/drwl/annotaterb]
+  gem "annotaterb", "~> 4.16"
 end
