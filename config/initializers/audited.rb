@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Audited stores `audited_changes` as TEXT (MySQL). With Rails 7.1+, audited
 # delegates serialization to `ActiveRecord::Coders::YAMLColumn`, which calls
 # `Psych.safe_dump` with `ActiveRecord.yaml_column_permitted_classes`.
@@ -11,5 +13,5 @@ Rails.application.config.active_record.yaml_column_permitted_classes |= [
   Time,
   ActiveSupport::TimeWithZone,
   ActiveSupport::TimeZone,
-  BigDecimal
+  BigDecimal,
 ]

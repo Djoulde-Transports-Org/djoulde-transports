@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe "POST /api/v1/sessions", type: :request do
@@ -9,8 +11,8 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
 
   def login(email:, password:)
     post "/api/v1/sessions",
-      params: { email: email, password: password }.to_json,
-      headers: { "Content-Type" => "application/json" }
+      params: {email: email, password: password}.to_json,
+      headers: {"Content-Type" => "application/json"}
   end
 
   context "with valid credentials and an OauthApplication" do
@@ -24,15 +26,15 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns a Bearer token_type" do
-      expect(JSON.parse(response.body)["token_type"]).to eq("Bearer")
+      expect(response.parsed_body["token_type"]).to eq("Bearer")
     end
 
     it "returns an access_token string" do
-      expect(JSON.parse(response.body)["access_token"]).to be_a(String)
+      expect(response.parsed_body["access_token"]).to be_a(String)
     end
 
     it "returns the user_id" do
-      expect(JSON.parse(response.body)["user_id"]).to eq(user.id)
+      expect(response.parsed_body["user_id"]).to eq(user.id)
     end
   end
 
@@ -44,7 +46,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns the api_access_denied_no_application error code" do
-      expect(JSON.parse(response.body)["error"]).to eq("api_access_denied_no_application")
+      expect(response.parsed_body["error"]).to eq("api_access_denied_no_application")
     end
   end
 
@@ -56,7 +58,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns invalid_credentials" do
-      expect(JSON.parse(response.body)["error"]).to eq("invalid_credentials")
+      expect(response.parsed_body["error"]).to eq("invalid_credentials")
     end
   end
 
@@ -72,7 +74,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns the discarded error code" do
-      expect(JSON.parse(response.body)["error"]).to eq("discarded")
+      expect(response.parsed_body["error"]).to eq("discarded")
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API::V1
   class Me < Grape::API
     before { authenticate! }
@@ -8,7 +10,7 @@ module API::V1
         {
           id:    current_user.id,
           email: current_user.email,
-          roles: current_user.roles.pluck(:name)
+          roles: current_user.roles.pluck(:name),
         }
       end
     end

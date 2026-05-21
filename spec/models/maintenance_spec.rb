@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Maintenance do
   let(:truck) { Truck.create!(plate_number: "MNT-1") }
   let(:maintenance) do
-    described_class.new(truck: truck, performed_on: Date.current)
+    described_class.new(truck: truck, performed_on: Time.zone.current)
   end
 
   it "includes Discardable" do

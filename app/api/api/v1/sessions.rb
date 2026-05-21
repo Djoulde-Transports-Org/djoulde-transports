@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API::V1
   class Sessions < Grape::API
     resource :sessions do
@@ -10,16 +12,16 @@ module API::V1
         user = User.find_for_authentication(email: params[:email])
 
         unless user&.valid_password?(params[:password])
-          error!({ error: "invalid_credentials" }, 401)
+          error!({error: "invalid_credentials"}, 401)
         end
 
         unless user.active_for_authentication?
-          error!({ error: user.inactive_message.to_s }, 403)
+          error!({error: user.inactive_message.to_s}, 403)
         end
 
         application = user.oauth_application
         if application.nil?
-          error!({ error: "api_access_denied_no_application" }, 403)
+          error!({error: "api_access_denied_no_application"}, 403)
         end
 
         token = Doorkeeper::AccessToken.create!(
@@ -35,7 +37,7 @@ module API::V1
           token_type:   "Bearer",
           expires_in:   token.expires_in,
           created_at:   token.created_at.to_i,
-          user_id:      user.id
+          user_id:      user.id,
         }
       end
     end

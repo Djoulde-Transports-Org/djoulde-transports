@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: oauth_applications
@@ -43,5 +45,5 @@ class OauthApplication < ApplicationRecord
   belongs_to :created_by, class_name: "User", optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  validates :owner_id, uniqueness: { scope: :owner_type, allow_nil: true }
+  validates :owner_id, uniqueness: {scope: :owner_type, allow_nil: true}
 end

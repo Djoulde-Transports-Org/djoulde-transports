@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   # Login is custom-Grape; registration is admin-only (ticket 12). Keep
   # confirmations/passwords/unlocks since they're driven by email links.

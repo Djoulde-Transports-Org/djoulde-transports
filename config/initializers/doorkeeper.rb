@@ -45,7 +45,7 @@ Doorkeeper.configure do
   # Only client_credentials is exposed through Doorkeeper's token endpoint
   # (future service-to-service callers). Password grant is intentionally
   # absent — see resource_owner_from_credentials above.
-  grant_flows %w[client_credentials]
+  grant_flows %w(client_credentials)
 
   # Trusted first-party clients (SPA, Active Admin) — skip the consent screen.
   skip_authorization { true }

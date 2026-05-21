@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: documents
@@ -39,7 +41,7 @@ class Document < ApplicationRecord
     registration: 2,
     license: 3,
     inspection: 4,
-    invoice: 5
+    invoice: 5,
   }, default: :other
 
   belongs_to :documentable, polymorphic: true

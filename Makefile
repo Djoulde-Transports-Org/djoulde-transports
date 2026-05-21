@@ -59,6 +59,9 @@ bash:
 rubocop:
 	$(COMPOSE) exec rails bundle exec rubocop
 
+rubocop-fix:
+	$(COMPOSE) exec rails bundle exec rubocop -A
+
 # Argument forwarding: $(filter-out $@,$(MAKECMDGOALS)) extracts everything
 # the user typed after `make rspec`. The catch-all `%:` rule below stops
 # Make from trying to build those path arguments as their own targets.

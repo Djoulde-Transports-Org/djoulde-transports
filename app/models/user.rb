@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: users
@@ -74,7 +76,7 @@ class User < ApplicationRecord
   end
 
   def auto_confirm_in_dev_and_test
-    return unless Rails.env.development? || Rails.env.test?
+    return unless Rails.env.local?
 
     skip_confirmation!
     skip_confirmation_notification!

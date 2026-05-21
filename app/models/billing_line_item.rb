@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: billing_line_items
@@ -47,11 +49,11 @@ class BillingLineItem < ApplicationRecord
   belongs_to :trip
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  validates :trip_id, uniqueness: { scope: :billing_statement_id }
+  validates :trip_id, uniqueness: {scope: :billing_statement_id}
   validates :amount, :tva, :rate,
-            numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+            numericality: {only_integer: true, greater_than_or_equal_to: 0}
   validates :quantity_gasoline_liters, :quantity_diesel_liters,
-            numericality: { greater_than_or_equal_to: 0 }
+            numericality: {greater_than_or_equal_to: 0}
 
   # Build (but do not save) a line item snapshotted from a trip + its route +
   # its delivery note. The billing job (ticket 11) is the intended caller.
