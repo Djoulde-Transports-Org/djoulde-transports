@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe OauthApplication do
@@ -6,7 +8,7 @@ RSpec.describe OauthApplication do
       name: "test-app",
       redirect_uri: "https://example.com/callback",
       owner_type: "User",
-      owner_id: 1
+      owner_id: 1,
     }
   end
 

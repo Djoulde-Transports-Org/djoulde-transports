@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe BillingStatement do
-  let(:may_2026) { Date.new(2026, 5, 1) }
-  let(:statement) { described_class.new(number: "INV-202605", month: may_2026) }
+  let(:statement_month) { Date.new(2026, 5, 1) }
+  let(:statement) { described_class.new(number: "INV-202605", month: statement_month) }
 
   it "includes Discardable" do
     expect(described_class.included_modules).to include(Discardable)
@@ -33,7 +35,7 @@ RSpec.describe BillingStatement do
   it "derives starts_on and ends_on from month" do
     statement.save!
     expect([ statement.starts_on, statement.ends_on ])
-      .to eq([ may_2026, Date.new(2026, 5, 31) ])
+      .to eq([ statement_month, Date.new(2026, 5, 31) ])
   end
 
   it "enforces unique number" do
@@ -45,7 +47,7 @@ RSpec.describe BillingStatement do
 
   it "enforces one statement per month" do
     statement.save!
-    duplicate = described_class.new(number: "INV-202605-B", month: may_2026)
+    duplicate = described_class.new(number: "INV-202605-B", month: statement_month)
     duplicate.validate
     expect(duplicate.errors[:month]).to be_present
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe "GET /api/v1/me", type: :request do
@@ -11,7 +13,7 @@ RSpec.describe "GET /api/v1/me", type: :request do
   end
 
   def me(token_value = nil)
-    headers = token_value ? { "Authorization" => "Bearer #{token_value}" } : {}
+    headers = token_value ? {"Authorization" => "Bearer #{token_value}"} : {}
     get "/api/v1/me", headers: headers
   end
 
@@ -31,11 +33,11 @@ RSpec.describe "GET /api/v1/me", type: :request do
     end
 
     it "returns the user's id" do
-      expect(JSON.parse(response.body)["id"]).to eq(user.id)
+      expect(response.parsed_body["id"]).to eq(user.id)
     end
 
     it "returns the user's roles" do
-      expect(JSON.parse(response.body)["roles"]).to include("super_admin")
+      expect(response.parsed_body["roles"]).to include("super_admin")
     end
   end
 
