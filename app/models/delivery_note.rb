@@ -1,3 +1,31 @@
+# == Schema Information
+#
+# Table name: delivery_notes
+# Database name: primary
+#
+#  id                       :bigint           not null, primary key
+#  delivered_on             :date
+#  discarded_at             :datetime
+#  number                   :string(255)      not null
+#  quantity_diesel_liters   :decimal(12, 2)   default(0.0), not null
+#  quantity_gasoline_liters :decimal(12, 2)   default(0.0), not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  discarded_by_id          :bigint
+#  trip_id                  :bigint           not null
+#
+# Indexes
+#
+#  index_delivery_notes_on_discarded_at     (discarded_at)
+#  index_delivery_notes_on_discarded_by_id  (discarded_by_id)
+#  index_delivery_notes_on_number           (number) UNIQUE
+#  index_delivery_notes_on_trip_id          (trip_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (discarded_by_id => users.id)
+#  fk_rails_...  (trip_id => trips.id)
+#
 class DeliveryNote < ApplicationRecord
   include Discardable
   audited

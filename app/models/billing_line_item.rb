@@ -1,3 +1,40 @@
+# == Schema Information
+#
+# Table name: billing_line_items
+# Database name: primary
+#
+#  id                       :bigint           not null, primary key
+#  amount                   :integer          not null
+#  delivery_note_number     :string(255)
+#  destination              :string(255)
+#  discarded_at             :datetime
+#  origin                   :string(255)
+#  quantity_diesel_liters   :decimal(12, 2)   default(0.0), not null
+#  quantity_gasoline_liters :decimal(12, 2)   default(0.0), not null
+#  rate                     :integer          default(0), not null
+#  started_on               :date
+#  tva                      :integer          default(0), not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  billing_statement_id     :bigint           not null
+#  discarded_by_id          :bigint
+#  trip_id                  :bigint           not null
+#
+# Indexes
+#
+#  index_billing_line_items_on_billing_statement_id  (billing_statement_id)
+#  index_billing_line_items_on_delivery_note_number  (delivery_note_number)
+#  index_billing_line_items_on_discarded_at          (discarded_at)
+#  index_billing_line_items_on_discarded_by_id       (discarded_by_id)
+#  index_billing_line_items_on_statement_and_trip    (billing_statement_id,trip_id) UNIQUE
+#  index_billing_line_items_on_trip_id               (trip_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (billing_statement_id => billing_statements.id)
+#  fk_rails_...  (discarded_by_id => users.id)
+#  fk_rails_...  (trip_id => trips.id)
+#
 class BillingLineItem < ApplicationRecord
   include Discardable
   audited associated_with: :billing_statement

@@ -1,3 +1,36 @@
+# == Schema Information
+#
+# Table name: billing_statements
+# Database name: primary
+#
+#  id              :bigint           not null, primary key
+#  discarded_at    :datetime
+#  due_on          :date
+#  ends_on         :date             not null
+#  grand_total     :integer          default(0), not null
+#  issued_on       :date
+#  month           :date             not null
+#  number          :string(255)      not null
+#  starts_on       :date             not null
+#  status          :integer          default("draft"), not null
+#  total_amount    :integer          default(0), not null
+#  total_tva       :integer          default(0), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  discarded_by_id :bigint
+#
+# Indexes
+#
+#  index_billing_statements_on_discarded_at     (discarded_at)
+#  index_billing_statements_on_discarded_by_id  (discarded_by_id)
+#  index_billing_statements_on_month            (month) UNIQUE
+#  index_billing_statements_on_number           (number) UNIQUE
+#  index_billing_statements_on_status           (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (discarded_by_id => users.id)
+#
 class BillingStatement < ApplicationRecord
   include Discardable
   audited
