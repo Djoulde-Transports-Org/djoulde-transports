@@ -46,7 +46,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns the api_access_denied_no_application error code" do
-      expect(response.parsed_body["error"]).to eq("api_access_denied_no_application")
+      expect(response.parsed_body.dig("error", "code")).to eq("api_access_denied_no_application")
     end
   end
 
@@ -58,7 +58,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns invalid_credentials" do
-      expect(response.parsed_body["error"]).to eq("invalid_credentials")
+      expect(response.parsed_body.dig("error", "code")).to eq("invalid_credentials")
     end
   end
 
@@ -74,7 +74,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     end
 
     it "returns the discarded error code" do
-      expect(response.parsed_body["error"]).to eq("discarded")
+      expect(response.parsed_body.dig("error", "code")).to eq("discarded")
     end
   end
 end

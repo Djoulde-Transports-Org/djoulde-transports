@@ -72,6 +72,9 @@ gem "rolify", "~> 6.0"
 gem "grape", "~> 2.0"
 gem "grape-entity", "~> 1.0"
 
+# Policy-based authorization for Grape endpoints (ticket 11)
+gem "pundit", "~> 2.4"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i( mri windows ), require: "debug/prelude"

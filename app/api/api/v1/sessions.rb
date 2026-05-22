@@ -11,17 +11,18 @@ module API::V1
       post do
         user = User.find_for_authentication(email: params[:email])
 
-        unless user&.valid_password?(params[:password])
-          error!({error: "invalid_credentials"}, 401)
-        end
+        unauthorized!(code: "invalid_credentials", message: "Invalid email or password.") unless user&.valid_password?(params[:password])
 
         unless user.active_for_authentication?
-          error!({error: user.inactive_message.to_s}, 403)
+          forbidden!(code: user.inactive_message.to_s, message: "Account is not active.")
         end
 
         application = user.oauth_application
         if application.nil?
-          error!({error: "api_access_denied_no_application"}, 403)
+          forbidden!(
+            code: "api_access_denied_no_application",
+            message: "This account has no API application."
+          )
         end
 
         token = Doorkeeper::AccessToken.create!(

@@ -57,7 +57,7 @@ class BillingStatement < ApplicationRecord
   before_validation :derive_period_dates
 
   scope :for_month, ->(date) { where(month: date.to_date.beginning_of_month) }
-  scope :due_for_issue, ->(today = Time.zone.current) {
+  scope :due_for_issue, ->(today = Time.zone.today) {
     draft.where(month: ..today.to_date.prev_month.beginning_of_month)
   }
 

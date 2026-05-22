@@ -30,8 +30,8 @@ RSpec.describe Document do
   end
 
   it "rejects expires_on earlier than issued_on" do
-    document.issued_on  = Time.zone.current
-    document.expires_on = Time.zone.current - 1
+    document.issued_on  = Time.zone.today
+    document.expires_on = Time.zone.today - 1
     document.validate
     expect(document.errors[:expires_on]).to be_present
   end
