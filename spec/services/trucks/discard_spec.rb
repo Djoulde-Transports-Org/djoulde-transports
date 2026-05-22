@@ -3,17 +3,24 @@
 require "rails_helper"
 
 RSpec.describe Trucks::Discard do
-  let(:truck) { Truck.create!(plate_number: "T-#{SecureRandom.hex(2)}") }
-  let(:route) { Route.create!(origin: "A", destination: "B", rate: 1000) }
+  let(:truck)         { Truck.create!(plate_number: "T-#{SecureRandom.hex(2)}") }
+  let(:truck_w_tank)  { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}") }
+  let(:route)         { Route.create!(origin: "A", destination: "B", rate: 1000) }
 
-  it "discards the truck" do
+  it "discards a truck with no tank" do
     described_class.call(truck)
     expect(truck.reload.discarded?).to be true
   end
 
-  it "cascades discard to kept trips" do
-    trip = Trip.create!(truck: truck, route: route)
-    described_class.call(truck)
+  it "raises HasDependents when the truck still has a kept tank" do
+    expect { described_class.call(truck_w_tank) }
+      .to raise_error(ApplicationService::HasDependents)
+  end
+
+  it "cascades discard to kept trips (after the tank is retired)" do
+    trip = Trip.create!(truck: truck_w_tank, route: route)
+    truck_w_tank.tank.discard
+    described_class.call(truck_w_tank)
     expect(trip.reload.discarded?).to be true
   end
 

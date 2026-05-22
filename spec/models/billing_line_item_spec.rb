@@ -7,7 +7,7 @@ RSpec.describe BillingLineItem do
     BillingStatement.create!(number: "INV-202605", month: Date.new(2026, 5, 1))
   end
   let(:trip) do
-    truck = Truck.create!(plate_number: "LI-1")
+    truck = build_truck_with_tank(plate: "LI-1")
     route = Route.create!(origin: "Conakry", destination: "Labe", rate: 250)
     Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 12))
   end
