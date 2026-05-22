@@ -56,5 +56,7 @@ module API::V1
     mount API::V1::DeliveryNotes
     mount API::V1::Maintenances
     mount API::V1::Documents
+    mount API::V1::BillingStatements
+    mount API::V1::BillingLineItems
   end
 end

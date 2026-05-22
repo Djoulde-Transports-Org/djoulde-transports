@@ -13,3 +13,7 @@ production:
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
+  draft_monthly_billing_statement:
+    class: Billing::DraftMonthlyStatementJob
+    queue: default
+    schedule: "0 2 1 * *"
