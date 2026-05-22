@@ -53,5 +53,6 @@ module API::V1
 
     mount API::V1::Routes
     mount API::V1::Trips
+    mount API::V1::DeliveryNotes
   end
 end
