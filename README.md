@@ -90,13 +90,16 @@ Inside docker-compose the same keys are injected via the `environment:` block on
 
 ## Domain models (ticket 10)
 
-Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects (ticket 11+).
+Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects under `app/services/<resource>/discard.rb` (ticket 11).
+
+A "truck" in the fleet is two physically distinct assets: the **head** (tractor / `Truck`) and the **tank** (trailer / `Tank`). Each has its own VIN, plate number, and registration. They're paired 1:1 (`Tank belongs_to :truck`, `Truck has_one :tank`); the pairing is effectively fixed and only swaps when one of the two is retired. Trips snapshot both `truck_id` and `tank_id` so historical reports survive a swap.
 
 | Model              | Soft delete | Audited | Notes                                                                                                  |
 | ------------------ | ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| `Truck`            | yes         | yes     | `plate_number` unique; `status` enum (`active` / `out_of_service`)                                     |
+| `Truck`            | yes         | yes     | The head/tractor. `plate_number` unique; `status` enum (`active` / `out_of_service`)                   |
+| `Tank`             | yes         | yes     | The trailer. `belongs_to :truck` (NOT NULL, unique 1:1). `capacity_liters` required; status enum       |
 | `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate (GNF) for that route     |
-| `Trip`             | yes         | yes     | `belongs_to :truck, :route`; optional `:driver` (User); `status` enum (scheduled → cancelled)          |
+| `Trip`             | yes         | yes     | `belongs_to :truck, :tank, :route`; optional `:driver` (User); status enum (scheduled → cancelled). Trip's `tank.truck_id` must equal its `truck_id` (consistency validator); tank defaults to `truck.tank` on create |
 | `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; gasoline / diesel liters; `product` derived          |
 | `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum                                      |
 | `Document`         | yes         | yes     | Polymorphic `:documentable`; `has_one_attached :file` (Active Storage)                                 |
@@ -119,20 +122,52 @@ Business models live in `app/models/`. Every business model includes `Discardabl
   - `total_tva` = Σ line `tva`
   - `grand_total` = `total_amount + total_tva` (TTC, what the client pays)
 - **Issue window:** `issued_on` must fall between day 1 and day 10 of the month *after* `month` (`BillingStatement#issue_window`). Validated on save.
-- `BillingStatement.due_for_issue(today)` returns draft statements whose billed month has ended. The job that creates a draft statement on the 1st of each month and materializes line items via `BillingLineItem.from_trip` lands in ticket 11.
+- `BillingStatement.due_for_issue(today)` returns draft statements whose billed month has ended. `Billing::DraftMonthlyStatementJob` (recurring entry in `config/recurring.yml`, runs at 02:00 on the 1st of each month) calls `Billing::DraftMonthlyStatement` to create the prior month's draft and materialize one `BillingLineItem` per kept trip via `BillingLineItem.from_trip`. The service is idempotent per month.
 
 ### Implementation notes
 
 - **Active Storage** is installed (`active_storage_blobs` / `attachments` / `variant_records`). Documents attach files via `has_one_attached :file`.
 - **Audited YAML coder:** `config/initializers/audited.rb` registers `Date`, `Time`, `ActiveSupport::TimeWithZone`, `BigDecimal`, etc. on `ActiveRecord.yaml_column_permitted_classes` so `audited_changes` (stored as MySQL TEXT) can round-trip those value types under Psych safe-load.
-- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks deletes of aggregates that still have children; cascades land in ticket 11.
+- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks `destroy` of aggregates that still have children; soft-delete cascades live in `app/services/<resource>/discard.rb` (ticket 11) and either propagate `discard!` to children (Truck → trips/maintenances/documents; Trip → delivery_note/documents; Maintenance → documents; Tank → documents) or raise `ApplicationService::HasDependents` when a parent still has billed/used children (Route, Tank, Trip already billed, BillingStatement with kept line items, Truck while it still has a kept tank).
 
 ### Deferred to later tickets
 
-- Grape endpoints exposing these models — ticket **11**.
-- Service object / job that creates a draft `BillingStatement` for last month on day 1 and materializes one `BillingLineItem` per trip — ticket **11**.
 - Active Admin screens for trucks, routes, trips, maintenance, documents, and billing — ticket **12**.
 - Role-based authorization on endpoints (e.g., `driver_readonly` cannot edit) — ticket **14**.
+
+## Grape API v1 (ticket 11)
+
+JSON API mounted at `/api/v1` (`app/api/v1/`). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/v1/entities/`.
+
+| Resource path                                        | Verbs                            | Notes                                                        |
+| ---------------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `/api/v1/me`                                         | GET                              | Authenticated user + roles                                   |
+| `/api/v1/sessions`                                   | POST                             | Login (ticket 09)                                            |
+| `/api/v1/trucks`                                     | GET, POST                        | The head/tractor. Filterable by status; admin-only mutate    |
+| `/api/v1/trucks/:id`                                 | GET, PATCH, DELETE               | DELETE blocked while a kept tank is paired; otherwise cascades to trips/maintenances/documents |
+| `/api/v1/tanks`                                      | GET, POST                        | The trailer. Filter `truck_id`. POST requires `truck_id` + `capacity_liters` |
+| `/api/v1/tanks/:id`                                  | GET, PATCH, DELETE               | DELETE blocked if kept trips reference the tank              |
+| `/api/v1/routes`                                     | GET, POST                        |                                                              |
+| `/api/v1/routes/:id`                                 | GET, PATCH, DELETE               | DELETE blocked if kept trips reference the route             |
+| `/api/v1/trips`                                      | GET, POST                        | Filters: `truck_id`, `tank_id`, `route_id`, `status`. `tank_id` defaults to the truck's currently paired tank |
+| `/api/v1/trips/:id`                                  | GET, PATCH, DELETE               | DELETE blocked if trip is already on a billing line item     |
+| `/api/v1/trips/:trip_id/delivery_note`               | GET, POST, PATCH, DELETE         | Singular nested resource (`has_one`)                          |
+| `/api/v1/maintenances`                               | GET, POST                        | Filters: `truck_id`, `kind`                                  |
+| `/api/v1/maintenances/:id`                           | GET, PATCH, DELETE               | DELETE cascades discard to documents                          |
+| `/api/v1/documents`                                  | GET, POST                        | Polymorphic owner via `documentable_type` + `documentable_id`; multipart `file` |
+| `/api/v1/documents/:id`                              | GET, PATCH, DELETE               |                                                              |
+| `/api/v1/billing_statements`                         | GET, POST                        |                                                              |
+| `/api/v1/billing_statements/:id`                     | GET, PATCH, DELETE               | DELETE blocked if kept line items exist                       |
+| `/api/v1/billing_statements/:id/issue`               | PATCH                            | Draft → issued; runs `recalculate_total!` first              |
+| `/api/v1/billing_statements/:id/mark_paid`           | PATCH                            | Issued → paid                                                |
+| `/api/v1/billing_line_items`                         | GET                              | Read-only (created by the monthly billing job)               |
+| `/api/v1/billing_line_items/:id`                     | GET                              |                                                              |
+
+- **Index scoping:** every list uses `policy_scope(Model).kept`. Discarded records 404 on `GET /:id`.
+- **DELETE semantics:** soft delete via `record.discard`; `Discardable`'s `before_discard` stamps `discarded_by_id` from `Current.user`. Cascades and "block" decisions live in the per-resource `Discard` service.
+- **Authorization:** baseline (ticket 11) is "any authenticated user reads, only `super_admin` mutates." Ticket 14 narrows per role.
+- **Error format:** `{"error": {"code": "<machine>", "message": "<human>", "details": <optional>}}`. Codes used: `unauthorized` (401), `invalid_credentials` (401), `forbidden` / `api_access_denied_no_application` / `discarded` / `locked` / `unconfirmed` (403), `not_found` (404), `conflict` (409), `validation_failed` / `has_dependents` / `invalid_argument` (422), `internal_server_error` (500).
+- **Instrumentation:** every authenticated request bumps `oauth_application.calls_count` and stamps `last_used_at` in a single UPDATE (no callbacks, no `updated_at`).
 
 ## Auth stack (ticket 09)
 
@@ -148,7 +183,6 @@ User authentication is **Devise** + a custom **Grape** login endpoint that issue
 
 ### Deferred to later tickets
 
-- Grape `before` hook that increments `oauth_application.calls_count` and stamps `last_used_at` — ticket 11.
 - Custom Grape endpoints for confirmation / password reset / unlock (currently driven by Devise's HTML views via email links) — possible future ticket.
 - SvelteKit login screen that consumes `/api/v1/sessions` — ticket 13.
 - Role-based authorization on specific endpoints — ticket 14.
@@ -169,7 +203,6 @@ The project uses [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) as a
 - FK constraints from `oauth_applications.created_by_id` / `discarded_by_id` to `users` — ticket 09 (added alongside the User migration).
 - `resource_owner_from_credentials` and `resource_owner_authenticator` implementations — ticket 09. Both currently return `nil`, so password-grant token requests return 401 until login lands.
 - `include Discardable` in the OauthApplication model — pending ticket 07 reaching master. Columns already exist on the table, so it's a one-line add.
-- Grape `before` hook that resolves `doorkeeper_token.application`, increments `calls_count`, and stamps `last_used_at` — ticket 11.
 - Active Admin screen for OauthApplications — ticket 12.
 ## Soft delete (ticket 07)
 
@@ -199,7 +232,7 @@ The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/n
 
 The `rails` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm rails bundle exec ...` for CLI tasks.
 
-**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. The four Rails prefixes return **404** until their owning tickets land (`/api` ticket 11, `/oauth` ticket 08, `/admin` ticket 12).
+**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. `/admin` returns **404** until ticket 12.
 
 ### Doorkeeper redirect URIs (ticket 08)
 
