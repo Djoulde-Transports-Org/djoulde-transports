@@ -8,7 +8,7 @@ module Maintenances
 
     def call
       ApplicationRecord.transaction do
-        @maintenance.documents.kept.find_each { |d| d.discard! }
+        @maintenance.documents.kept.find_each { |d| Documents::Discard.call(d) }
         @maintenance.discard!
       end
       @maintenance

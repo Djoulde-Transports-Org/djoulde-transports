@@ -14,7 +14,7 @@ module Tanks
       end
 
       ApplicationRecord.transaction do
-        @tank.documents.kept.find_each { |d| d.discard! }
+        @tank.documents.kept.find_each { |d| Documents::Discard.call(d) }
         @tank.discard!
       end
       @tank

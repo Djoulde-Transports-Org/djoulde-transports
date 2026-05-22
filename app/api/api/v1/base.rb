@@ -55,5 +55,6 @@ module API::V1
     mount API::V1::Trips
     mount API::V1::DeliveryNotes
     mount API::V1::Maintenances
+    mount API::V1::Documents
   end
 end
