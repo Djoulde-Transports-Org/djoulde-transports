@@ -19,7 +19,7 @@ module Trucks
 
       ApplicationRecord.transaction do
         @truck.trips.kept.find_each        { |trip| trip.discard! }
-        @truck.maintenances.kept.find_each { |m|    m.discard! }
+        @truck.maintenances.kept.find_each { |m|    Maintenances::Discard.call(m) }
         @truck.documents.kept.find_each    { |d|    d.discard! }
         @truck.discard!
       end
