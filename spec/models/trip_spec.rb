@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Trip do
   let(:truck) { Truck.create!(plate_number: "PLATE-1") }
   let(:route) { Route.create!(origin: "Conakry", destination: "Labe", rate: 250) }
