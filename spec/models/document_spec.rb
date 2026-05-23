@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Document do
   let(:truck) { Truck.create!(plate_number: "DOC-1") }
   let(:document) { described_class.new(title: "Insurance card", documentable: truck) }
