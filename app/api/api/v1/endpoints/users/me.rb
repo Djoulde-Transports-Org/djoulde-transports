@@ -1,17 +1,13 @@
 # frozen_string_literal: true
 
-module API::V1
+module API::V1::Endpoints::Users
   class Me < Grape::API
     before { authenticate! }
 
     resource :me do
       desc "Return the authenticated user with roles."
       get do
-        {
-          id:    current_user.id,
-          email: current_user.email,
-          roles: current_user.roles.pluck(:name),
-        }
+        present current_user, with: API::V1::Entities::User
       end
     end
   end

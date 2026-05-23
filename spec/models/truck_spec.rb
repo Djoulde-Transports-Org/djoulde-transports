@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Truck do
   let(:truck) { described_class.new(plate_number: "ABC-123") }
 

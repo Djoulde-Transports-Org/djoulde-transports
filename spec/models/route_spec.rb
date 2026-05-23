@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Route do
   let(:route) do
     described_class.new(origin: "Conakry", destination: "Labe", rate: 250)

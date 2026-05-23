@@ -119,7 +119,10 @@ Rails:
   Enabled: true
 
 Rails/Date:
-  EnforcedStyle: strict
+  # rubocop-rails ships a buggy autocorrect for `strict` that rewrites
+  # `Date.current` to the non-existent `Time.zone.current`. `flexible`
+  # accepts both `Date.current` and `Time.zone.today`.
+  EnforcedStyle: flexible
 
 Rails/FilePath:
   EnforcedStyle: arguments
@@ -176,6 +179,9 @@ RSpec/MessageSpies:
 
 RSpec/MultipleExpectations:
   Max: 1
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
 
 RSpec/NestedGroups:
   Max: 4

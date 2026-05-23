@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Document do
   let(:truck) { Truck.create!(plate_number: "DOC-1") }
   let(:document) { described_class.new(title: "Insurance card", documentable: truck) }
@@ -30,8 +28,8 @@ RSpec.describe Document do
   end
 
   it "rejects expires_on earlier than issued_on" do
-    document.issued_on  = Time.zone.current
-    document.expires_on = Time.zone.current - 1
+    document.issued_on  = Time.zone.today
+    document.expires_on = Time.zone.today - 1
     document.validate
     expect(document.errors[:expires_on]).to be_present
   end
