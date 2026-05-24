@@ -2,23 +2,29 @@
 
 module API::V1::Endpoints::Trucks
   class Update < Grape::API
-    before { authenticate! }
+    helpers API::V1::Endpoints::Trucks::Common
+
+    helpers do
+      def update_truck!
+        truck.update!(truck_params)
+      end
+    end
 
     resource :trucks do
       route_param :id, type: Integer do
         desc "Update a truck."
         params do
-          optional :plate_number, type: String
-          optional :vin,          type: String
-          optional :make,         type: String
-          optional :model,        type: String
-          optional :year,         type: Integer
-          optional :status,       type: String, values: ::Truck.statuses.keys
+          optional :plate_number, type: String, documentation: {desc: "The plate number of the truck."}
+          optional :vin,          type: String, documentation: {desc: "The VIN of the truck."}
+          optional :make,         type: String, documentation: {desc: "The make of the truck."}
+          optional :model,        type: String, documentation: {desc: "The model of the truck."}
+          optional :year,         type: Integer, documentation: {desc: "The year of the truck."}
+          optional :status,       type: String, values: ::Truck.statuses.keys, documentation: {desc: "The status of the truck."}
         end
         patch do
-          truck = find_kept!(::Truck)
           authorize!(truck, :update)
-          truck.update!(declared(params, include_missing: false).except(:id))
+          update_truck!
+
           present truck, with: ::API::V1::Entities::Truck
         end
       end

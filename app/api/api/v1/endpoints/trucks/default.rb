@@ -2,6 +2,8 @@
 
 module API::V1::Endpoints::Trucks
   class Default < Grape::API
+    before { authenticate! }
+
     mount API::V1::Endpoints::Trucks::List
     mount API::V1::Endpoints::Trucks::Create
     mount API::V1::Endpoints::Trucks::Get
