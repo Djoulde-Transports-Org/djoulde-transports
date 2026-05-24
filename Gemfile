@@ -96,7 +96,7 @@ group :development, :test do
   gem "rubocop-migration", require: false
 
   # RSpec test framework for Rails
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 end
 
 group :development do
