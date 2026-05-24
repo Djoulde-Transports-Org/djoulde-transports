@@ -28,4 +28,20 @@ RSpec.describe Trucks::Discard do
     described_class.call(truck)
     expect(document.reload.discarded?).to be true
   end
+
+  describe "the returned result" do
+    let(:result) { described_class.call(truck) }
+
+    it "is a Trucks::Discard::Result" do
+      expect(result).to be_a(Trucks::Discard::Result)
+    end
+
+    it "is successful" do
+      expect(result.success).to be true
+    end
+
+    it "carries a message that names the truck id" do
+      expect(result.message).to eq("Truck #{truck.id} has been successfully discarded.")
+    end
+  end
 end
