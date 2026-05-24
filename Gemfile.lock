@@ -115,7 +115,7 @@ GEM
     diff-lcs (1.6.2)
     discard (1.4.0)
       activerecord (>= 4.2, < 9.0)
-    doorkeeper (5.9.0)
+    doorkeeper (5.9.1)
       railties (>= 5)
     dotenv (3.2.0)
     drb (2.2.3)
@@ -434,7 +434,7 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    zeitwerk (2.7.5)
+    zeitwerk (2.8.2)
 
 PLATFORMS
   x86_64-linux
@@ -448,7 +448,7 @@ DEPENDENCIES
   debug
   devise (~> 5.0, >= 5.0.4)
   discard (~> 1.4)
-  doorkeeper (~> 5.7)
+  doorkeeper (~> 5.9)
   figaro (~> 1.2)
   grape (~> 2.0)
   grape-entity (~> 1.0)

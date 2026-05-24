@@ -60,7 +60,7 @@ gem "rack-attack", "~> 6.7"
 gem "rack-cors", "~> 3.0"
 
 # OAuth2 provider; custom application class lands in app/models/oauth_application.rb (ticket 08)
-gem "doorkeeper", "~> 5.7"
+gem "doorkeeper", "~> 5.9"
 
 # User authentication (ticket 09): database_authenticatable, confirmable, lockable, trackable, recoverable
 gem "devise", "~> 5.0", ">= 5.0.4"
