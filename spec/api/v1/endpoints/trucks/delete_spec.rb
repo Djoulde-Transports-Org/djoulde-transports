@@ -54,7 +54,7 @@ RSpec.describe API::V1::Endpoints::Trucks::Delete do
       end
 
       it "returns the success message with the truck id" do
-        expect(response.parsed_body["message"]).to eq("Truck #{truck.id} has been successfully discarded.")
+        expect(response.parsed_body["message"]).to eq("Truck has been successfully deleted.")
       end
 
       it "discards the truck" do

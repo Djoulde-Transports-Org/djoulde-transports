@@ -40,8 +40,8 @@ RSpec.describe Trucks::Discard do
       expect(result.success).to be true
     end
 
-    it "carries a message that names the truck id" do
-      expect(result.message).to eq("Truck #{truck.id} has been successfully discarded.")
+    it "carries a success message" do
+      expect(result.message).to eq("Truck has been successfully deleted.")
     end
   end
 end

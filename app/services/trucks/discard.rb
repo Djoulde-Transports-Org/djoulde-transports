@@ -19,7 +19,7 @@ module Trucks
         @truck.discard!
       end
 
-      Result.new(success: true, message: "Truck #{@truck.id} has been successfully discarded.")
+      Result.new(success: true, message: "Truck has been successfully deleted.")
     end
 
     private
