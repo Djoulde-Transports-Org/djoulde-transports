@@ -5,6 +5,8 @@
 # resources land.
 module Trucks
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(truck)
       @truck = truck
     end
@@ -16,7 +18,12 @@ module Trucks
         @truck.documents.kept.find_each    { |d|    d.discard! }
         @truck.discard!
       end
-      @truck
+
+      Result.new(success: true, message: "Truck #{@truck.id} has been successfully discarded.")
     end
+
+    private
+
+    attr_reader :truck
   end
 end
