@@ -62,7 +62,7 @@ RSpec.describe API::V1::Endpoints::Trucks::List do
       end
     end
 
-    context "on page 1 with per_page=2" do
+    context "when on page 1 with per_page=2" do
       let(:params) { {page: 1, per_page: 2} }
 
       before { do_request }
@@ -71,18 +71,18 @@ RSpec.describe API::V1::Endpoints::Trucks::List do
         expect(response.parsed_body.size).to eq(2)
       end
 
-      it "reports total + per-page in headers" do
+      it "reports total + per-page in headers", :aggregate_failures do
         expect(response.headers["Total"]).to eq("5")
         expect(response.headers["Per-Page"]).to eq("2")
       end
 
-      it "exposes a Link header with next/last" do
+      it "exposes a Link header with next/last", :aggregate_failures do
         expect(response.headers["Link"]).to include('rel="next"')
         expect(response.headers["Link"]).to include('rel="last"')
       end
     end
 
-    context "on the last page" do
+    context "when on the last page" do
       let(:params) { {page: 3, per_page: 2} }
 
       before { do_request }
@@ -92,7 +92,7 @@ RSpec.describe API::V1::Endpoints::Trucks::List do
       end
     end
 
-    context "past the last page" do
+    context "when past the last page" do
       let(:params) { {page: 99, per_page: 2} }
 
       before { do_request }
