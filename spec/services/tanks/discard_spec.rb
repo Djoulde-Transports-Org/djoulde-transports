@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Tanks::Discard do
   let(:truck) { Truck.create!(plate_number: "H-#{SecureRandom.hex(2)}") }
-  let(:tank)  { Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(2)}", capacity_liters: 30_000) }
+  let(:tank)  { Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(2)}", capacity: 30_000) }
   let(:route) { Route.create!(origin: "A", destination: "B", rate: 1000) }
 
   it "discards a tank with no trips" do

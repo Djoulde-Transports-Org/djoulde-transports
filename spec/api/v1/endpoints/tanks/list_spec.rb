@@ -12,7 +12,7 @@ RSpec.describe API::V1::Endpoints::Tanks::List do
   let(:viewer_token) { viewer_setup[1] }
   let(:truck) { Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}") }
   let!(:tank) do
-    Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 30_000)
+    Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 30_000)
   end
 
   context "without a token" do
@@ -46,7 +46,7 @@ RSpec.describe API::V1::Endpoints::Tanks::List do
     let(:headers) { bearer_headers(viewer_token) }
     let!(:other_tank) do
       other_truck = Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}")
-      Tank.create!(truck: other_truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 25_000)
+      Tank.create!(truck: other_truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 25_000)
     end
     let(:params) { {truck_id: truck.id} }
 
@@ -75,7 +75,7 @@ RSpec.describe API::V1::Endpoints::Tanks::List do
     let!(:extra_tanks) do
       Array.new(4) do
         extra_truck = Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}")
-        Tank.create!(truck: extra_truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 22_000)
+        Tank.create!(truck: extra_truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 22_000)
       end
     end
 

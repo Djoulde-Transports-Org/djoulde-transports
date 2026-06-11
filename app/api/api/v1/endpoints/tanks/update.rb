@@ -20,7 +20,7 @@ module API::V1::Endpoints::Tanks
           optional :make,            type: String, documentation: {desc: "The make of the tank."}
           optional :model,           type: String, documentation: {desc: "The model of the tank."}
           optional :year,            type: Integer, documentation: {desc: "The year of the tank."}
-          optional :capacity_liters, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
+          optional :capacity, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
           optional :status,          type: String, values: ::Tank.statuses.keys, documentation: {desc: "The status of the tank."}
         end
         patch "/update" do

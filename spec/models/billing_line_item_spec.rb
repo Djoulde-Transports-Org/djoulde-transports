@@ -14,7 +14,7 @@ RSpec.describe BillingLineItem do
                         started_on: Date.new(2026, 5, 12),
                         delivery_note_number: "DN-1",
                         origin: "Conakry", destination: "Labe",
-                        quantity_gasoline_liters: 1_000, quantity_diesel_liters: 500,
+                        gasoline_quantity: 1_000, diesel_quantity: 500,
                         rate: 250,
                         amount: 375_000,
                         tva: 67_500)
@@ -41,9 +41,9 @@ RSpec.describe BillingLineItem do
   end
 
   it "rejects negative quantities" do
-    line_item.quantity_gasoline_liters = -1
+    line_item.gasoline_quantity = -1
     line_item.validate
-    expect(line_item.errors[:quantity_gasoline_liters]).to be_present
+    expect(line_item.errors[:gasoline_quantity]).to be_present
   end
 
   it "rejects two line items for the same trip on the same statement" do
@@ -59,12 +59,12 @@ RSpec.describe BillingLineItem do
     end
 
     it "is :gasoline when only gasoline is loaded" do
-      line_item.quantity_diesel_liters = 0
+      line_item.diesel_quantity = 0
       expect(line_item.product).to eq(:gasoline)
     end
 
     it "is :diesel when only diesel is loaded" do
-      line_item.quantity_gasoline_liters = 0
+      line_item.gasoline_quantity = 0
       expect(line_item.product).to eq(:diesel)
     end
   end
@@ -72,7 +72,7 @@ RSpec.describe BillingLineItem do
   describe ".from_trip" do
     before do
       DeliveryNote.create!(trip: trip, number: "DN-202605-001",
-                           quantity_gasoline_liters: 1_000, quantity_diesel_liters: 500,
+                           gasoline_quantity: 1_000, diesel_quantity: 500,
                            delivered_on: Date.new(2026, 5, 12))
     end
 

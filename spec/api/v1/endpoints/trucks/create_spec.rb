@@ -14,7 +14,7 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
   let(:tank_params) do
     {
       plate_number:    "TK-#{SecureRandom.hex(2)}",
-      capacity_liters: 30_000,
+      capacity: 30_000,
       vin:             "TKV-#{SecureRandom.hex(4)}",
       make:            "Commet",
       model:           "123",
@@ -100,7 +100,7 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
     end
 
     context "with an invalid tank" do
-      let(:tank_params) { super().merge(capacity_liters: -5) }
+      let(:tank_params) { super().merge(capacity: -5) }
 
       it "returns 422" do
         do_request

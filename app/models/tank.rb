@@ -6,7 +6,7 @@
 # Database name: primary
 #
 #  id              :bigint           not null, primary key
-#  capacity_liters :integer          not null
+#  capacity        :integer          not null
 #  discarded_at    :datetime
 #  make            :string(255)
 #  model           :string(255)
@@ -50,6 +50,6 @@ class Tank < ApplicationRecord
   validates :year, numericality: {only_integer: true, greater_than: 1900,
                                     less_than_or_equal_to: ->(_t) { Time.zone.today.year + 1 }},
                    allow_nil: true
-  validates :capacity_liters, presence: true,
+  validates :capacity, presence: true,
                               numericality: {only_integer: true, greater_than: 0}
 end
