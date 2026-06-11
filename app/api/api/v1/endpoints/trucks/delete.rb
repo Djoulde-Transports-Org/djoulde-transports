@@ -2,21 +2,20 @@
 
 module API::V1::Endpoints::Trucks
   class Delete < Grape::API
-    before { authenticate! }
+    helpers API::V1::Endpoints::Trucks::Common
 
     resource :trucks do
       route_param :id, type: Integer do
         desc "Soft-delete a truck (cascades to trips, maintenances, documents)."
-        delete do
-          truck = find_kept!(::Truck)
+        delete "/delete" do
           authorize!(truck, :destroy)
-          begin
-            ::Trucks::Discard.call(truck)
-          rescue ApplicationService::HasDependents => error
-            unprocessable!(error.message, code: "has_dependents")
-          end
-          status 204
-          body false
+          result =
+            begin
+              ::Trucks::Discard.call(truck)
+            rescue ApplicationService::HasDependents => error
+              unprocessable!(error.message, code: "has_dependents")
+            end
+          present result, with: ::API::V1::Entities::DeleteResult
         end
       end
     end

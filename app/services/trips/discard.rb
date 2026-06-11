@@ -5,6 +5,8 @@
 # historical invoices stay consistent.
 module Trips
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(trip)
       @trip = trip
     end
@@ -19,7 +21,8 @@ module Trips
         @trip.documents.kept.find_each { |d| d.discard! }
         @trip.discard!
       end
-      @trip
+
+      Result.new(success: true, message: "Trip has been successfully deleted.")
     end
   end
 end

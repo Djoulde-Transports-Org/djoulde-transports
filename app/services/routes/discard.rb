@@ -5,6 +5,8 @@
 # rates instead.
 module Routes
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(route)
       @route = route
     end
@@ -15,7 +17,12 @@ module Routes
       end
 
       @route.discard!
-      @route
+
+      Result.new(success: true, message: "Route has been successfully deleted.")
     end
+
+    private
+
+    attr_reader :route
   end
 end
