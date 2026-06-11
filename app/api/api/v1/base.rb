@@ -51,7 +51,6 @@ module API::V1
     mount API::V1::Endpoints::Trucks::Default
     mount API::V1::Endpoints::Tanks::Default
     mount API::V1::Endpoints::Routes::Default
-
-    mount API::V1::Trips
+    mount API::V1::Endpoints::Trips::Default
   end
 end
