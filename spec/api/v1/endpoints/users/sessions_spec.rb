@@ -1,24 +1,22 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
-RSpec.describe "POST /api/v1/sessions", type: :request do
-  let(:password) { "correct horse battery staple" }
-  let(:user)     { User.create!(email: "u@example.com", password: password) }
-  let(:oauth_app) do
-    OauthApplication.create!(name: "spa", redirect_uri: "https://example.com/cb", owner: user)
+RSpec.describe API::V1::Endpoints::Users::Sessions do
+  subject(:do_request) do
+    post "/api/v1/sessions", params: {email: email, password: password_param}
   end
 
-  def login(email:, password:)
-    post "/api/v1/sessions",
-      params: {email: email, password: password}.to_json,
-      headers: {"Content-Type" => "application/json"}
+  let(:password)       { "correct horse battery staple" }
+  let(:user)           { User.create!(email: "u@example.com", password: password) }
+  let(:email)          { user.email }
+  let(:password_param) { password }
+  let(:oauth_app) do
+    OauthApplication.create!(name: "spa", redirect_uri: "https://example.com/cb", owner: user)
   end
 
   context "with valid credentials and an OauthApplication" do
     before do
       oauth_app
-      login(email: user.email, password: password)
+      do_request
     end
 
     it "returns 201 Created" do
@@ -39,7 +37,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
   end
 
   context "without an OauthApplication" do
-    before { login(email: user.email, password: password) }
+    before { do_request }
 
     it "returns 403" do
       expect(response).to have_http_status(:forbidden)
@@ -51,7 +49,9 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
   end
 
   context "with invalid credentials" do
-    before { login(email: user.email, password: "wrong") }
+    let(:password_param) { "wrong" }
+
+    before { do_request }
 
     it "returns 401" do
       expect(response).to have_http_status(:unauthorized)
@@ -66,7 +66,7 @@ RSpec.describe "POST /api/v1/sessions", type: :request do
     before do
       oauth_app
       user.discard
-      login(email: user.email, password: password)
+      do_request
     end
 
     it "returns 403" do

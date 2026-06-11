@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe BillingLineItem do
   let(:statement) do
     BillingStatement.create!(number: "INV-202605", month: Date.new(2026, 5, 1))

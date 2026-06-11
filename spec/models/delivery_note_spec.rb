@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe DeliveryNote do
   let(:trip) do
     truck = build_truck_with_tank(plate: "DN-1")

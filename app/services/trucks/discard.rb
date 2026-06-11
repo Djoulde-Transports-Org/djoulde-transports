@@ -7,6 +7,8 @@
 # discard service objects.
 module Trucks
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(truck)
       @truck = truck
     end
@@ -23,7 +25,12 @@ module Trucks
         @truck.documents.kept.find_each    { |d|    d.discard! }
         @truck.discard!
       end
-      @truck
+
+      Result.new(success: true, message: "Truck has been successfully deleted.")
     end
+
+    private
+
+    attr_reader :truck
   end
 end

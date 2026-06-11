@@ -6,9 +6,9 @@ ENV['RAILS_ENV'] = 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
-# Uncomment the line below in case you have `--require rails_helper` in the `.rspec` file
-# that will avoid rails generators crashing because migrations haven't been run yet
-# return unless Rails.env.test?
+# `--require rails_helper` is set in .rspec; bail out early outside the test
+# env so generators don't crash before migrations have run.
+return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -64,6 +64,12 @@ RSpec.configure do |config|
   #
   # To enable this behaviour uncomment the line below.
   # config.infer_spec_type_from_file_location!
+
+  # Tag every spec under spec/api/ as a request spec so we don't have to
+  # repeat `type: :request` on each describe.
+  config.define_derived_metadata(file_path: %r{spec/api/}) do |metadata|
+    metadata[:type] = :request
+  end
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
