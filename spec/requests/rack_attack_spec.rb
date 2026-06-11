@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe "Rack::Attack configuration" do
   it "uses a Redis-backed cache store" do
     expect(Rack::Attack.cache.store.class.name).to include("Redis")

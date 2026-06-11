@@ -45,14 +45,13 @@ module API::V1
       end
     end
 
-    mount API::V1::Sessions
-    mount API::V1::Me
+    mount API::V1::Endpoints::Users::Sessions
+    mount API::V1::Endpoints::Users::Me
 
     mount API::V1::Endpoints::Trucks::Default
     mount API::V1::Endpoints::Tanks::Default
-
-    mount API::V1::Routes
-    mount API::V1::Trips
+    mount API::V1::Endpoints::Routes::Default
+    mount API::V1::Endpoints::Trips::Default
     mount API::V1::DeliveryNotes
   end
 end

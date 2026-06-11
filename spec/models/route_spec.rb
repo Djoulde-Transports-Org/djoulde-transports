@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Route do
   let(:route) do
     described_class.new(origin: "Conakry", destination: "Labe", rate: 250)
@@ -35,6 +33,18 @@ RSpec.describe Route do
     route.rate = -1
     route.validate
     expect(route.errors[:rate]).to be_present
+  end
+
+  it "allows a fractional rate" do
+    route.rate = 1160.59
+    route.validate
+    expect(route.errors[:rate]).to be_empty
+  end
+
+  it "persists the decimal part of the rate" do
+    route.rate = 1160.59
+    route.save!
+    expect(route.reload.rate).to eq(BigDecimal("1160.59"))
   end
 
   it "enforces case-insensitive uniqueness of (origin, destination)" do

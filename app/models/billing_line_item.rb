@@ -13,7 +13,7 @@
 #  origin                   :string(255)
 #  quantity_diesel_liters   :decimal(12, 2)   default(0.0), not null
 #  quantity_gasoline_liters :decimal(12, 2)   default(0.0), not null
-#  rate                     :integer          default(0), not null
+#  rate                     :decimal(12, 2)   default(0.0), not null
 #  started_on               :date
 #  tva                      :integer          default(0), not null
 #  created_at               :datetime         not null
@@ -50,8 +50,9 @@ class BillingLineItem < ApplicationRecord
   belongs_to :discarded_by, class_name: "User", optional: true
 
   validates :trip_id, uniqueness: {scope: :billing_statement_id}
-  validates :amount, :tva, :rate,
+  validates :amount, :tva,
             numericality: {only_integer: true, greater_than_or_equal_to: 0}
+  validates :rate, numericality: {greater_than_or_equal_to: 0}
   validates :quantity_gasoline_liters, :quantity_diesel_liters,
             numericality: {greater_than_or_equal_to: 0}
 
