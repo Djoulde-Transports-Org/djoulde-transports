@@ -109,7 +109,7 @@ RSpec.describe BillingStatement do
       route = Route.create!(origin: "A", destination: "B", rate: 250)
       trip  = Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 2))
       DeliveryNote.create!(trip: trip, number: "DN-BS-1",
-                           quantity_gasoline_liters: 1_000, quantity_diesel_liters: 500,
+                           gasoline_quantity: 1_000, diesel_quantity: 500,
                            delivered_on: Date.new(2026, 5, 2))
       BillingLineItem.from_trip(trip, billing_statement: statement)
     end

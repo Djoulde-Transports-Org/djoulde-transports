@@ -7,10 +7,8 @@ RSpec.describe API::V1::Endpoints::Trips::Update do
 
   let(:headers)      { {} }
   let(:params)       { {status: "in_progress"} }
-  let(:admin_setup)  { auth_setup(role: :super_admin) }
-  let(:admin_token)  { admin_setup[1] }
-  let(:viewer_setup) { auth_setup(role: :driver_readonly) }
-  let(:viewer_token) { viewer_setup[1] }
+  let(:admin_token)  { auth_setup(role: :super_admin)[1] }
+  let(:viewer_token) { auth_setup(role: :driver_readonly)[1] }
   let(:truck)        { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}") }
   let(:route)        { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
   let(:trip)         { Trip.create!(truck: truck, route: route) }
@@ -85,6 +83,28 @@ RSpec.describe API::V1::Endpoints::Trips::Update do
 
       it "returns 422" do
         expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    context "when completing the trip with a missing quantity" do
+      let(:params) { {status: "completed", missing_quantity: 4} }
+      let!(:note) do
+        DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(2)}",
+                             gasoline_quantity: 10, diesel_quantity: 0)
+      end
+
+      before { do_request }
+
+      it "returns 200" do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "records the missing quantity on the delivery note" do
+        expect(note.reload.missing_quantity).to eq(4)
+      end
+
+      it "returns the missing quantity in the nested delivery note" do
+        expect(response.parsed_body.dig("delivery_note", "missing_quantity")).to eq(4)
       end
     end
   end

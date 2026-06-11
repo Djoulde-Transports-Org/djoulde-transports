@@ -55,9 +55,9 @@ RSpec.describe API::V1::Endpoints::Trucks::Update do
 
     context "with nested tank attributes" do
       let!(:tank) do
-        Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 30_000)
+        Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 30_000)
       end
-      let(:params) { {make: "Scania", tank: {capacity_liters: 45_000}} }
+      let(:params) { {make: "Scania", tank: {capacity: 45_000}} }
 
       before { do_request }
 
@@ -70,19 +70,19 @@ RSpec.describe API::V1::Endpoints::Trucks::Update do
       end
 
       it "updates the tank" do
-        expect(tank.reload.capacity_liters).to eq(45_000)
+        expect(tank.reload.capacity).to eq(45_000)
       end
 
       it "returns the updated tank" do
-        expect(response.parsed_body.dig("tank", "capacity_liters")).to eq(45_000)
+        expect(response.parsed_body.dig("tank", "capacity")).to eq(45_000)
       end
     end
 
     context "with an invalid nested tank" do
       let!(:tank) do
-        Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 30_000)
+        Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 30_000)
       end
-      let(:params) { {make: "Scania", tank: {capacity_liters: -5}} }
+      let(:params) { {make: "Scania", tank: {capacity: -5}} }
 
       it "returns 422" do
         do_request

@@ -26,7 +26,7 @@ module API::V1::Endpoints::Trucks
         optional :status,       type: String, values: ::Truck.statuses.keys, documentation: {desc: "The status of the truck."}
         requires :tank, type: Hash, documentation: {desc: "The tank attached to the truck."} do
           requires :plate_number,    type: String, documentation: {desc: "The plate number of the tank."}
-          requires :capacity_liters, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
+          requires :capacity, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
           requires :vin,             type: String, documentation: {desc: "The VIN of the tank."}
           requires :make,            type: String, documentation: {desc: "The make of the tank."}
           requires :model,           type: String, documentation: {desc: "The model of the tank."}

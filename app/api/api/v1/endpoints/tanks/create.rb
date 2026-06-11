@@ -17,7 +17,7 @@ module API::V1::Endpoints::Tanks
       params do
         requires :truck_id,        type: Integer, documentation: {desc: "The ID of the truck (head) the tank is attached to."}
         requires :plate_number,    type: String, documentation: {desc: "The plate number of the tank."}
-        requires :capacity_liters, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
+        requires :capacity, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
         optional :vin,             type: String, documentation: {desc: "The VIN of the tank."}
         optional :make,            type: String, documentation: {desc: "The make of the tank."}
         optional :model,           type: String, documentation: {desc: "The model of the tank."}

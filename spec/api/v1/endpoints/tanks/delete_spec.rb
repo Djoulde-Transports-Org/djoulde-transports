@@ -11,7 +11,7 @@ RSpec.describe API::V1::Endpoints::Tanks::Delete do
   let(:viewer_token) { viewer_setup[1] }
   let(:truck) { Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}") }
   let(:tank) do
-    Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity_liters: 30_000)
+    Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 30_000)
   end
   let(:tank_id) { tank.id }
 

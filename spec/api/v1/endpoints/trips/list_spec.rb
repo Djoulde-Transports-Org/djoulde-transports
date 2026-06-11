@@ -13,6 +13,10 @@ RSpec.describe API::V1::Endpoints::Trips::List do
   let(:truck)        { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}") }
   let(:route)        { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
   let!(:trip)        { Trip.create!(truck: truck, route: route) }
+  let!(:note) do
+    DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(2)}",
+                         gasoline_quantity: 5, diesel_quantity: 0)
+  end
 
   context "without a token" do
     before { do_request }
@@ -33,6 +37,11 @@ RSpec.describe API::V1::Endpoints::Trips::List do
 
     it "returns kept trips" do
       expect(response.parsed_body.pluck("id")).to include(trip.id)
+    end
+
+    it "includes each trip's nested delivery note" do
+      row = response.parsed_body.find { |t| t["id"] == trip.id }
+      expect(row.dig("delivery_note", "number")).to eq(note.number)
     end
 
     it "sets pagination headers", :aggregate_failures do

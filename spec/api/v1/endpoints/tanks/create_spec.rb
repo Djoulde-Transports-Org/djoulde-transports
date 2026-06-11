@@ -16,7 +16,7 @@ RSpec.describe API::V1::Endpoints::Tanks::Create do
     {
       truck_id:        truck.id,
       plate_number:    "TK-#{SecureRandom.hex(2)}",
-      capacity_liters: 28_000,
+      capacity: 28_000,
     }
   end
 
@@ -81,7 +81,7 @@ RSpec.describe API::V1::Endpoints::Tanks::Create do
 
     context "with a second tank on the same truck" do
       let!(:existing) do
-        Tank.create!(truck: truck, plate_number: "TK-FIRST", capacity_liters: 20_000)
+        Tank.create!(truck: truck, plate_number: "TK-FIRST", capacity: 20_000)
       end
 
       before { do_request }
@@ -94,7 +94,7 @@ RSpec.describe API::V1::Endpoints::Tanks::Create do
     context "with a duplicate plate_number" do
       let!(:existing) do
         other_truck = Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}")
-        Tank.create!(truck: other_truck, plate_number: params[:plate_number], capacity_liters: 20_000)
+        Tank.create!(truck: other_truck, plate_number: params[:plate_number], capacity: 20_000)
       end
 
       before { do_request }

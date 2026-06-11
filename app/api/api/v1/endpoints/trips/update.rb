@@ -6,7 +6,7 @@ module API::V1::Endpoints::Trips
 
     helpers do
       def update_trip!
-        trip.update!(trip_params)
+        ::Trips::Update.call(trip, trip_params, missing_quantity_param)
       end
     end
 
@@ -25,6 +25,7 @@ module API::V1::Endpoints::Trips
           optional :actual_end_at,      type: DateTime, documentation: {desc: "The actual end time."}
           optional :cargo_description,  type: String, documentation: {desc: "A description of the cargo."}
           optional :distance_km,        type: BigDecimal, documentation: {desc: "The distance of the trip in kilometers."}
+          optional :missing_quantity, type: Integer, documentation: {desc: "The quantity missing on delivery, recorded when completing the trip."}
         end
         patch "/update" do
           authorize!(trip, :update)

@@ -10,6 +10,10 @@ RSpec.describe API::V1::Endpoints::Trips::Get do
   let(:route)        { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
   let(:trip)         { Trip.create!(truck: truck, route: route) }
   let(:trip_id)      { trip.id }
+  let!(:note) do
+    DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(2)}",
+                         gasoline_quantity: 5, diesel_quantity: 0)
+  end
 
   context "without a token" do
     before { do_request }
@@ -35,6 +39,10 @@ RSpec.describe API::V1::Endpoints::Trips::Get do
 
       it "returns the trip truck_id" do
         expect(response.parsed_body["truck_id"]).to eq(truck.id)
+      end
+
+      it "includes the nested delivery note" do
+        expect(response.parsed_body.dig("delivery_note", "number")).to eq(note.number)
       end
     end
 
