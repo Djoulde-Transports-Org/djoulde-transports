@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe API::V1::Endpoints::Trucks::Delete do
-  subject(:do_request) { delete "/api/v1/trucks/#{truck_id}", headers: headers }
+  subject(:do_request) { delete "/api/v1/trucks/#{truck_id}/delete", headers: headers }
 
   let(:headers)      { {} }
   let(:admin_setup)  { auth_setup(role: :super_admin) }

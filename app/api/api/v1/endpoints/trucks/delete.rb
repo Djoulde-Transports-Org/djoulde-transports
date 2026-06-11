@@ -7,7 +7,7 @@ module API::V1::Endpoints::Trucks
     resource :trucks do
       route_param :id, type: Integer do
         desc "Soft-delete a truck (cascades to trips, maintenances, documents)."
-        delete do
+        delete "/delete" do
           authorize!(truck, :destroy)
           result =
             begin
