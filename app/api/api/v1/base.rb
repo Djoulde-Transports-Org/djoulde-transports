@@ -47,5 +47,7 @@ module API::V1
 
     mount API::V1::Endpoints::Users::Sessions
     mount API::V1::Endpoints::Users::Me
+
+    mount API::V1::Endpoints::Trucks::Default
   end
 end
