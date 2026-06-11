@@ -6,7 +6,7 @@ RSpec.describe API::V1::Endpoints::Routes::Update do
   end
 
   let(:headers)      { {} }
-  let(:params)       { {rate: 1800} }
+  let(:params)       { {rate: 1800.75} }
   let(:admin_setup)  { auth_setup(role: :super_admin) }
   let(:admin_token)  { admin_setup[1] }
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
@@ -43,11 +43,11 @@ RSpec.describe API::V1::Endpoints::Routes::Update do
       end
 
       it "updates the route" do
-        expect(route.reload.rate).to eq(1800)
+        expect(route.reload.rate).to eq(1800.75)
       end
 
-      it "returns the updated rate" do
-        expect(response.parsed_body["rate"]).to eq(1800)
+      it "returns the updated rate with its decimal part" do
+        expect(response.parsed_body["rate"]).to eq(1800.75)
       end
     end
 

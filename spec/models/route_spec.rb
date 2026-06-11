@@ -35,6 +35,18 @@ RSpec.describe Route do
     expect(route.errors[:rate]).to be_present
   end
 
+  it "allows a fractional rate" do
+    route.rate = 1160.59
+    route.validate
+    expect(route.errors[:rate]).to be_empty
+  end
+
+  it "persists the decimal part of the rate" do
+    route.rate = 1160.59
+    route.save!
+    expect(route.reload.rate).to eq(BigDecimal("1160.59"))
+  end
+
   it "enforces case-insensitive uniqueness of (origin, destination)" do
     described_class.create!(origin: "Conakry", destination: "Labe", rate: 250)
     duplicate = described_class.new(origin: "conakry", destination: "labe", rate: 300)

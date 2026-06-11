@@ -16,7 +16,7 @@ module API::V1::Endpoints::Routes
         params do
           optional :origin,      type: String,  documentation: {desc: "The origin of the route."}
           optional :destination, type: String,  documentation: {desc: "The destination of the route."}
-          optional :rate,        type: Integer, documentation: {desc: "The rate of the route."}
+          optional :rate,        type: BigDecimal, documentation: {desc: "The rate of the route."}
         end
         patch "/update" do
           authorize!(route_record, :update)

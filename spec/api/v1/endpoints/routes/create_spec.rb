@@ -10,7 +10,7 @@ RSpec.describe API::V1::Endpoints::Routes::Create do
   let(:admin_token)  { admin_setup[1] }
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
   let(:viewer_token) { viewer_setup[1] }
-  let(:params)       { {origin: "Kankan", destination: "Nzerekore", rate: 2000} }
+  let(:params)       { {origin: "Kankan", destination: "Nzerekore", rate: 1160.59} }
 
   context "without a token" do
     before { do_request }
@@ -52,8 +52,8 @@ RSpec.describe API::V1::Endpoints::Routes::Create do
         expect(response.parsed_body["origin"]).to eq(params[:origin])
       end
 
-      it "returns the route rate" do
-        expect(response.parsed_body["rate"]).to eq(params[:rate])
+      it "returns the route rate with its decimal part" do
+        expect(response.parsed_body["rate"]).to eq(1160.59)
       end
     end
 

@@ -17,7 +17,7 @@ module API::V1::Endpoints::Routes
       params do
         requires :origin,      type: String,  documentation: {desc: "The origin of the route."}
         requires :destination, type: String,  documentation: {desc: "The destination of the route."}
-        requires :rate,        type: Integer, documentation: {desc: "The rate of the route."}
+        requires :rate,        type: BigDecimal, documentation: {desc: "The rate of the route."}
       end
       post "/create" do
         authorize!(::Route, :create)
