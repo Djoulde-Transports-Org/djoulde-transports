@@ -13,7 +13,7 @@ module API::V1::Endpoints::Trips
       end
       get do
         authorize!(::Trip, :index)
-        scope = policy_scope(::Trip).order(scheduled_start_at: :desc)
+        scope = policy_scope(::Trip).includes(:delivery_note).order(scheduled_start_at: :desc)
         scope = scope.where(truck_id: params[:truck_id]) if params[:truck_id]
         scope = scope.where(tank_id: params[:tank_id])   if params[:tank_id]
         scope = scope.where(route_id: params[:route_id]) if params[:route_id]

@@ -6,14 +6,12 @@ module API::V1::Endpoints::Trips
 
     helpers do
       def create_trip
-        trip = ::Trip.new(trip_params)
-        trip.save!
-        trip
+        ::Trips::Create.call(trip_params, delivery_note_params)
       end
     end
 
     resource :trips do
-      desc "Create a trip."
+      desc "Create a trip and its delivery note."
       params do
         requires :truck_id,           type: Integer, documentation: {desc: "The truck assigned to the trip."}
         requires :route_id,           type: Integer, documentation: {desc: "The route of the trip."}
@@ -26,6 +24,12 @@ module API::V1::Endpoints::Trips
         optional :actual_end_at,      type: DateTime, documentation: {desc: "The actual end time."}
         optional :cargo_description,  type: String, documentation: {desc: "A description of the cargo."}
         optional :distance_km,        type: BigDecimal, documentation: {desc: "The distance of the trip in kilometers."}
+        requires :delivery_note, type: Hash, documentation: {desc: "The delivery note (loading document) for the trip."} do
+          requires :number,                   type: String, documentation: {desc: "The delivery note number."}
+          optional :delivered_on,             type: Date, documentation: {desc: "The date the cargo was delivered."}
+          optional :gasoline_quantity, type: Integer, default: 0, documentation: {desc: "The gasoline quantity loaded, in liters."}
+          optional :diesel_quantity,   type: Integer, default: 0, documentation: {desc: "The diesel quantity loaded, in liters."}
+        end
       end
       post "/create" do
         authorize!(::Trip, :create)

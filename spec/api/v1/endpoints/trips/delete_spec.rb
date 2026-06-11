@@ -58,7 +58,7 @@ RSpec.describe API::V1::Endpoints::Trips::Delete do
     context "when the trip is already on a billing line item" do
       before do
         DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(2)}",
-                             quantity_gasoline_liters: 10, quantity_diesel_liters: 0)
+                             gasoline_quantity: 10, diesel_quantity: 0)
         statement = BillingStatement.create!(month: Time.zone.today.beginning_of_month, number: "2026-05")
         BillingLineItem.from_trip(trip, billing_statement: statement).save!
         do_request

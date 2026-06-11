@@ -16,6 +16,7 @@ module API::V1::Entities
     expose :scheduled_end_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The scheduled end time."}
     expose :actual_start_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The actual start time."}
     expose :actual_end_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The actual end time."}
+    expose :delivery_note, using: ::API::V1::Entities::DeliveryNote, documentation: {type: "Object", desc: "The delivery note (loading document) for the trip."}
     expose :created_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
     expose :updated_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
     expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
