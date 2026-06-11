@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe API::V1::Endpoints::Trucks::Create do
+RSpec.describe API::V1::Endpoints::Tanks::Create do
   subject(:do_request) do
-    post "/api/v1/trucks/create", params: params, headers: headers
+    post "/api/v1/tanks/create", params: params, headers: headers
   end
 
   let(:headers)      { {} }
@@ -11,24 +11,12 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
   let(:admin_token)  { admin_setup[1] }
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
   let(:viewer_token) { viewer_setup[1] }
-  let(:tank_params) do
-    {
-      plate_number:    "TK-#{SecureRandom.hex(2)}",
-      capacity_liters: 30_000,
-      vin:             "TKV-#{SecureRandom.hex(4)}",
-      make:            "Commet",
-      model:           "123",
-      year:            2024,
-    }
-  end
+  let(:truck) { Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}") }
   let(:params) do
     {
-      plate_number: "NEW-#{SecureRandom.hex(2)}",
-      vin:          "VIN-#{SecureRandom.hex(4)}",
-      make:         "Volvo",
-      model:        "FH",
-      year:         2022,
-      tank:         tank_params,
+      truck_id:        truck.id,
+      plate_number:    "TK-#{SecureRandom.hex(2)}",
+      capacity_liters: 28_000,
     }
   end
 
@@ -57,11 +45,7 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
   context "when the user is an admin" do
     let(:headers) { bearer_headers(admin_token) }
 
-    it "creates a truck" do
-      expect { do_request }.to change { Truck.count }.by(1)
-    end
-
-    it "creates the tank attached to the truck" do
+    it "creates a tank" do
       expect { do_request }.to change { Tank.count }.by(1)
     end
 
@@ -72,48 +56,17 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
         expect(response).to have_http_status(:created)
       end
 
-      it "returns the truck's plate_number" do
+      it "returns the tank's plate_number" do
         expect(response.parsed_body["plate_number"]).to eq(params[:plate_number])
       end
 
-      it "stamps created_by to the current user" do
-        expect(response.parsed_body["created_by_id"]).to eq(admin.id)
-      end
-
-      it "returns the nested tank" do
-        expect(response.parsed_body.dig("tank", "plate_number")).to eq(tank_params[:plate_number])
-      end
-    end
-
-    context "with a missing tank" do
-      let(:params) { super().except(:tank) }
-
-      before { do_request }
-
-      it "returns 422" do
-        expect(response).to have_http_status(:unprocessable_content)
-      end
-
-      it "returns the validation_failed code" do
-        expect(response.parsed_body.dig("error", "code")).to eq("validation_failed")
-      end
-    end
-
-    context "with an invalid tank" do
-      let(:tank_params) { super().merge(capacity_liters: -5) }
-
-      it "returns 422" do
-        do_request
-        expect(response).to have_http_status(:unprocessable_content)
-      end
-
-      it "rolls back the truck" do
-        expect { do_request }.not_to change { Truck.count }
+      it "attaches the tank to the truck" do
+        expect(response.parsed_body["truck_id"]).to eq(truck.id)
       end
     end
 
     context "with missing required params" do
-      let(:params) { {plate_number: ""} }
+      let(:params) { {truck_id: truck.id} }
 
       before { do_request }
 
@@ -123,12 +76,25 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
 
       it "returns the validation_failed code" do
         expect(response.parsed_body.dig("error", "code")).to eq("validation_failed")
+      end
+    end
+
+    context "with a second tank on the same truck" do
+      let!(:existing) do
+        Tank.create!(truck: truck, plate_number: "TK-FIRST", capacity_liters: 20_000)
+      end
+
+      before { do_request }
+
+      it "returns 422" do
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
     context "with a duplicate plate_number" do
       let!(:existing) do
-        Truck.create!(plate_number: params[:plate_number], make: "X", model: "Y", year: 2020)
+        other_truck = Truck.create!(plate_number: "H-#{SecureRandom.hex(3)}")
+        Tank.create!(truck: other_truck, plate_number: params[:plate_number], capacity_liters: 20_000)
       end
 
       before { do_request }

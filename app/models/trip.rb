@@ -19,6 +19,7 @@
 #  discarded_by_id    :bigint
 #  driver_id          :bigint
 #  route_id           :bigint           not null
+#  tank_id            :bigint           not null
 #  truck_id           :bigint           not null
 #
 # Indexes
@@ -28,6 +29,7 @@
 #  index_trips_on_driver_id        (driver_id)
 #  index_trips_on_route_id         (route_id)
 #  index_trips_on_status           (status)
+#  index_trips_on_tank_id          (tank_id)
 #  index_trips_on_truck_id         (truck_id)
 #
 # Foreign Keys
@@ -35,6 +37,7 @@
 #  fk_rails_...  (discarded_by_id => users.id)
 #  fk_rails_...  (driver_id => users.id)
 #  fk_rails_...  (route_id => routes.id)
+#  fk_rails_...  (tank_id => tanks.id)
 #  fk_rails_...  (truck_id => trucks.id)
 #
 class Trip < ApplicationRecord
@@ -49,6 +52,7 @@ class Trip < ApplicationRecord
   }, default: :scheduled
 
   belongs_to :truck
+  belongs_to :tank
   belongs_to :route
   belongs_to :driver,       class_name: "User", optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
@@ -57,9 +61,12 @@ class Trip < ApplicationRecord
   has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
+  before_validation :default_tank_from_truck, on: :create
+
   validates :distance_km, numericality: {greater_than_or_equal_to: 0}, allow_nil: true
   validate  :scheduled_window_ordered
   validate  :actual_window_ordered
+  validate  :tank_matches_truck
 
   scope :started_in_month, ->(year, month) {
     start = Date.new(year, month, 1)
@@ -88,5 +95,18 @@ class Trip < ApplicationRecord
     return if actual_end_at >= actual_start_at
 
     errors.add(:actual_end_at, "must be on or after actual_start_at")
+  end
+
+  def tank_matches_truck
+    return if tank_id.blank? || truck_id.blank?
+    return if tank.truck_id == truck_id
+
+    errors.add(:tank_id, "is paired with a different truck")
+  end
+
+  def default_tank_from_truck
+    return if tank_id.present? || truck.blank?
+
+    self.tank = truck.tank
   end
 end

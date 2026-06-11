@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Document do
-  let(:truck) { Truck.create!(plate_number: "DOC-1") }
+  let(:truck) { build_truck_with_tank(plate: "DOC-1") }
   let(:document) { described_class.new(title: "Insurance card", documentable: truck) }
 
   it "includes Discardable" do

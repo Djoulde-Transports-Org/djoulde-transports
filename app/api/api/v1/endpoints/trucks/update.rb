@@ -6,13 +6,18 @@ module API::V1::Endpoints::Trucks
 
     helpers do
       def update_truck!
-        truck.update!(truck_params)
+        attrs = truck_params
+        ::Trucks::Update.call(
+          truck,
+          truck_attrs: attrs.except(:tank),
+          tank_attrs:  attrs[:tank]
+        )
       end
     end
 
     resource :trucks do
       route_param :id, type: Integer do
-        desc "Update a truck."
+        desc "Update a truck and, optionally, its tank."
         params do
           optional :plate_number, type: String, documentation: {desc: "The plate number of the truck."}
           optional :vin,          type: String, documentation: {desc: "The VIN of the truck."}
@@ -20,8 +25,17 @@ module API::V1::Endpoints::Trucks
           optional :model,        type: String, documentation: {desc: "The model of the truck."}
           optional :year,         type: Integer, documentation: {desc: "The year of the truck."}
           optional :status,       type: String, values: ::Truck.statuses.keys, documentation: {desc: "The status of the truck."}
+          optional :tank, type: Hash, documentation: {desc: "Attributes of the tank attached to the truck."} do
+            optional :plate_number,    type: String, documentation: {desc: "The plate number of the tank."}
+            optional :vin,             type: String, documentation: {desc: "The VIN of the tank."}
+            optional :make,            type: String, documentation: {desc: "The make of the tank."}
+            optional :model,           type: String, documentation: {desc: "The model of the tank."}
+            optional :year,            type: Integer, documentation: {desc: "The year of the tank."}
+            optional :capacity_liters, type: Integer, documentation: {desc: "The capacity of the tank in liters."}
+            optional :status,          type: String, values: ::Tank.statuses.keys, documentation: {desc: "The status of the tank."}
+          end
         end
-        patch do
+        patch "/update" do
           authorize!(truck, :update)
           update_truck!
 

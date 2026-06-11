@@ -2,7 +2,7 @@
 
 RSpec.describe DeliveryNote do
   let(:trip) do
-    truck = Truck.create!(plate_number: "DN-1")
+    truck = build_truck_with_tank(plate: "DN-1")
     route = Route.create!(origin: "Conakry", destination: "Labe", rate: 250)
     Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 12))
   end
@@ -12,7 +12,7 @@ RSpec.describe DeliveryNote do
                         delivered_on: Date.new(2026, 5, 12))
   end
   let(:another_trip) do
-    Trip.create!(truck: Truck.create!(plate_number: "DN-2"),
+    Trip.create!(truck: build_truck_with_tank(plate: "DN-2"),
                  route: trip.route, actual_start_at: Time.zone.now)
   end
 

@@ -105,7 +105,7 @@ RSpec.describe BillingStatement do
 
   describe "#recalculate_total!" do
     let(:line) do
-      truck = Truck.create!(plate_number: "BS-1")
+      truck = build_truck_with_tank(plate: "BS-1")
       route = Route.create!(origin: "A", destination: "B", rate: 250)
       trip  = Trip.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 2))
       DeliveryNote.create!(trip: trip, number: "DN-BS-1",

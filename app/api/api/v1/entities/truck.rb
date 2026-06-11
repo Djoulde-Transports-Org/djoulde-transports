@@ -13,5 +13,6 @@ module API::V1::Entities
     expose :created_at, documentation: {type: "DateTime", desc: "The creation time."}
     expose :updated_at, documentation: {type: "DateTime", desc: "The last update time."}
     expose :discarded_at, documentation: {type: "DateTime", desc: "The discard time."}
+    expose :tank, using: ::API::V1::Entities::Tank, documentation: {type: "Object", desc: "The tank attached to the truck."}
   end
 end

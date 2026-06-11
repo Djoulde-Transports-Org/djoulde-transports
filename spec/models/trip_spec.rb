@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Trip do
-  let(:truck) { Truck.create!(plate_number: "PLATE-1") }
+  let(:truck) { build_truck_with_tank(plate: "PLATE-1") }
   let(:route) { Route.create!(origin: "Conakry", destination: "Labe", rate: 250) }
   let(:trip)  { described_class.new(truck: truck, route: route) }
 

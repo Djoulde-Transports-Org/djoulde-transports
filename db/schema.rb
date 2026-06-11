@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_120000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -241,6 +241,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
     t.index ["origin", "destination"], name: "index_routes_on_origin_and_destination", unique: true
   end
 
+  create_table "tanks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "capacity_liters", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "make"
+    t.string "model"
+    t.string "plate_number", null: false
+    t.integer "status", default: 0, null: false
+    t.bigint "truck_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "vin"
+    t.integer "year"
+    t.index ["discarded_at"], name: "index_tanks_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_tanks_on_discarded_by_id"
+    t.index ["plate_number"], name: "index_tanks_on_plate_number", unique: true
+    t.index ["truck_id"], name: "index_tanks_on_truck_id", unique: true
+    t.index ["vin"], name: "index_tanks_on_vin", unique: true
+  end
+
   create_table "trips", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "actual_end_at"
     t.datetime "actual_start_at"
@@ -254,6 +274,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
     t.datetime "scheduled_end_at"
     t.datetime "scheduled_start_at"
     t.integer "status", default: 0, null: false
+    t.bigint "tank_id", null: false
     t.bigint "truck_id", null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
@@ -261,11 +282,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
     t.index ["driver_id"], name: "index_trips_on_driver_id"
     t.index ["route_id"], name: "index_trips_on_route_id"
     t.index ["status"], name: "index_trips_on_status"
+    t.index ["tank_id"], name: "index_trips_on_tank_id"
     t.index ["truck_id"], name: "index_trips_on_truck_id"
   end
 
   create_table "trucks", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "capacity_kg"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.datetime "discarded_at"
@@ -340,7 +361,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_121900) do
   add_foreign_key "oauth_applications", "users", column: "created_by_id"
   add_foreign_key "oauth_applications", "users", column: "discarded_by_id"
   add_foreign_key "routes", "users", column: "discarded_by_id"
+  add_foreign_key "tanks", "trucks"
+  add_foreign_key "tanks", "users", column: "discarded_by_id"
   add_foreign_key "trips", "routes"
+  add_foreign_key "trips", "tanks"
   add_foreign_key "trips", "trucks"
   add_foreign_key "trips", "users", column: "discarded_by_id"
   add_foreign_key "trips", "users", column: "driver_id"
