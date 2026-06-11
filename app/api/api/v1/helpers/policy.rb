@@ -20,7 +20,7 @@ module API::V1::Helpers
 
     def find_kept!(klass, id_param: :id)
       record = policy_scope(klass).kept.find_by(id: params[id_param])
-      not_found! if record.nil?
+      not_found!(message: "#{klass.model_name.human} not found.") if record.nil?
       record
     end
   end
