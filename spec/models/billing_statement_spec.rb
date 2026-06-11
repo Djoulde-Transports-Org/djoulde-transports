@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe BillingStatement do
   let(:statement_month) { Date.new(2026, 5, 1) }
   let(:statement) { described_class.new(number: "INV-202605", month: statement_month) }

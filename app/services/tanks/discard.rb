@@ -4,6 +4,8 @@
 # to detach. Block the discard until those trips are reassigned or retired.
 module Tanks
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(tank)
       @tank = tank
     end
@@ -17,7 +19,12 @@ module Tanks
         @tank.documents.kept.find_each { |d| d.discard! }
         @tank.discard!
       end
-      @tank
+
+      Result.new(success: true, message: "Tank has been successfully deleted.")
     end
+
+    private
+
+    attr_reader :tank
   end
 end
