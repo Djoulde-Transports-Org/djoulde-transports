@@ -12,7 +12,7 @@ RSpec.describe Maintenances::Discard do
   end
 
   it "cascades to documents" do
-    document = Document.create!(documentable: maintenance, title: "Receipt")
+    document = Document.create!(documentable: maintenance, number: "RCP-1", title: "Receipt")
     described_class.call(maintenance)
     expect(document.reload.discarded?).to be true
   end

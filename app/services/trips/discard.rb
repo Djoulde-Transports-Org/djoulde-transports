@@ -17,8 +17,8 @@ module Trips
       end
 
       ApplicationRecord.transaction do
-        @trip.delivery_note&.discard! if @trip.delivery_note&.kept?
-        @trip.documents.kept.find_each { |d| d.discard! }
+        DeliveryNotes::Discard.call(@trip.delivery_note) if @trip.delivery_note&.kept?
+        @trip.documents.kept.find_each { |d| Documents::Discard.call(d) }
         @trip.discard!
       end
 

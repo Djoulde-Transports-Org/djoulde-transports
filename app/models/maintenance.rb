@@ -14,7 +14,7 @@
 #  kind               :integer          default("routine"), not null
 #  odometer_km        :integer
 #  performed_on       :date             not null
-#  state              :integer          default(0), not null
+#  state              :integer          default("started"), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  discarded_by_id    :bigint

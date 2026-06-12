@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_120800) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_120100) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -136,6 +136,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_120800) do
     t.string "documentable_type", null: false
     t.date "expires_on"
     t.date "issued_on"
+    t.string "number", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
@@ -143,6 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_120800) do
     t.index ["discarded_by_id"], name: "index_documents_on_discarded_by_id"
     t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
     t.index ["expires_on"], name: "index_documents_on_expires_on"
+    t.index ["number"], name: "index_documents_on_number", unique: true
     t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
   end
 

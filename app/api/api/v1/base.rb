@@ -53,5 +53,6 @@ module API::V1
     mount API::V1::Endpoints::Routes::Default
     mount API::V1::Endpoints::Trips::Default
     mount API::V1::Endpoints::Maintenances::Default
+    mount API::V1::Endpoints::Documents::Default
   end
 end

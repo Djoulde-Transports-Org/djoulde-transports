@@ -19,7 +19,7 @@ RSpec.describe Tanks::Discard do
   end
 
   it "cascades to kept documents" do
-    document = Document.create!(documentable: tank, title: "Hydro test")
+    document = Document.create!(documentable: tank, number: "HYD-1", title: "Hydro test")
     described_class.call(tank)
     expect(document.reload.discarded?).to be true
   end
