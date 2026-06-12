@@ -55,6 +55,6 @@ module API::V1
     mount API::V1::Endpoints::Maintenances::Default
     mount API::V1::Endpoints::Documents::Default
     mount API::V1::BillingStatements
-    mount API::V1::BillingLineItems
+    mount API::V1::Endpoints::BillingLineItems::Default
   end
 end
