@@ -40,13 +40,13 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 
 # ENV-driven config loaded from config/application.yml [https://github.com/laserlemon/figaro]
 gem "figaro", "~> 1.2"
 
 # Soft-delete via discarded_at columns, no global default_scope [https://github.com/jhawthorn/discard]
-gem "discard", "~> 1.4"
+gem "discard", "~> 2.0"
 
 # Audit trail of model changes; ticket 10 wires `audited` into business models [https://github.com/collectiveidea/audited]
 gem "audited", "~> 5.7"
@@ -60,7 +60,7 @@ gem "rack-attack", "~> 6.7"
 gem "rack-cors", "~> 3.0"
 
 # OAuth2 provider; custom application class lands in app/models/oauth_application.rb (ticket 08)
-gem "doorkeeper", "~> 5.7"
+gem "doorkeeper", "~> 5.9"
 
 # User authentication (ticket 09): database_authenticatable, confirmable, lockable, trackable, recoverable
 gem "devise", "~> 5.0", ">= 5.0.4"
@@ -69,11 +69,15 @@ gem "devise", "~> 5.0", ">= 5.0.4"
 gem "rolify", "~> 6.0"
 
 # Grape mounts the JSON API at /api/v1 (sessions + me here; rest of the API in ticket 11)
-gem "grape", "~> 2.0"
+gem "grape", "~> 3.2"
 gem "grape-entity", "~> 1.0"
 
 # Policy-based authorization for Grape endpoints (ticket 11)
 gem "pundit", "~> 2.4"
+
+# Pagination for Grape list endpoints (sets Total, Per-Page, Link headers)
+gem "kaminari", "~> 1.2"
+gem "api-pagination", "~> 6.0"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -96,7 +100,7 @@ group :development, :test do
   gem "rubocop-migration", require: false
 
   # RSpec test framework for Rails
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 end
 
 group :development do

@@ -6,9 +6,9 @@ ENV['RAILS_ENV'] = 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
-# Uncomment the line below in case you have `--require rails_helper` in the `.rspec` file
-# that will avoid rails generators crashing because migrations haven't been run yet
-# return unless Rails.env.test?
+# `--require rails_helper` is set in .rspec; bail out early outside the test
+# env so generators don't crash before migrations have run.
+return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -64,6 +64,23 @@ RSpec.configure do |config|
   #
   # To enable this behaviour uncomment the line below.
   # config.infer_spec_type_from_file_location!
+
+  # Tag every spec under spec/api/ as a request spec so we don't have to
+  # repeat `type: :request` on each describe.
+  config.define_derived_metadata(file_path: %r{spec/api/}) do |metadata|
+    metadata[:type] = :request
+  end
+
+  # Make `travel_to`/`travel`/`freeze_time` available to every spec.
+  config.include ActiveSupport::Testing::TimeHelpers
+
+  # Rack::Attack throttles by IP against a shared Redis store. Without a reset
+  # the counters accumulate across the suite and trip the api/ip limit, turning
+  # unrelated request specs into spurious 429s. Clear the store before each
+  # example so every spec starts from a clean throttle state.
+  config.before do
+    Rack::Attack.cache.store.clear if defined?(Rack::Attack)
+  end
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
