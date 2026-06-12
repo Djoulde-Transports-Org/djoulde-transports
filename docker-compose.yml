@@ -37,7 +37,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime
+      # Use the build stage for local dev: it carries the C toolchain
+      # (build-essential, *-dev headers) needed to compile native gem
+      # extensions like json when `bundle install` runs in the container.
+      # The lean `runtime` target lacks these and is for production images.
+      target: build
     command: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
     environment:
       RAILS_ENV: ${RAILS_ENV:-development}

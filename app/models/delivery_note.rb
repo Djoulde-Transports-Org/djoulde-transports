@@ -5,16 +5,17 @@
 # Table name: delivery_notes
 # Database name: primary
 #
-#  id                       :bigint           not null, primary key
-#  delivered_on             :date
-#  discarded_at             :datetime
-#  number                   :string(255)      not null
-#  quantity_diesel_liters   :decimal(12, 2)   default(0.0), not null
-#  quantity_gasoline_liters :decimal(12, 2)   default(0.0), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  discarded_by_id          :bigint
-#  trip_id                  :bigint           not null
+#  id                :bigint           not null, primary key
+#  delivered_on      :date
+#  diesel_quantity   :integer          default(0), not null
+#  discarded_at      :datetime
+#  gasoline_quantity :integer          default(0), not null
+#  missing_quantity  :integer          default(0), not null
+#  number            :string(255)      not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  discarded_by_id   :bigint
+#  trip_id           :bigint           not null
 #
 # Indexes
 #
@@ -37,13 +38,16 @@ class DeliveryNote < ApplicationRecord
 
   validates :number, presence: true, uniqueness: {case_sensitive: false}
   validates :trip_id, uniqueness: true
-  validates :quantity_gasoline_liters, :quantity_diesel_liters,
+  validates :gasoline_quantity, :diesel_quantity, :missing_quantity,
             numericality: {greater_than_or_equal_to: 0}
   validate  :at_least_one_product
+  # Enforced only when a trip is created (context :trip_creation): the loading
+  # document must account for a full tank, no more and no less.
+  validate  :loaded_quantity_fills_tank, on: :trip_creation
 
   def product
-    gas    = quantity_gasoline_liters.to_d.positive?
-    diesel = quantity_diesel_liters.to_d.positive?
+    gas    = gasoline_quantity.to_d.positive?
+    diesel = diesel_quantity.to_d.positive?
     return :both     if gas && diesel
     return :gasoline if gas
 
@@ -51,14 +55,24 @@ class DeliveryNote < ApplicationRecord
   end
 
   def total_liters
-    quantity_gasoline_liters + quantity_diesel_liters
+    gasoline_quantity + diesel_quantity
   end
 
   private
 
   def at_least_one_product
-    return if quantity_gasoline_liters.to_d.positive? || quantity_diesel_liters.to_d.positive?
+    return if gasoline_quantity.to_d.positive? || diesel_quantity.to_d.positive?
 
     errors.add(:base, "must have a non-zero quantity of gasoline or diesel")
+  end
+
+  def loaded_quantity_fills_tank
+    capacity = trip&.tank&.capacity
+    return if capacity.nil?
+    return if total_liters == capacity
+
+    comparison = total_liters < capacity ? "is less than" : "exceeds"
+    errors.add(:base,
+      "loaded quantity (#{total_liters} L) #{comparison} the tank capacity (#{capacity} L)")
   end
 end

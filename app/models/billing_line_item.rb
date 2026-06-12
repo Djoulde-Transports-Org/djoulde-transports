@@ -5,22 +5,22 @@
 # Table name: billing_line_items
 # Database name: primary
 #
-#  id                       :bigint           not null, primary key
-#  amount                   :integer          not null
-#  delivery_note_number     :string(255)
-#  destination              :string(255)
-#  discarded_at             :datetime
-#  origin                   :string(255)
-#  quantity_diesel_liters   :decimal(12, 2)   default(0.0), not null
-#  quantity_gasoline_liters :decimal(12, 2)   default(0.0), not null
-#  rate                     :integer          default(0), not null
-#  started_on               :date
-#  tva                      :integer          default(0), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  billing_statement_id     :bigint           not null
-#  discarded_by_id          :bigint
-#  trip_id                  :bigint           not null
+#  id                   :bigint           not null, primary key
+#  amount               :integer          not null
+#  delivery_note_number :string(255)
+#  destination          :string(255)
+#  diesel_quantity      :integer          default(0), not null
+#  discarded_at         :datetime
+#  gasoline_quantity    :integer          default(0), not null
+#  origin               :string(255)
+#  rate                 :decimal(12, 2)   default(0.0), not null
+#  started_on           :date
+#  tva                  :integer          default(0), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  billing_statement_id :bigint           not null
+#  discarded_by_id      :bigint
+#  trip_id              :bigint           not null
 #
 # Indexes
 #
@@ -50,9 +50,10 @@ class BillingLineItem < ApplicationRecord
   belongs_to :discarded_by, class_name: "User", optional: true
 
   validates :trip_id, uniqueness: {scope: :billing_statement_id}
-  validates :amount, :tva, :rate,
+  validates :amount, :tva,
             numericality: {only_integer: true, greater_than_or_equal_to: 0}
-  validates :quantity_gasoline_liters, :quantity_diesel_liters,
+  validates :rate, numericality: {greater_than_or_equal_to: 0}
+  validates :gasoline_quantity, :diesel_quantity,
             numericality: {greater_than_or_equal_to: 0}
 
   # Build (but do not save) a line item snapshotted from a trip + its route +
@@ -60,7 +61,7 @@ class BillingLineItem < ApplicationRecord
   def self.from_trip(trip, billing_statement:)
     note  = trip.delivery_note or raise ArgumentError, "trip #{trip.id} has no delivery_note"
     route = trip.route
-    qty   = note.quantity_gasoline_liters + note.quantity_diesel_liters
+    qty   = note.gasoline_quantity + note.diesel_quantity
     amount = (qty * route.rate).round.to_i
 
     new(
@@ -70,8 +71,8 @@ class BillingLineItem < ApplicationRecord
       delivery_note_number: note.number,
       origin: route.origin,
       destination: route.destination,
-      quantity_gasoline_liters: note.quantity_gasoline_liters,
-      quantity_diesel_liters:   note.quantity_diesel_liters,
+      gasoline_quantity: note.gasoline_quantity,
+      diesel_quantity:   note.diesel_quantity,
       rate: route.rate,
       amount: amount,
       tva: (BigDecimal(amount) * TVA_RATE).round.to_i
@@ -79,12 +80,12 @@ class BillingLineItem < ApplicationRecord
   end
 
   def total_liters
-    quantity_gasoline_liters + quantity_diesel_liters
+    gasoline_quantity + diesel_quantity
   end
 
   def product
-    gas    = quantity_gasoline_liters.to_d.positive?
-    diesel = quantity_diesel_liters.to_d.positive?
+    gas    = gasoline_quantity.to_d.positive?
+    diesel = diesel_quantity.to_d.positive?
     return :both     if gas && diesel
     return :gasoline if gas
 

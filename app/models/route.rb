@@ -9,7 +9,7 @@
 #  destination     :string(255)      not null
 #  discarded_at    :datetime
 #  origin          :string(255)      not null
-#  rate            :integer          not null
+#  rate            :decimal(12, 2)   not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  discarded_by_id :bigint
@@ -35,5 +35,5 @@ class Route < ApplicationRecord
 
   validates :origin, :destination, presence: true
   validates :origin, uniqueness: {scope: :destination, case_sensitive: false}
-  validates :rate, numericality: {only_integer: true, greater_than_or_equal_to: 0}
+  validates :rate, numericality: {greater_than_or_equal_to: 0}
 end

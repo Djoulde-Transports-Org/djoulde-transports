@@ -16,4 +16,20 @@ RSpec.describe Maintenances::Discard do
     described_class.call(maintenance)
     expect(document.reload.discarded?).to be true
   end
+
+  describe "the returned result" do
+    let(:result) { described_class.call(maintenance) }
+
+    it "is a Maintenances::Discard::Result" do
+      expect(result).to be_a(Maintenances::Discard::Result)
+    end
+
+    it "is successful" do
+      expect(result.success).to be true
+    end
+
+    it "carries a success message" do
+      expect(result.message).to eq("Maintenance has been successfully deleted.")
+    end
+  end
 end

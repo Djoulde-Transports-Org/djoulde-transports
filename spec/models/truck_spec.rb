@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe Truck do
   let(:truck) { described_class.new(plate_number: "ABC-123") }
 
@@ -30,9 +28,9 @@ RSpec.describe Truck do
     expect(duplicate.errors[:plate_number]).to be_present
   end
 
-  it "defaults status to active" do
+  it "defaults status to ready" do
     truck.save!
-    expect(truck.status).to eq("active")
+    expect(truck.status).to eq("ready")
   end
 
   it "associates has_many :trips" do
