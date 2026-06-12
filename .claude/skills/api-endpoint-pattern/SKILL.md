@@ -1,6 +1,6 @@
 ---
 name: api-endpoint-pattern
-description: Use when writing or editing any Grape endpoint under app/api/api/v1/endpoints/ or any entity under app/api/api/v1/entities/. Enforces the project's resource-module layout (one action per file), shared Common helpers, entity formatters, and service Result conventions so new resources match the existing pattern without boilerplate.
+description: Use when writing or editing any Grape endpoint under app/api/v1/endpoints/ or any entity under app/api/v1/entities/. Enforces the project's resource-module layout (one action per file), shared Common helpers, entity formatters, and service Result conventions so new resources match the existing pattern without boilerplate.
 ---
 
 # API endpoint and entity pattern
@@ -12,7 +12,7 @@ Every API resource follows the same shape. Match this layout when adding a new r
 One **action per file**, all wired together by a `Default` mount. Mirror this tree:
 
 ```
-app/api/api/v1/endpoints/<resource>/
+app/api/v1/endpoints/<resource>/
   common.rb     # shared finders + params helpers (NOT mounted)
   default.rb    # mounts the actions, applies before-filters
   list.rb       # GET    /<resource>
@@ -25,7 +25,7 @@ app/api/api/v1/endpoints/<resource>/
 `Default` mounts each action and is the single thing mounted from `API::V1::Base`. Apply `before { authenticate! }` here so every nested action inherits it; individual action files do NOT repeat the filter.
 
 ```ruby
-# app/api/api/v1/endpoints/trucks/default.rb
+# app/api/v1/endpoints/trucks/default.rb
 module API::V1::Endpoints::Trucks
   class Default < Grape::API
     before { authenticate! }
@@ -44,7 +44,7 @@ end
 Shared helpers live in a `Common` module per resource. Endpoints that need `find_kept!` or `<resource>_params` pull it in with `helpers`, **not** `include`. Grape's helpers run in the endpoint scope; `include` adds methods to the API class and they won't be visible inside action blocks.
 
 ```ruby
-# app/api/api/v1/endpoints/trucks/common.rb
+# app/api/v1/endpoints/trucks/common.rb
 module API::V1::Endpoints::Trucks
   module Common
     extend Grape::API::Helpers
@@ -114,7 +114,7 @@ Custom 404s come from `find_kept!`, which formats the message as `"<ModelName> n
 
 ## Entities
 
-Entities live at `app/api/api/v1/entities/<name>.rb` and inherit from `API::V1::Entities::Base`. `Base` declares two formatters:
+Entities live at `app/api/v1/entities/<name>.rb` and inherit from `API::V1::Entities::Base`. `Base` declares two formatters:
 
 - `format_with: :iso_8601` for full timestamps (e.g. user-facing log lines).
 - `format_with: :iso_8601_date` for date-only fields (`created_at`, `updated_at`, `discarded_at`, ...). Use this by default for record timestamps — clients want `2026-05-01`, not `2026-05-01T13:24:01Z`.
@@ -177,4 +177,4 @@ See the `api-spec-pattern` skill for spec conventions: one spec file per endpoin
 
 ## Verifying
 
-After adding or editing an endpoint or entity, run `make rspec` (or `docker compose --profile skeleton exec rails bundle exec rspec`). The suite must stay green.
+After adding or editing an endpoint or entity, run `make rspec` (or `docker compose --profile skeleton exec dev bundle exec rspec`). The suite must stay green.

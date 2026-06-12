@@ -18,16 +18,16 @@ GNU Make targets wrap the most common `docker compose` invocations. Run `make he
 
 | Target               | What it does                                                       |
 | -------------------- | ------------------------------------------------------------------ |
-| `make dev`           | Install deps, prep DB, start mysql + redis + rails + proxy + frontend |
+| `make dev`           | Install deps, prep DB, start mysql + redis + dev + proxy + frontend |
 | `make up-detached`   | Start the same stack in the background                             |
 | `make down`          | Stop and remove services                                           |
 | `make clean`         | Stop containers and remove orphans                                 |
-| `make logs`          | Tail rails + proxy logs                                            |
-| `make build`         | Rebuild the rails image                                            |
+| `make logs`          | Tail dev + proxy logs                                            |
+| `make build`         | Rebuild the dev image                                            |
 | `make setup`         | Bring deps up, install gems, run `db:prepare` (idempotent)          |
 | `make install_deps_rails` | Install Rails application dependencies (bundle)               |
-| `make console`       | `bundle exec rails console` inside the running rails container     |
-| `make bash`          | Bash shell inside the running rails container                      |
+| `make console`       | `bundle exec rails console` inside the running dev container     |
+| `make bash`          | Bash shell inside the running dev container                      |
 | `make rspec [PATH]`  | Run specs; pass paths after the target                             |
 | `make rubocop`       | Run rubocop                                                        |
 | `make vitest [PATH]` | Run Vitest in the frontend container (ticket 13+)                  |
@@ -52,28 +52,28 @@ Requires GNU Make. macOS ships `/usr/bin/make` 3.81+, which is sufficient.
 
 ## Docker Compose
 
-[`docker-compose.yml`](./docker-compose.yml) now wires `mysql`, `redis`, and `rails` as a working dev stack. `frontend` and `proxy` remain skeleton placeholders (filled in by tickets 13 and 05).
+[`docker-compose.yml`](./docker-compose.yml) now wires `mysql`, `redis`, and `dev` as a working dev stack. `frontend` and `proxy` remain skeleton placeholders (filled in by tickets 13 and 05).
 
 ### Bring the stack up
 
 ```bash
-docker compose build rails
+docker compose build dev
 docker compose up -d mysql redis
-docker compose run --rm rails bundle exec rails db:prepare
-docker compose up -d rails
+docker compose run --rm dev bundle exec rails db:prepare
+docker compose up -d dev
 ```
 
 ### Verification one-liners
 
 ```bash
 docker compose config                                        # validates compose file
-docker compose run --rm rails bundle exec rails -v           # => Rails 8.1.x
-docker compose run --rm rails bundle exec rails db:version   # => current schema version
+docker compose run --rm dev bundle exec rails -v           # => Rails 8.1.x
+docker compose run --rm dev bundle exec rails db:version   # => current schema version
 ```
 
 ### Secrets
 
-`config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `rails` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
+`config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `dev` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
 
 ## Configuration (Figaro)
 
@@ -84,21 +84,27 @@ cp config/application.yml.example config/application.yml
 # edit config/application.yml with real values
 ```
 
-Inside docker-compose the same keys are injected via the `environment:` block on the `rails` service, so `application.yml` is only needed when running `bundle exec` directly on the host.
+Inside docker-compose the same keys are injected via the `environment:` block on the `dev` service, so `application.yml` is only needed when running `bundle exec` directly on the host.
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
 ## Domain models (ticket 10)
 
-Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects (ticket 11+).
+Business models live in `app/models/`. Every business model includes `Discardable` (soft delete via `discard`) and is `audited` (full change history in the `audits` table via [`audited`](https://github.com/collectiveidea/audited)). **No `dependent: :destroy`** on business aggregates: associations either `restrict_with_error` or are detached via `discard` cascades in service objects under `app/services/<resource>/discard.rb` (ticket 11).
+
+A "truck" in the fleet is two physically distinct assets: the **head** (tractor / `Truck`) and the **tank** (trailer / `Tank`). Each has its own VIN, plate number, and registration. They're paired 1:1 (`Tank belongs_to :truck`, `Truck has_one :tank`); the pairing is effectively fixed and only swaps when one of the two is retired. Trips snapshot both `truck_id` and `tank_id` so historical reports survive a swap.
+
+A **maintenance** opens in the `started` state and locks its truck (`in_maintenance`). Marking it `completed` stamps `actual_duration` from the elapsed hours and frees the truck back to `ready`. Parts changed during the work are recorded as `MaintenancePart` rows; `cost` is never set directly but recomputed as the sum of the kept parts' prices (`Maintenance#recompute_cost!`). A **trip** moving to `on_trip`/`completed` drives the truck status the same way, and a `DeliveryNote` is created alongside the trip rather than as a separate step.
 
 | Model              | Soft delete | Audited | Notes                                                                                                  |
 | ------------------ | ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| `Truck`            | yes         | yes     | `plate_number` unique; `status` enum (`active` / `out_of_service`)                                     |
-| `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate (GNF) for that route     |
-| `Trip`             | yes         | yes     | `belongs_to :truck, :route`; optional `:driver` (User); `status` enum (scheduled → cancelled)          |
-| `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; gasoline / diesel liters; `product` derived          |
-| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum                                      |
+| `Truck`            | yes         | yes     | The head/tractor. `plate_number` unique; `status` enum (`ready` / `in_maintenance` / `on_trip`)        |
+| `Tank`             | yes         | yes     | The trailer. `belongs_to :truck` (NOT NULL, unique 1:1). `capacity_liters` required; `status` enum (`active` / `out_of_service`) |
+| `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate in GNF, stored as `decimal(12, 2)` |
+| `Trip`             | yes         | yes     | `belongs_to :truck, :tank, :route`; optional `:driver` (User); `status` enum (`scheduled` / `in_progress` / `completed` / `cancelled`). Trip's `tank.truck_id` must equal its `truck_id` (consistency validator); tank defaults to `truck.tank` on create |
+| `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; `gasoline_quantity` / `diesel_quantity` / `missing_quantity` (liters); `product` derived. On trip creation, loaded quantity must fill the tank capacity |
+| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum; `state` enum (`started` / `completed`). `cost` is **derived** from kept parts; `estimated_duration` / `actual_duration` in hours |
+| `MaintenancePart`  | yes         | yes     | `belongs_to :maintenance`; `name` + integer `price`. Audited against its maintenance. Sum of kept prices drives `Maintenance#cost` |
 | `Document`         | yes         | yes     | Polymorphic `:documentable`; `has_one_attached :file` (Active Storage)                                 |
 | `BillingStatement` | yes         | yes     | One fleet-wide statement per calendar month (unique `month`); HT / TVA / TTC totals; `has_associated_audits` |
 | `BillingLineItem`  | yes         | yes     | One per trip on a statement; fat snapshot for invoice rendering (see below)                            |
@@ -106,33 +112,73 @@ Business models live in `app/models/`. Every business model includes `Discardabl
 ### Billing model
 
 - Billing is **monthly and fleet-wide**: one `BillingStatement` per calendar month (`month` = first day of that month, unique). No `BillingPeriod` table — the period is the statement.
-- **`Route.rate` is per liter**, scoped by `(origin, destination)`. Stored as a whole-GNF integer (no subunits in Guinean franc). Rates are expected to be stable for years; updates apply going forward.
-- Every billable `Trip` has a `DeliveryNote` recording `quantity_gasoline_liters` and `quantity_diesel_liters`. The derived `product` is `:gasoline`, `:diesel`, or `:both`.
+- **`Route.rate` is per liter**, scoped by `(origin, destination)`. Stored as `decimal(12, 2)` in GNF. Rates are expected to be stable for years; updates apply going forward.
+- Every billable `Trip` has a `DeliveryNote` recording `gasoline_quantity` and `diesel_quantity` (liters). The derived `product` is `:gasoline`, `:diesel`, or `:both`.
 - A statement aggregates every `Trip` whose `actual_start_at` falls inside the month. `BillingLineItem.from_trip(trip, billing_statement:)` builds the line by snapshotting **everything needed to render the invoice row**, so historical bills don't change if a trip / route / delivery note is corrected later:
   - `started_on`, `delivery_note_number`, `origin`, `destination`
-  - `quantity_gasoline_liters`, `quantity_diesel_liters`
+  - `gasoline_quantity`, `diesel_quantity`
   - `rate` (snapshot of `route.rate`)
-  - `amount` = `(qty_gasoline + qty_diesel) × rate` (HT)
+  - `amount` = `(gasoline_quantity + diesel_quantity) × rate` (HT)
   - `tva` = `amount × 0.18` (`BillingLineItem::TVA_RATE`, Guinea statutory VAT)
 - **Statement totals** are HT / TVA / TTC. `BillingStatement#recalculate_total!` writes all three:
   - `total_amount` = Σ line `amount` (HT)
   - `total_tva` = Σ line `tva`
   - `grand_total` = `total_amount + total_tva` (TTC, what the client pays)
 - **Issue window:** `issued_on` must fall between day 1 and day 10 of the month *after* `month` (`BillingStatement#issue_window`). Validated on save.
-- `BillingStatement.due_for_issue(today)` returns draft statements whose billed month has ended. The job that creates a draft statement on the 1st of each month and materializes line items via `BillingLineItem.from_trip` lands in ticket 11.
+- `BillingStatement.due_for_issue(today)` returns draft statements whose billed month has ended. `Billing::DraftMonthlyStatementJob` (recurring entry in `config/recurring.yml`, runs at 02:00 on the 1st of each month) calls `Billing::DraftMonthlyStatement` to create the prior month's draft and materialize one `BillingLineItem` per kept trip via `BillingLineItem.from_trip`. The service is idempotent per month.
 
 ### Implementation notes
 
 - **Active Storage** is installed (`active_storage_blobs` / `attachments` / `variant_records`). Documents attach files via `has_one_attached :file`.
 - **Audited YAML coder:** `config/initializers/audited.rb` registers `Date`, `Time`, `ActiveSupport::TimeWithZone`, `BigDecimal`, etc. on `ActiveRecord.yaml_column_permitted_classes` so `audited_changes` (stored as MySQL TEXT) can round-trip those value types under Psych safe-load.
-- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks deletes of aggregates that still have children; cascades land in ticket 11.
+- **No hard deletes**: service-layer code calls `record.discard`. `dependent: :restrict_with_error` blocks `destroy` of aggregates that still have children; soft-delete cascades live in `app/services/<resource>/discard.rb` (ticket 11) and either propagate `discard!` to children (Truck → trips/maintenances/documents; Trip → delivery_note/documents; Maintenance → documents; Tank → documents) or raise `ApplicationService::HasDependents` when a parent still has billed/used children (Route, Tank, Trip already billed, BillingStatement with kept line items, Truck while it still has a kept tank).
 
 ### Deferred to later tickets
 
-- Grape endpoints exposing these models — ticket **11**.
-- Service object / job that creates a draft `BillingStatement` for last month on day 1 and materializes one `BillingLineItem` per trip — ticket **11**.
 - Active Admin screens for trucks, routes, trips, maintenance, documents, and billing — ticket **12**.
 - Role-based authorization on endpoints (e.g., `driver_readonly` cannot edit) — ticket **14**.
+
+## Grape API v1 (ticket 11)
+
+JSON API mounted at `/api/v1` (Grape code lives under `app/api/v1/`; the `app/api` directory is mapped to the `API` namespace by `Rails.autoloaders.main.push_dir(..., namespace: API)` in `config/application.rb`, and `API::Root` in `app/api/root.rb` is what `config/routes.rb` mounts). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/v1/entities/`.
+
+### Resource-module layout
+
+Each resource is a folder under `app/api/v1/endpoints/<resource>/` with **one action per file** rather than a single fat endpoint class:
+
+- `list.rb`, `get.rb`, `create.rb`, `update.rb`, `delete.rb` — one Grape class per action.
+- `common.rb` — a shared helper module (record lookup, strong-params shaping) mixed into each action.
+- `default.rb` — mounts the action classes and runs `before { authenticate! }` for the resource.
+
+`API::V1::Base` mounts only each resource's `Default`. Mutating actions use explicit path suffixes (`POST /create`, `PATCH /:id/update`, `DELETE /:id/delete`); reads use the collection root (`GET`) and `GET /:id`. See the **api-endpoint-pattern** skill for the full convention.
+
+| Resource path                                        | Verbs                            | Notes                                                        |
+| ---------------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `GET /api/v1/me`                                     |                                  | Authenticated user + roles                                   |
+| `POST /api/v1/sessions`                              |                                  | Login (ticket 09)                                            |
+| `GET /api/v1/trucks`, `POST /api/v1/trucks/create`   |                                  | The head/tractor. Filterable by status; admin-only mutate    |
+| `GET /api/v1/trucks/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked while a kept tank is paired; otherwise cascades to trips/maintenances/documents |
+| `GET /api/v1/tanks`, `POST /api/v1/tanks/create`     |                                  | The trailer. Filter `truck_id`. POST requires `truck_id` + `capacity_liters` |
+| `GET /api/v1/tanks/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept trips reference the tank              |
+| `GET /api/v1/routes`, `POST /api/v1/routes/create`   |                                  |                                                              |
+| `GET /api/v1/routes/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept trips reference the route             |
+| `GET /api/v1/trips`, `POST /api/v1/trips/create`     |                                  | Filters: `truck_id`, `tank_id`, `route_id`, `status`. `tank_id` defaults to the truck's currently paired tank. POST requires a nested `delivery_note` hash |
+| `GET /api/v1/trips/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | PATCH accepts the nested `delivery_note` and a `missing_quantity`. DELETE blocked once the trip is on a billing line item; otherwise cascades to delivery_note/documents |
+| `GET /api/v1/maintenances`, `POST /api/v1/maintenances/create` |                        | Filters: `truck_id`, `kind`. `create`/`update` accept a `parts` array that replaces the part set |
+| `GET /api/v1/maintenances/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE cascades discard to documents                          |
+| `GET /api/v1/documents`, `POST /api/v1/documents/create` |                            | Polymorphic owner via `documentable_type` + `documentable_id`; multipart `file` |
+| `GET /api/v1/documents/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | |                                                          |
+| `GET /api/v1/billing_statements`, `POST /api/v1/billing_statements/create` |              |                                                              |
+| `GET /api/v1/billing_statements/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept line items exist                       |
+| `PATCH /api/v1/billing_statements/:id/issue`         |                                  | Draft → issued; runs `recalculate_total!` first              |
+| `PATCH /api/v1/billing_statements/:id/mark_paid`     |                                  | Issued → paid                                                |
+| `GET /api/v1/billing_line_items`, `GET /:id`         |                                  | Read-only (created by the monthly billing job)               |
+
+- **Index scoping:** every list uses `policy_scope(Model).kept`. Discarded records 404 on `GET /:id`.
+- **DELETE semantics:** soft delete via `record.discard`; `Discardable`'s `before_discard` stamps `discarded_by_id` from `Current.user`. Cascades and "block" decisions live in the per-resource `Discard` service.
+- **Authorization:** baseline (ticket 11) is "any authenticated user reads, only `super_admin` mutates." Ticket 14 narrows per role.
+- **Error format:** `{"error": {"code": "<machine>", "message": "<human>", "details": <optional>}}`. Codes used: `unauthorized` (401), `invalid_credentials` (401), `forbidden` / `api_access_denied_no_application` / `discarded` / `locked` / `unconfirmed` (403), `not_found` (404), `conflict` (409), `validation_failed` / `has_dependents` / `invalid_argument` (422), `internal_server_error` (500).
+- **Instrumentation:** every authenticated request bumps `oauth_application.calls_count` and stamps `last_used_at` in a single UPDATE (no callbacks, no `updated_at`).
 
 ## Auth stack (ticket 09)
 
@@ -148,7 +194,6 @@ User authentication is **Devise** + a custom **Grape** login endpoint that issue
 
 ### Deferred to later tickets
 
-- Grape `before` hook that increments `oauth_application.calls_count` and stamps `last_used_at` — ticket 11.
 - Custom Grape endpoints for confirmation / password reset / unlock (currently driven by Devise's HTML views via email links) — possible future ticket.
 - SvelteKit login screen that consumes `/api/v1/sessions` — ticket 13.
 - Role-based authorization on specific endpoints — ticket 14.
@@ -169,7 +214,6 @@ The project uses [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper) as a
 - FK constraints from `oauth_applications.created_by_id` / `discarded_by_id` to `users` — ticket 09 (added alongside the User migration).
 - `resource_owner_from_credentials` and `resource_owner_authenticator` implementations — ticket 09. Both currently return `nil`, so password-grant token requests return 401 until login lands.
 - `include Discardable` in the OauthApplication model — pending ticket 07 reaching master. Columns already exist on the table, so it's a one-line add.
-- Grape `before` hook that resolves `doorkeeper_token.application`, increments `calls_count`, and stamps `last_used_at` — ticket 11.
 - Active Admin screen for OauthApplications — ticket 12.
 ## Soft delete (ticket 07)
 
@@ -194,16 +238,16 @@ The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/n
 
 - **Public URL:** `http://localhost:8080`
 - **Path table:**
-  - `/up`, `/api`, `/oauth`, `/admin`, `/rails/active_storage` → Rails (`rails:3000`)
+  - `/up`, `/api`, `/oauth`, `/admin`, `/rails/active_storage` → Rails (`dev:3000`)
   - everything else → SvelteKit frontend (`frontend:5173`)
 
-The `rails` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm rails bundle exec ...` for CLI tasks.
+The `dev` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm dev bundle exec ...` for CLI tasks.
 
-**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. The four Rails prefixes return **404** until their owning tickets land (`/api` ticket 11, `/oauth` ticket 08, `/admin` ticket 12).
+**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. `/admin` returns **404** until ticket 12.
 
 ### Doorkeeper redirect URIs (ticket 08)
 
-When ticket 08 registers OAuth applications, redirect URIs **must** use the public proxy URL (e.g. `http://localhost:8080/oauth/callback`), **never** the Docker-internal hostname (`http://rails:3000/...`). Browsers can't reach the internal hostname and the redirect will fail.
+When ticket 08 registers OAuth applications, redirect URIs **must** use the public proxy URL (e.g. `http://localhost:8080/oauth/callback`), **never** the Docker-internal hostname (`http://dev:3000/...`). Browsers can't reach the internal hostname and the redirect will fail.
 
 ### Production posture
 
@@ -221,13 +265,13 @@ When ticket 08 registers OAuth applications, redirect URIs **must** use the publ
 Linting via RuboCop (omakase + `rubocop-rspec`):
 
 ```bash
-docker compose run --rm rails bundle exec rubocop
+docker compose run --rm dev bundle exec rubocop
 ```
 
 Specs via RSpec (`spec/` only — no `test/` Minitest dir):
 
 ```bash
-docker compose run --rm rails bundle exec rspec
+docker compose run --rm dev bundle exec rspec
 ```
 
 The smoke spec at `spec/requests/health_spec.rb` hits Rails 8's built-in `/up` health route.
