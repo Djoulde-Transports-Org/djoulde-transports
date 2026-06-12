@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_120300) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_120800) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -146,16 +146,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_120300) do
     t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
   end
 
+  create_table "maintenance_parts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.bigint "maintenance_id", null: false
+    t.string "name", null: false
+    t.integer "price", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_maintenance_parts_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_maintenance_parts_on_discarded_by_id"
+    t.index ["maintenance_id"], name: "index_maintenance_parts_on_maintenance_id"
+  end
+
   create_table "maintenances", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.decimal "actual_duration", precision: 8, scale: 2
     t.integer "cost"
     t.datetime "created_at", null: false
     t.text "description"
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
+    t.decimal "estimated_duration", precision: 8, scale: 2
     t.integer "kind", default: 0, null: false
     t.integer "odometer_km"
     t.bigint "performed_by_id"
     t.date "performed_on", null: false
+    t.integer "state", default: 0, null: false
     t.bigint "truck_id", null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_maintenances_on_discarded_at"
@@ -353,6 +369,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_120300) do
   add_foreign_key "delivery_notes", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "uploaded_by_id"
+  add_foreign_key "maintenance_parts", "maintenances"
+  add_foreign_key "maintenance_parts", "users", column: "discarded_by_id"
   add_foreign_key "maintenances", "trucks"
   add_foreign_key "maintenances", "users", column: "discarded_by_id"
   add_foreign_key "maintenances", "users", column: "performed_by_id"

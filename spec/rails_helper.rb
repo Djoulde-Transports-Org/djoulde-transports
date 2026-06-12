@@ -71,6 +71,17 @@ RSpec.configure do |config|
     metadata[:type] = :request
   end
 
+  # Make `travel_to`/`travel`/`freeze_time` available to every spec.
+  config.include ActiveSupport::Testing::TimeHelpers
+
+  # Rack::Attack throttles by IP against a shared Redis store. Without a reset
+  # the counters accumulate across the suite and trip the api/ip limit, turning
+  # unrelated request specs into spurious 429s. Clear the store before each
+  # example so every spec starts from a clean throttle state.
+  config.before do
+    Rack::Attack.cache.store.clear if defined?(Rack::Attack)
+  end
+
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:

@@ -37,6 +37,51 @@ RSpec.describe Maintenance do
     expect(maintenance.errors[:cost]).to be_present
   end
 
+  it "defaults state to started" do
+    expect(described_class.new.state).to eq("started")
+  end
+
+  it "rejects negative actual_duration" do
+    maintenance.actual_duration = -1
+    maintenance.validate
+    expect(maintenance.errors[:actual_duration]).to be_present
+  end
+
+  it "rejects negative estimated_duration" do
+    maintenance.estimated_duration = -1
+    maintenance.validate
+    expect(maintenance.errors[:estimated_duration]).to be_present
+  end
+
+  it "has many parts" do
+    maintenance.save!
+    part = maintenance.parts.create!(name: "filter", price: 1100)
+    expect(maintenance.parts).to include(part)
+  end
+
+  describe "#recompute_cost!" do
+    before { maintenance.save! }
+
+    it "sets the cost to the sum of the kept parts' prices" do
+      maintenance.parts.create!(name: "filter", price: 1100)
+      maintenance.parts.create!(name: "belt", price: 800)
+      maintenance.recompute_cost!
+      expect(maintenance.cost).to eq(1900)
+    end
+
+    it "ignores discarded parts" do
+      maintenance.parts.create!(name: "filter", price: 1100)
+      maintenance.parts.create!(name: "belt", price: 800).discard
+      maintenance.recompute_cost!
+      expect(maintenance.cost).to eq(1100)
+    end
+
+    it "is zero when there are no kept parts" do
+      maintenance.recompute_cost!
+      expect(maintenance.cost).to eq(0)
+    end
+  end
+
   it "does not hard-destroy on discard" do
     maintenance.save!
     maintenance.discard
