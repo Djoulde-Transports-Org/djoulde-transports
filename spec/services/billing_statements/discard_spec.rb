@@ -16,10 +16,26 @@ RSpec.describe BillingStatements::Discard do
     route = Route.create!(origin: "A", destination: "B", rate: 1000)
     trip  = Trip.create!(truck: truck, route: route, actual_start_at: month + 5.days)
     DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(2)}",
-                         quantity_gasoline_liters: 5, quantity_diesel_liters: 0)
+                         gasoline_quantity: 5, diesel_quantity: 0)
     BillingLineItem.from_trip(trip, billing_statement: statement).save!
 
     expect { described_class.call(statement) }
       .to raise_error(ApplicationService::HasDependents)
+  end
+
+  describe "the returned result" do
+    let(:result) { described_class.call(statement) }
+
+    it "is a BillingStatements::Discard::Result" do
+      expect(result).to be_a(BillingStatements::Discard::Result)
+    end
+
+    it "is successful" do
+      expect(result.success).to be true
+    end
+
+    it "carries the success message" do
+      expect(result.message).to eq("Billing statement has been successfully deleted.")
+    end
   end
 end

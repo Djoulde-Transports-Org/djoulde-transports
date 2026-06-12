@@ -5,6 +5,8 @@
 # must void the statement instead.
 module BillingStatements
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(billing_statement)
       @billing_statement = billing_statement
     end
@@ -18,7 +20,8 @@ module BillingStatements
         @billing_statement.documents.kept.find_each { |d| d.discard! }
         @billing_statement.discard!
       end
-      @billing_statement
+
+      Result.new(success: true, message: "Billing statement has been successfully deleted.")
     end
   end
 end
