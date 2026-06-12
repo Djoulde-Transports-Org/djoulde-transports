@@ -33,7 +33,7 @@ services:
       timeout: 3s
       retries: 20
 
-  rails:
+  dev:
     build:
       context: .
       dockerfile: Dockerfile
@@ -76,7 +76,7 @@ services:
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - rails
+      - dev
     # NOTE: frontend is omitted from depends_on while it's a skeleton-profile
     # placeholder; compose v2 rejects depends_on across profiles. Ticket 13
     # promotes frontend to a full service and should restore the dependency.

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-class API < Grape::API
-  format :json
-  prefix "api"
+module API
+  class Root < Grape::API
+    format :json
+    prefix "api"
 
-  mount API::V1::Base
+    mount API::V1::Base
+  end
 end

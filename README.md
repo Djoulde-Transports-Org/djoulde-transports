@@ -18,16 +18,16 @@ GNU Make targets wrap the most common `docker compose` invocations. Run `make he
 
 | Target               | What it does                                                       |
 | -------------------- | ------------------------------------------------------------------ |
-| `make dev`           | Install deps, prep DB, start mysql + redis + rails + proxy + frontend |
+| `make dev`           | Install deps, prep DB, start mysql + redis + dev + proxy + frontend |
 | `make up-detached`   | Start the same stack in the background                             |
 | `make down`          | Stop and remove services                                           |
 | `make clean`         | Stop containers and remove orphans                                 |
-| `make logs`          | Tail rails + proxy logs                                            |
-| `make build`         | Rebuild the rails image                                            |
+| `make logs`          | Tail dev + proxy logs                                            |
+| `make build`         | Rebuild the dev image                                            |
 | `make setup`         | Bring deps up, install gems, run `db:prepare` (idempotent)          |
 | `make install_deps_rails` | Install Rails application dependencies (bundle)               |
-| `make console`       | `bundle exec rails console` inside the running rails container     |
-| `make bash`          | Bash shell inside the running rails container                      |
+| `make console`       | `bundle exec rails console` inside the running dev container     |
+| `make bash`          | Bash shell inside the running dev container                      |
 | `make rspec [PATH]`  | Run specs; pass paths after the target                             |
 | `make rubocop`       | Run rubocop                                                        |
 | `make vitest [PATH]` | Run Vitest in the frontend container (ticket 13+)                  |
@@ -52,28 +52,28 @@ Requires GNU Make. macOS ships `/usr/bin/make` 3.81+, which is sufficient.
 
 ## Docker Compose
 
-[`docker-compose.yml`](./docker-compose.yml) now wires `mysql`, `redis`, and `rails` as a working dev stack. `frontend` and `proxy` remain skeleton placeholders (filled in by tickets 13 and 05).
+[`docker-compose.yml`](./docker-compose.yml) now wires `mysql`, `redis`, and `dev` as a working dev stack. `frontend` and `proxy` remain skeleton placeholders (filled in by tickets 13 and 05).
 
 ### Bring the stack up
 
 ```bash
-docker compose build rails
+docker compose build dev
 docker compose up -d mysql redis
-docker compose run --rm rails bundle exec rails db:prepare
-docker compose up -d rails
+docker compose run --rm dev bundle exec rails db:prepare
+docker compose up -d dev
 ```
 
 ### Verification one-liners
 
 ```bash
 docker compose config                                        # validates compose file
-docker compose run --rm rails bundle exec rails -v           # => Rails 8.1.x
-docker compose run --rm rails bundle exec rails db:version   # => current schema version
+docker compose run --rm dev bundle exec rails -v           # => Rails 8.1.x
+docker compose run --rm dev bundle exec rails db:version   # => current schema version
 ```
 
 ### Secrets
 
-`config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `rails` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
+`config/master.key` is created by `rails new` and is **gitignored**. After a fresh clone, get the key from a teammate (or regenerate credentials via `EDITOR=vi bundle exec rails credentials:edit`). The compose `dev` service does not need `RAILS_MASTER_KEY` in development; production runs will read it from the environment.
 
 ## Configuration (Figaro)
 
@@ -84,7 +84,7 @@ cp config/application.yml.example config/application.yml
 # edit config/application.yml with real values
 ```
 
-Inside docker-compose the same keys are injected via the `environment:` block on the `rails` service, so `application.yml` is only needed when running `bundle exec` directly on the host.
+Inside docker-compose the same keys are injected via the `environment:` block on the `dev` service, so `application.yml` is only needed when running `bundle exec` directly on the host.
 
 `config/initializers/figaro.rb` calls `Figaro.require_keys` so boot fails fast if `DATABASE_HOST`, `DATABASE_NAME`, `REDIS_URL`, or `SECRET_KEY_BASE` is missing.
 
@@ -140,11 +140,11 @@ A **maintenance** opens in the `started` state and locks its truck (`in_maintena
 
 ## Grape API v1 (ticket 11)
 
-JSON API mounted at `/api/v1` (Grape code lives under `app/api/api/v1/`). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/api/v1/entities/`.
+JSON API mounted at `/api/v1` (Grape code lives under `app/api/v1/`; the `app/api` directory is mapped to the `API` namespace by `Rails.autoloaders.main.push_dir(..., namespace: API)` in `config/application.rb`, and `API::Root` in `app/api/root.rb` is what `config/routes.rb` mounts). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/v1/entities/`.
 
 ### Resource-module layout
 
-Each resource is a folder under `app/api/api/v1/endpoints/<resource>/` with **one action per file** rather than a single fat endpoint class:
+Each resource is a folder under `app/api/v1/endpoints/<resource>/` with **one action per file** rather than a single fat endpoint class:
 
 - `list.rb`, `get.rb`, `create.rb`, `update.rb`, `delete.rb` — one Grape class per action.
 - `common.rb` — a shared helper module (record lookup, strong-params shaping) mixed into each action.
@@ -238,16 +238,16 @@ The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/n
 
 - **Public URL:** `http://localhost:8080`
 - **Path table:**
-  - `/up`, `/api`, `/oauth`, `/admin`, `/rails/active_storage` → Rails (`rails:3000`)
+  - `/up`, `/api`, `/oauth`, `/admin`, `/rails/active_storage` → Rails (`dev:3000`)
   - everything else → SvelteKit frontend (`frontend:5173`)
 
-The `rails` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm rails bundle exec ...` for CLI tasks.
+The `dev` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm dev bundle exec ...` for CLI tasks.
 
 **Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. `/admin` returns **404** until ticket 12.
 
 ### Doorkeeper redirect URIs (ticket 08)
 
-When ticket 08 registers OAuth applications, redirect URIs **must** use the public proxy URL (e.g. `http://localhost:8080/oauth/callback`), **never** the Docker-internal hostname (`http://rails:3000/...`). Browsers can't reach the internal hostname and the redirect will fail.
+When ticket 08 registers OAuth applications, redirect URIs **must** use the public proxy URL (e.g. `http://localhost:8080/oauth/callback`), **never** the Docker-internal hostname (`http://dev:3000/...`). Browsers can't reach the internal hostname and the redirect will fail.
 
 ### Production posture
 
@@ -265,13 +265,13 @@ When ticket 08 registers OAuth applications, redirect URIs **must** use the publ
 Linting via RuboCop (omakase + `rubocop-rspec`):
 
 ```bash
-docker compose run --rm rails bundle exec rubocop
+docker compose run --rm dev bundle exec rubocop
 ```
 
 Specs via RSpec (`spec/` only — no `test/` Minitest dir):
 
 ```bash
-docker compose run --rm rails bundle exec rspec
+docker compose run --rm dev bundle exec rspec
 ```
 
 The smoke spec at `spec/requests/health_spec.rb` hits Rails 8's built-in `/up` health route.

@@ -9,16 +9,16 @@ All specs that touch the Grape API live under `spec/api/` and follow the rules b
 
 ## Locations
 
-Mirror the source tree under `app/api/api/v1/`. **One spec file per endpoint file** — same name, `_spec.rb` suffix.
+Mirror the source tree under `app/api/v1/`. **One spec file per endpoint file** — same name, `_spec.rb` suffix.
 
 | Source                                                | Spec                                                       |
 | ----------------------------------------------------- | ---------------------------------------------------------- |
-| `app/api/api/v1/endpoints/<resource>/list.rb`         | `spec/api/v1/endpoints/<resource>/list_spec.rb`            |
-| `app/api/api/v1/endpoints/<resource>/create.rb`       | `spec/api/v1/endpoints/<resource>/create_spec.rb`          |
-| `app/api/api/v1/endpoints/<resource>/get.rb`          | `spec/api/v1/endpoints/<resource>/get_spec.rb`             |
-| `app/api/api/v1/endpoints/<resource>/update.rb`       | `spec/api/v1/endpoints/<resource>/update_spec.rb`          |
-| `app/api/api/v1/endpoints/<resource>/delete.rb`       | `spec/api/v1/endpoints/<resource>/delete_spec.rb`          |
-| `app/api/api/v1/entities/<name>.rb`                   | `spec/api/v1/entities/<name>_spec.rb`                      |
+| `app/api/v1/endpoints/<resource>/list.rb`         | `spec/api/v1/endpoints/<resource>/list_spec.rb`            |
+| `app/api/v1/endpoints/<resource>/create.rb`       | `spec/api/v1/endpoints/<resource>/create_spec.rb`          |
+| `app/api/v1/endpoints/<resource>/get.rb`          | `spec/api/v1/endpoints/<resource>/get_spec.rb`             |
+| `app/api/v1/endpoints/<resource>/update.rb`       | `spec/api/v1/endpoints/<resource>/update_spec.rb`          |
+| `app/api/v1/endpoints/<resource>/delete.rb`       | `spec/api/v1/endpoints/<resource>/delete_spec.rb`          |
+| `app/api/v1/entities/<name>.rb`                   | `spec/api/v1/entities/<name>_spec.rb`                      |
 
 Do NOT create one combined `<resource>_spec.rb`, and do not put API specs under `spec/requests/` (that path is reserved for non-API request specs like `health_spec.rb`, `rack_attack_spec.rb`). `common.rb` and `default.rb` do not get their own spec files — they are covered through the action specs.
 
@@ -192,7 +192,7 @@ RSpec.describe API::V1::Entities::DeleteResult do
 end
 ```
 
-For entities that re-use the project formatters in `app/api/api/v1/entities/base.rb`:
+For entities that re-use the project formatters in `app/api/v1/entities/base.rb`:
 
 - `:iso_8601` renders full datetime (`"2026-05-01T13:24:01Z"`).
 - `:iso_8601_date` renders date-only (`"2026-05-01"`). Do not name a custom formatter `:date` — it collides with a Grape::Entity instance method and breaks serialization. If you add a new formatter, make sure the project still loads (rspec will fail fast at the request layer).

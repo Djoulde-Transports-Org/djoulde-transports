@@ -20,10 +20,19 @@ require "action_cable/engine"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# The Grape API tree lives in app/api/ and is namespaced under API
+# (e.g. app/api/v1/base.rb => API::V1::Base). Defined here so the autoloader
+# can associate the app/api directory with this namespace below.
+module API; end
+
 module App
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
+
+    # Map the app/api directory onto the API namespace so its contents resolve
+    # as API::V1::... instead of requiring a redundant app/api/api/ folder.
+    Rails.autoloaders.main.push_dir("#{root}/app/api", namespace: API)
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
