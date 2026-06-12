@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 RSpec.describe "Health", type: :request do
   describe "GET /up" do
     it "returns 200 OK" do

@@ -2,13 +2,15 @@
 
 module Documents
   class Discard < ApplicationService
+    Result = Struct.new(:success, :message)
+
     def initialize(document)
       @document = document
     end
 
     def call
       @document.discard!
-      @document
+      Result.new(success: true, message: "Document has been successfully deleted.")
     end
   end
 end

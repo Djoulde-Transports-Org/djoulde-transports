@@ -10,7 +10,7 @@ RSpec.describe Billing::DraftMonthlyStatement do
   def trip_with_note(start_at:, gasoline: 10, diesel: 0)
     trip = Trip.create!(truck: truck, route: route, actual_start_at: start_at)
     DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(3)}",
-                         quantity_gasoline_liters: gasoline, quantity_diesel_liters: diesel)
+                         gasoline_quantity: gasoline, diesel_quantity: diesel)
     trip
   end
 
