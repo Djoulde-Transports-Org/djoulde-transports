@@ -31,7 +31,7 @@ RSpec.describe Trucks::Discard do
   end
 
   it "cascades discard to kept documents" do
-    document = Document.create!(documentable: truck, title: "Insurance")
+    document = Document.create!(documentable: truck, number: "INS-1", title: "Insurance")
     described_class.call(truck)
     expect(document.reload.discarded?).to be true
   end

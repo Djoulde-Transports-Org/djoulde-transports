@@ -2,7 +2,7 @@
 
 RSpec.describe Document do
   let(:truck) { build_truck_with_tank(plate: "DOC-1") }
-  let(:document) { described_class.new(title: "Insurance card", documentable: truck) }
+  let(:document) { described_class.new(number: "INS-1", title: "Insurance card", documentable: truck) }
 
   it "includes Discardable" do
     expect(described_class.included_modules).to include(Discardable)
@@ -27,6 +27,12 @@ RSpec.describe Document do
     expect(document.errors[:title]).to be_present
   end
 
+  it "requires number" do
+    document.number = nil
+    document.validate
+    expect(document.errors[:number]).to be_present
+  end
+
   it "rejects expires_on earlier than issued_on" do
     document.issued_on  = Time.zone.today
     document.expires_on = Time.zone.today - 1
@@ -37,7 +43,7 @@ RSpec.describe Document do
   it "can attach to a Trip via documentable" do
     route = Route.create!(origin: "A", destination: "B", rate: 100)
     trip  = Trip.create!(truck: truck, route: route)
-    doc   = described_class.create!(title: "Bill of lading", documentable: trip)
+    doc   = described_class.create!(number: "BOL-1", title: "Bill of lading", documentable: trip)
     expect(trip.documents).to include(doc)
   end
 

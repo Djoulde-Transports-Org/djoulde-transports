@@ -11,6 +11,7 @@
 #  documentable_type :string(255)      not null
 #  expires_on        :date
 #  issued_on         :date
+#  number            :string(255)      not null
 #  title             :string(255)      not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
@@ -24,6 +25,7 @@
 #  index_documents_on_discarded_by_id  (discarded_by_id)
 #  index_documents_on_documentable     (documentable_type,documentable_id)
 #  index_documents_on_expires_on       (expires_on)
+#  index_documents_on_number           (number) UNIQUE
 #  index_documents_on_uploaded_by_id   (uploaded_by_id)
 #
 # Foreign Keys
@@ -50,7 +52,8 @@ class Document < ApplicationRecord
 
   has_one_attached :file
 
-  validates :title, presence: true
+  validates :number, presence: true
+  validates :title,  presence: true
   validate  :expiry_after_issue
 
   private
