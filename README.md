@@ -94,14 +94,17 @@ Business models live in `app/models/`. Every business model includes `Discardabl
 
 A "truck" in the fleet is two physically distinct assets: the **head** (tractor / `Truck`) and the **tank** (trailer / `Tank`). Each has its own VIN, plate number, and registration. They're paired 1:1 (`Tank belongs_to :truck`, `Truck has_one :tank`); the pairing is effectively fixed and only swaps when one of the two is retired. Trips snapshot both `truck_id` and `tank_id` so historical reports survive a swap.
 
+A **maintenance** opens in the `started` state and locks its truck (`in_maintenance`). Marking it `completed` stamps `actual_duration` from the elapsed hours and frees the truck back to `ready`. Parts changed during the work are recorded as `MaintenancePart` rows; `cost` is never set directly but recomputed as the sum of the kept parts' prices (`Maintenance#recompute_cost!`). A **trip** moving to `on_trip`/`completed` drives the truck status the same way, and a `DeliveryNote` is created alongside the trip rather than as a separate step.
+
 | Model              | Soft delete | Audited | Notes                                                                                                  |
 | ------------------ | ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| `Truck`            | yes         | yes     | The head/tractor. `plate_number` unique; `status` enum (`active` / `out_of_service`)                   |
-| `Tank`             | yes         | yes     | The trailer. `belongs_to :truck` (NOT NULL, unique 1:1). `capacity_liters` required; status enum       |
-| `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate (GNF) for that route     |
-| `Trip`             | yes         | yes     | `belongs_to :truck, :tank, :route`; optional `:driver` (User); status enum (scheduled → cancelled). Trip's `tank.truck_id` must equal its `truck_id` (consistency validator); tank defaults to `truck.tank` on create |
-| `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; gasoline / diesel liters; `product` derived          |
-| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum                                      |
+| `Truck`            | yes         | yes     | The head/tractor. `plate_number` unique; `status` enum (`ready` / `in_maintenance` / `on_trip`)        |
+| `Tank`             | yes         | yes     | The trailer. `belongs_to :truck` (NOT NULL, unique 1:1). `capacity_liters` required; `status` enum (`active` / `out_of_service`) |
+| `Route`            | yes         | yes     | Unique `(origin, destination)` pair; `rate` is the **per-liter** billing rate in GNF, stored as `decimal(12, 2)` |
+| `Trip`             | yes         | yes     | `belongs_to :truck, :tank, :route`; optional `:driver` (User); `status` enum (`scheduled` / `in_progress` / `completed` / `cancelled`). Trip's `tank.truck_id` must equal its `truck_id` (consistency validator); tank defaults to `truck.tank` on create |
+| `DeliveryNote`     | yes         | yes     | One per trip (unique `trip_id`); unique `number`; `gasoline_quantity` / `diesel_quantity` / `missing_quantity` (liters); `product` derived. On trip creation, loaded quantity must fill the tank capacity |
+| `Maintenance`      | yes         | yes     | `belongs_to :truck`; optional `:performed_by` (User); `kind` enum; `state` enum (`started` / `completed`). `cost` is **derived** from kept parts; `estimated_duration` / `actual_duration` in hours |
+| `MaintenancePart`  | yes         | yes     | `belongs_to :maintenance`; `name` + integer `price`. Audited against its maintenance. Sum of kept prices drives `Maintenance#cost` |
 | `Document`         | yes         | yes     | Polymorphic `:documentable`; `has_one_attached :file` (Active Storage)                                 |
 | `BillingStatement` | yes         | yes     | One fleet-wide statement per calendar month (unique `month`); HT / TVA / TTC totals; `has_associated_audits` |
 | `BillingLineItem`  | yes         | yes     | One per trip on a statement; fat snapshot for invoice rendering (see below)                            |
@@ -109,13 +112,13 @@ A "truck" in the fleet is two physically distinct assets: the **head** (tractor 
 ### Billing model
 
 - Billing is **monthly and fleet-wide**: one `BillingStatement` per calendar month (`month` = first day of that month, unique). No `BillingPeriod` table — the period is the statement.
-- **`Route.rate` is per liter**, scoped by `(origin, destination)`. Stored as a whole-GNF integer (no subunits in Guinean franc). Rates are expected to be stable for years; updates apply going forward.
-- Every billable `Trip` has a `DeliveryNote` recording `quantity_gasoline_liters` and `quantity_diesel_liters`. The derived `product` is `:gasoline`, `:diesel`, or `:both`.
+- **`Route.rate` is per liter**, scoped by `(origin, destination)`. Stored as `decimal(12, 2)` in GNF. Rates are expected to be stable for years; updates apply going forward.
+- Every billable `Trip` has a `DeliveryNote` recording `gasoline_quantity` and `diesel_quantity` (liters). The derived `product` is `:gasoline`, `:diesel`, or `:both`.
 - A statement aggregates every `Trip` whose `actual_start_at` falls inside the month. `BillingLineItem.from_trip(trip, billing_statement:)` builds the line by snapshotting **everything needed to render the invoice row**, so historical bills don't change if a trip / route / delivery note is corrected later:
   - `started_on`, `delivery_note_number`, `origin`, `destination`
-  - `quantity_gasoline_liters`, `quantity_diesel_liters`
+  - `gasoline_quantity`, `diesel_quantity`
   - `rate` (snapshot of `route.rate`)
-  - `amount` = `(qty_gasoline + qty_diesel) × rate` (HT)
+  - `amount` = `(gasoline_quantity + diesel_quantity) × rate` (HT)
   - `tva` = `amount × 0.18` (`BillingLineItem::TVA_RATE`, Guinea statutory VAT)
 - **Statement totals** are HT / TVA / TTC. `BillingStatement#recalculate_total!` writes all three:
   - `total_amount` = Σ line `amount` (HT)
@@ -137,31 +140,39 @@ A "truck" in the fleet is two physically distinct assets: the **head** (tractor 
 
 ## Grape API v1 (ticket 11)
 
-JSON API mounted at `/api/v1` (`app/api/v1/`). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/v1/entities/`.
+JSON API mounted at `/api/v1` (Grape code lives under `app/api/api/v1/`). Authentication is the bearer token issued by `POST /api/v1/sessions` (ticket 09). Pundit policies live in `app/policies/`; entities in `app/api/api/v1/entities/`.
+
+### Resource-module layout
+
+Each resource is a folder under `app/api/api/v1/endpoints/<resource>/` with **one action per file** rather than a single fat endpoint class:
+
+- `list.rb`, `get.rb`, `create.rb`, `update.rb`, `delete.rb` — one Grape class per action.
+- `common.rb` — a shared helper module (record lookup, strong-params shaping) mixed into each action.
+- `default.rb` — mounts the action classes and runs `before { authenticate! }` for the resource.
+
+`API::V1::Base` mounts only each resource's `Default`. Mutating actions use explicit path suffixes (`POST /create`, `PATCH /:id/update`, `DELETE /:id/delete`); reads use the collection root (`GET`) and `GET /:id`. See the **api-endpoint-pattern** skill for the full convention.
 
 | Resource path                                        | Verbs                            | Notes                                                        |
 | ---------------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
-| `/api/v1/me`                                         | GET                              | Authenticated user + roles                                   |
-| `/api/v1/sessions`                                   | POST                             | Login (ticket 09)                                            |
-| `/api/v1/trucks`                                     | GET, POST                        | The head/tractor. Filterable by status; admin-only mutate    |
-| `/api/v1/trucks/:id`                                 | GET, PATCH, DELETE               | DELETE blocked while a kept tank is paired; otherwise cascades to trips/maintenances/documents |
-| `/api/v1/tanks`                                      | GET, POST                        | The trailer. Filter `truck_id`. POST requires `truck_id` + `capacity_liters` |
-| `/api/v1/tanks/:id`                                  | GET, PATCH, DELETE               | DELETE blocked if kept trips reference the tank              |
-| `/api/v1/routes`                                     | GET, POST                        |                                                              |
-| `/api/v1/routes/:id`                                 | GET, PATCH, DELETE               | DELETE blocked if kept trips reference the route             |
-| `/api/v1/trips`                                      | GET, POST                        | Filters: `truck_id`, `tank_id`, `route_id`, `status`. `tank_id` defaults to the truck's currently paired tank |
-| `/api/v1/trips/:id`                                  | GET, PATCH, DELETE               | DELETE blocked if trip is already on a billing line item     |
-| `/api/v1/trips/:trip_id/delivery_note`               | GET, POST, PATCH, DELETE         | Singular nested resource (`has_one`)                          |
-| `/api/v1/maintenances`                               | GET, POST                        | Filters: `truck_id`, `kind`                                  |
-| `/api/v1/maintenances/:id`                           | GET, PATCH, DELETE               | DELETE cascades discard to documents                          |
-| `/api/v1/documents`                                  | GET, POST                        | Polymorphic owner via `documentable_type` + `documentable_id`; multipart `file` |
-| `/api/v1/documents/:id`                              | GET, PATCH, DELETE               |                                                              |
-| `/api/v1/billing_statements`                         | GET, POST                        |                                                              |
-| `/api/v1/billing_statements/:id`                     | GET, PATCH, DELETE               | DELETE blocked if kept line items exist                       |
-| `/api/v1/billing_statements/:id/issue`               | PATCH                            | Draft → issued; runs `recalculate_total!` first              |
-| `/api/v1/billing_statements/:id/mark_paid`           | PATCH                            | Issued → paid                                                |
-| `/api/v1/billing_line_items`                         | GET                              | Read-only (created by the monthly billing job)               |
-| `/api/v1/billing_line_items/:id`                     | GET                              |                                                              |
+| `GET /api/v1/me`                                     |                                  | Authenticated user + roles                                   |
+| `POST /api/v1/sessions`                              |                                  | Login (ticket 09)                                            |
+| `GET /api/v1/trucks`, `POST /api/v1/trucks/create`   |                                  | The head/tractor. Filterable by status; admin-only mutate    |
+| `GET /api/v1/trucks/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked while a kept tank is paired; otherwise cascades to trips/maintenances/documents |
+| `GET /api/v1/tanks`, `POST /api/v1/tanks/create`     |                                  | The trailer. Filter `truck_id`. POST requires `truck_id` + `capacity_liters` |
+| `GET /api/v1/tanks/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept trips reference the tank              |
+| `GET /api/v1/routes`, `POST /api/v1/routes/create`   |                                  |                                                              |
+| `GET /api/v1/routes/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept trips reference the route             |
+| `GET /api/v1/trips`, `POST /api/v1/trips/create`     |                                  | Filters: `truck_id`, `tank_id`, `route_id`, `status`. `tank_id` defaults to the truck's currently paired tank. POST requires a nested `delivery_note` hash |
+| `GET /api/v1/trips/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | PATCH accepts the nested `delivery_note` and a `missing_quantity`. DELETE blocked once the trip is on a billing line item; otherwise cascades to delivery_note/documents |
+| `GET /api/v1/maintenances`, `POST /api/v1/maintenances/create` |                        | Filters: `truck_id`, `kind`. `create`/`update` accept a `parts` array that replaces the part set |
+| `GET /api/v1/maintenances/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE cascades discard to documents                          |
+| `GET /api/v1/documents`, `POST /api/v1/documents/create` |                            | Polymorphic owner via `documentable_type` + `documentable_id`; multipart `file` |
+| `GET /api/v1/documents/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | |                                                          |
+| `GET /api/v1/billing_statements`, `POST /api/v1/billing_statements/create` |              |                                                              |
+| `GET /api/v1/billing_statements/:id`, `PATCH /:id/update`, `DELETE /:id/delete` | | DELETE blocked if kept line items exist                       |
+| `PATCH /api/v1/billing_statements/:id/issue`         |                                  | Draft → issued; runs `recalculate_total!` first              |
+| `PATCH /api/v1/billing_statements/:id/mark_paid`     |                                  | Issued → paid                                                |
+| `GET /api/v1/billing_line_items`, `GET /:id`         |                                  | Read-only (created by the monthly billing job)               |
 
 - **Index scoping:** every list uses `policy_scope(Model).kept`. Discarded records 404 on `GET /:id`.
 - **DELETE semantics:** soft delete via `record.discard`; `Discardable`'s `before_discard` stamps `discarded_by_id` from `Current.user`. Cascades and "block" decisions live in the per-resource `Discard` service.
