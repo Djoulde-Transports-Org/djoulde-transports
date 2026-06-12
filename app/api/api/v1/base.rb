@@ -54,5 +54,7 @@ module API::V1
     mount API::V1::Endpoints::Trips::Default
     mount API::V1::Endpoints::Maintenances::Default
     mount API::V1::Endpoints::Documents::Default
+    mount API::V1::Endpoints::BillingStatements::Default
+    mount API::V1::Endpoints::BillingLineItems::Default
   end
 end
