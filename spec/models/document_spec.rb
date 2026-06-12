@@ -33,6 +33,13 @@ RSpec.describe Document do
     expect(document.errors[:number]).to be_present
   end
 
+  it "requires a unique number (case-insensitive)" do
+    described_class.create!(number: "INS-1", title: "First", documentable: truck)
+    document.number = "ins-1"
+    document.validate
+    expect(document.errors[:number]).to be_present
+  end
+
   it "rejects expires_on earlier than issued_on" do
     document.issued_on  = Time.zone.today
     document.expires_on = Time.zone.today - 1

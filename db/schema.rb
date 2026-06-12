@@ -144,6 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_120100) do
     t.index ["discarded_by_id"], name: "index_documents_on_discarded_by_id"
     t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
     t.index ["expires_on"], name: "index_documents_on_expires_on"
+    t.index ["number"], name: "index_documents_on_number", unique: true
     t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
   end
 

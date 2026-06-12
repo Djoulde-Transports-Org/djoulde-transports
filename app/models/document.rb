@@ -52,7 +52,7 @@ class Document < ApplicationRecord
 
   has_one_attached :file
 
-  validates :number, presence: true
+  validates :number, presence: true, uniqueness: {case_sensitive: false}
   validates :title,  presence: true
   validate  :expiry_after_issue
 

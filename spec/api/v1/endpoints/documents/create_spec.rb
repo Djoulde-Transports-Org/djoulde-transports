@@ -94,6 +94,17 @@ RSpec.describe API::V1::Endpoints::Documents::Create do
       end
     end
 
+    context "when the number is already taken" do
+      before do
+        Document.create!(documentable: truck, number: "INS-2026", title: "Existing")
+        do_request
+      end
+
+      it "returns 422" do
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
     context "when documentable_type is not allowed" do
       let(:params) { {documentable_type: "Spaceship", documentable_id: 1, title: "x"} }
 
