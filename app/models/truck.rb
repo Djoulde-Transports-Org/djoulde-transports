@@ -10,7 +10,7 @@
 #  make            :string(255)
 #  model           :string(255)
 #  plate_number    :string(255)      not null
-#  status          :integer          default("active"), not null
+#  status          :integer          default("ready"), not null
 #  vin             :string(255)
 #  year            :integer
 #  created_at      :datetime         not null
@@ -35,7 +35,7 @@ class Truck < ApplicationRecord
   include Discardable
   audited
 
-  enum :status, {active: 0, out_of_service: 1}, default: :active
+  enum :status, {ready: 0, in_maintenance: 1, on_trip: 2}, default: :ready
 
   belongs_to :created_by,    class_name: "User", optional: true
   belongs_to :discarded_by,  class_name: "User", optional: true
