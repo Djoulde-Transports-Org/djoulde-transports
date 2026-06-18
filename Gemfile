@@ -53,7 +53,7 @@ gem "audited", "~> 5.7"
 
 # Redis client and the high-performance hiredis driver
 gem "redis", "~> 5.3"
-gem "hiredis-client", "~> 0.23"
+gem "hiredis-client", "~> 0.30"
 
 # Throttling + CORS middleware (config under config/initializers/)
 gem "rack-attack", "~> 6.7"
@@ -70,14 +70,14 @@ gem "rolify", "~> 6.0"
 
 # Grape mounts the JSON API at /api/v1 (sessions + me here; rest of the API in ticket 11)
 gem "grape", "~> 3.2"
-gem "grape-entity", "~> 1.0"
+gem "grape-entity", "~> 1.1"
 
 # Policy-based authorization for Grape endpoints (ticket 11)
 gem "pundit", "~> 2.4"
 
 # Pagination for Grape list endpoints (sets Total, Per-Page, Link headers)
 gem "kaminari", "~> 1.2"
-gem "api-pagination", "~> 6.0"
+gem "api-pagination", "~> 7.1"
 
 # Internal admin CRUD at /admin (ticket 12). The 4.x line is the propshaft +
 # importmap native release; its Tailwind CSS is built nodeless via the
