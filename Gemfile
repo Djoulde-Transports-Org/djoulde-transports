@@ -79,6 +79,13 @@ gem "pundit", "~> 2.4"
 gem "kaminari", "~> 1.2"
 gem "api-pagination", "~> 6.0"
 
+# Internal admin CRUD at /admin (ticket 12). The 4.x line is the propshaft +
+# importmap native release; its Tailwind CSS is built nodeless via the
+# tailwindcss-rails standalone CLI (no node/yarn). Session auth reuses the
+# Devise User model, gated to the super_admin role.
+gem "activeadmin", "4.0.0.beta22"
+gem "tailwindcss-rails", "~> 4.4"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i( mri windows ), require: "debug/prelude"

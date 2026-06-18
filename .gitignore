@@ -14,6 +14,10 @@
 /storage/*
 !/storage/.keep
 /public/assets
+
+# Compiled Tailwind output (built by `bin/rails active_admin:build`, ticket 12)
+/app/assets/builds/*
+!/app/assets/builds/.keep
 *.sqlite3
 *.sqlite3-*
 .byebug_history
