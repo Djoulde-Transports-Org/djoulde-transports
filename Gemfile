@@ -77,7 +77,7 @@ gem "pundit", "~> 2.4"
 
 # Pagination for Grape list endpoints (sets Total, Per-Page, Link headers)
 gem "kaminari", "~> 1.2"
-gem "api-pagination", "~> 6.0"
+gem "api-pagination", "~> 7.1"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
