@@ -70,7 +70,7 @@ gem "rolify", "~> 6.0"
 
 # Grape mounts the JSON API at /api/v1 (sessions + me here; rest of the API in ticket 11)
 gem "grape", "~> 3.2"
-gem "grape-entity", "~> 1.0"
+gem "grape-entity", "~> 1.1"
 
 # Policy-based authorization for Grape endpoints (ticket 11)
 gem "pundit", "~> 2.4"
