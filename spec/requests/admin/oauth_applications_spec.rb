@@ -31,7 +31,7 @@ RSpec.describe "Admin oauth applications", type: :request do
     post "/admin/oauth_applications",
       params: {oauth_application: {name: "second", redirect_uri: "https://example.com/cb",
                                    owner_id: owner.id, owner_type: "User", scopes: ""}}
-    expect(response.status).to be_in([200, 422])
+    expect(response.status).to be_in([ 200, 422 ])
     expect(OauthApplication.where(owner_id: owner.id).count).to eq(1)
   end
 end

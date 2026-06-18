@@ -4,6 +4,7 @@
 # written by the `audited` gem as a side effect of model changes.
 RSpec.describe "Admin audits", type: :request do
   let(:html) { {"Accept" => "text/html"} }
+
   before { sign_in create_admin }
 
   it "renders the index" do

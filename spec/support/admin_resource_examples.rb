@@ -7,9 +7,10 @@
 #   create_params - params hash for a POST create (e.g. {route: {...}})
 #   update_params - params hash for a PATCH update
 # and may reference `admin` (the signed-in super admin) and `html`.
-RSpec.shared_context "signed-in admin" do
+RSpec.shared_context "with signed-in admin" do
   let(:html) { {"Accept" => "text/html"} }
   let(:admin) { create_admin }
+
   before { sign_in admin }
 end
 
@@ -39,7 +40,7 @@ RSpec.shared_examples "a standard admin resource" do |path:|
 
   it "creates a record", :aggregate_failures do
     expect { post "/admin/#{path}", params: create_params, headers: html }
-      .to change(model, :count).by(1)
+      .to change { model.count }.by(1)
     expect(response).to have_http_status(:redirect)
   end
 
