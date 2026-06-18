@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin maintenances", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Maintenance }
   let(:record) { build_maintenance }
   let(:create_params) do

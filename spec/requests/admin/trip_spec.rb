@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin trips", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Trip }
   let(:record) { build_trip }
   let(:create_params) do

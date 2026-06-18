@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin roles", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Role }
   let(:record) { build_role }
   let(:create_params) { {role: {name: "role-#{SecureRandom.hex(3)}"}} }
