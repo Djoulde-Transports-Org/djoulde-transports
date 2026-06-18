@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # Login is custom-Grape; registration is admin-only (ticket 12). Keep
-  # confirmations/passwords/unlocks since they're driven by email links.
-  devise_for :users, skip: [ :sessions, :registrations ]
+  ActiveAdmin.routes(self)
+  # API login is custom-Grape (token-based); registration is admin-only via
+  # Active Admin (ticket 12). Devise sessions stay enabled for the cookie-based
+  # /admin browser login. Confirmations/passwords/unlocks are driven by email
+  # links.
+  devise_for :users, skip: [ :registrations ]
 
   use_doorkeeper
 

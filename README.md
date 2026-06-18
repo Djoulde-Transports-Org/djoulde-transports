@@ -180,6 +180,19 @@ Each resource is a folder under `app/api/v1/endpoints/<resource>/` with **one ac
 - **Error format:** `{"error": {"code": "<machine>", "message": "<human>", "details": <optional>}}`. Codes used: `unauthorized` (401), `invalid_credentials` (401), `forbidden` / `api_access_denied_no_application` / `discarded` / `locked` / `unconfirmed` (403), `not_found` (404), `conflict` (409), `validation_failed` / `has_dependents` / `invalid_argument` (422), `internal_server_error` (500).
 - **Instrumentation:** every authenticated request bumps `oauth_application.calls_count` and stamps `last_used_at` in a single UPDATE (no callbacks, no `updated_at`).
 
+## Admin (ticket 12)
+
+Internal CRUD runs on **Active Admin v4** at `/admin`. The engine is propshaft/importmap native, so there is no node toolchain.
+
+- **Session auth, no `AdminUser` model.** An admin is a Devise `User` carrying the `super_admin` Rolify role. Active Admin's `authentication_method` (`authenticate_admin!`) and `current_user_method` (`current_admin`) live in `ApplicationController`; both gate on `has_role?(:super_admin)`. Cookie login is Devise's session controller at `/users/sign_in` (re-enabled in `config/routes.rb`; the token API login at `POST /api/v1/sessions` is separate and unchanged). Logout points at `destroy_user_session_path`.
+- **Registered resources** (`app/admin/`): all domain models (trucks, tanks, routes, trips, delivery notes, maintenances, parts, documents, billing statements/line items), `OauthApplication`, `User` + `Role` (role assignment via checkboxes), and a read-only index on `Audited::Audit`. Admin comments are enabled (the `active_admin_comments` table).
+- **OauthApplication UI:** the create form's owner picker lists only Users that do not already own a kept application (the current owner stays selectable when editing); the model's uniqueness validation is the backstop that turns a racing unique-index hit into a friendly error instead of a 500. `created_by` is stamped with the acting admin.
+- **Soft delete, no destroy.** `AdminResources::Discardable` (in `lib/admin_resources/`) adds Kept / Discarded / All scopes and a `Discard` member action (plus `Restore`) to every soft-deletable resource, and removes the destroy action. Discard runs inside `Current.set(user: current_admin)` so `Discardable`'s `before_discard` stamps `discarded_by` with the admin.
+- **Nodeless Tailwind build.** The admin stylesheet is built by the `tailwindcss-rails` standalone CLI: `bin/rails active_admin:build` (watch with `active_admin:watch`) compiles `app/assets/stylesheets/active_admin.css` to `app/assets/builds/active_admin.css` using `tailwind-active_admin.config.js`. The Rake task hooks `assets:precompile`, so deploys build it automatically. The config loads Active Admin's Tailwind plugin from the gem path (resolved via `bundle show`) rather than an npm package.
+- **Ransack allowlist.** Active Admin filters/sorting go through Ransack, which requires an explicit allowlist. `ApplicationRecord` allows all columns and associations by default (admin-only, super_admin-gated; the public API uses Grape, not Ransack); `Audited::Audit` gets its own allowlist in `config/initializers/audited.rb`.
+
+**Production posture:** do **not** expose `/admin` on the same host as the SPA without TLS and auth hardening. TLS already terminates at the proxy (see [Production posture](#production-posture)); on top of that, keep `/admin` behind the super_admin gate, prefer a separate hostname or network ACL from the public SPA, and rely on the existing `force_ssl` so admin session cookies are never sent in clear text.
+
 ## Auth stack (ticket 09)
 
 User authentication is **Devise** + a custom **Grape** login endpoint that issues **Doorkeeper** tokens. Roles via **Rolify**.
@@ -243,7 +256,7 @@ The `proxy` service (nginx 1.27-alpine, config in [`proxy/nginx.conf`](./proxy/n
 
 The `dev` service no longer publishes port 3000 to the host. Hit Rails through the proxy at `http://localhost:8080`, or attach via `docker compose run --rm dev bundle exec ...` for CLI tasks.
 
-**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. `/admin` returns **404** until ticket 12.
+**Expected during early tickets:** `http://localhost:8080/` returns **502** until ticket 13 stands up the SvelteKit frontend. `/admin` is the Active Admin UI (ticket 12) and redirects to `/users/sign_in`.
 
 ### Doorkeeper redirect URIs (ticket 08)
 
