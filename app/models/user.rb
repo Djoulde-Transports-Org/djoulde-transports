@@ -48,7 +48,8 @@ class User < ApplicationRecord
          :confirmable,
          :lockable,
          :trackable,
-         :recoverable
+         :recoverable,
+         :timeoutable
 
   has_one :oauth_application,
           class_name: "OauthApplication",
