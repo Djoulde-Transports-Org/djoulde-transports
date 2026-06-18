@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin tanks", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Tank }
   let(:record) { build_tank }
   let(:create_params) do

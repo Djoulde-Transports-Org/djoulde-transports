@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin billing line items", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { BillingLineItem }
   let(:record) { build_billing_line_item }
   let(:create_params) do

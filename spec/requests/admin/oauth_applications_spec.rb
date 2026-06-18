@@ -4,7 +4,7 @@
 # form stamps the acting admin as created_by and a second app for the same
 # owner is rejected with a friendly validation error rather than a 500.
 RSpec.describe "Admin oauth applications", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:owner) { User.create!(email: "owner-#{SecureRandom.hex(3)}@example.com", password: AdminAuth::PASSWORD) }
 
   let(:model) { OauthApplication }

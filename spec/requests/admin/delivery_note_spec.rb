@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin delivery notes", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { DeliveryNote }
   let(:record) { build_delivery_note }
   let(:create_params) do

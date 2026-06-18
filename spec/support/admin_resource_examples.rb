@@ -15,7 +15,7 @@ RSpec.shared_context "with signed-in admin" do
 end
 
 RSpec.shared_examples "a standard admin resource" do |path:|
-  # The including describe must `include_context "signed-in admin"`; the let/
+  # The including describe must `include_context "with signed-in admin"`; the let/
   # before defined there are inherited by this nested example group.
   it "renders the index" do
     record

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin routes", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Route }
   let(:record) { build_route }
   let(:create_params) { {route: {origin: "Mamou", destination: "Kankan", rate: 300}} }

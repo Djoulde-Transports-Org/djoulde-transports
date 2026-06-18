@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin trucks", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Truck }
   let(:record) { build_truck }
   let(:create_params) { {truck: {plate_number: "TRK-#{SecureRandom.hex(3)}", year: 2021, status: "ready"}} }

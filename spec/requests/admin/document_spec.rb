@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin documents", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { Document }
   let(:record) { build_document }
   let(:create_params) do

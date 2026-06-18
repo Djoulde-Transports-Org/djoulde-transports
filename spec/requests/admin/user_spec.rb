@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Admin users", type: :request do
-  include_context "signed-in admin"
+  include_context "with signed-in admin"
   let(:model) { User }
   let(:record) { User.create!(email: "u-#{SecureRandom.hex(3)}@example.com", password: AdminAuth::PASSWORD) }
   let(:create_params) do

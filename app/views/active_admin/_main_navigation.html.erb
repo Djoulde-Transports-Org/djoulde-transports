@@ -1,7 +1,8 @@
-<%# Horizontal top navigation (overrides the gem's left-sidebar menu). Top-level
-    items render in a row; items with children open a dropdown on hover or click. %>
-<nav class="border-b border-gray-200 dark:border-white/10 px-2.5 lg:px-5">
-  <ul role="list" class="flex flex-wrap items-center gap-x-1">
+<%# Inline navigation rendered inside the site header, on the same row as the
+    title and the dark-mode toggle. Top-level items render in a row; items with
+    children open a dropdown on hover or click. %>
+<nav>
+  <ul role="list" class="flex items-center gap-x-1">
     <% current_menu.items(self).each do |item| %>
       <% children = item.items(self).presence %>
       <% url = item.url(self) %>
