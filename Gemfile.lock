@@ -161,8 +161,8 @@ GEM
       zeitwerk
     grape-entity (1.1.0)
       activesupport (>= 3.0.0)
-    hiredis-client (0.29.0)
-      redis-client (= 0.29.0)
+    hiredis-client (0.30.0)
+      redis-client (= 0.30.0)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     image_processing (2.0.2)
@@ -324,7 +324,7 @@ GEM
       tsort
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.29.0)
+    redis-client (0.30.0)
       connection_pool
     regexp_parser (2.12.0)
     reline (0.6.3)
@@ -461,7 +461,7 @@ DEPENDENCIES
   figaro (~> 1.2)
   grape (~> 3.2)
   grape-entity (~> 1.1)
-  hiredis-client (~> 0.23)
+  hiredis-client (~> 0.30)
   image_processing (~> 2.0)
   importmap-rails
   jbuilder
