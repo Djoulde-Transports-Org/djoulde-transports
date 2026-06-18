@@ -5,11 +5,11 @@
   <%= render "active_admin/html_head" %>
 </head>
 <body class="bg-white dark:bg-gray-950/95 text-gray-950 dark:text-gray-100 antialiased">
+  <%# The navigation menu lives inside the site header (same row as the title
+      and the dark-mode toggle), so it is rendered there rather than as a
+      separate bar, and the content area reserves no left margin. %>
   <%= render "active_admin/site_header", title: site_title %>
-  <%# Menu moved to a horizontal bar at the top instead of the left sidebar, so
-      the content area no longer reserves a left margin (xl:ms-60 removed). %>
   <div class="pt-16">
-    <%= render "active_admin/main_navigation" %>
     <%= render "active_admin/page_header", title: @page_title || page_title %>
     <%= render "active_admin/flash_messages" %>
     <div data-test-page-content class="px-2.5 lg:px-5 grid grid-cols-1 gap-4 lg:gap-6 lg:grid-flow-col lg:auto-cols-[minmax(0,250px)]">
