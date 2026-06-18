@@ -45,7 +45,7 @@ ActiveAdmin.register DeliveryNote do
     f.inputs do
       f.input :trip
       f.input :number
-      f.input :delivered_on, as: :datepicker
+      f.input :delivered_on, as: :string, input_html: {type: "date"}
       f.input :gasoline_quantity
       f.input :diesel_quantity
       f.input :missing_quantity

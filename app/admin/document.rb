@@ -54,8 +54,8 @@ ActiveAdmin.register Document do
       f.input :doc_type, as: :select, collection: Document.doc_types.keys
       f.input :number
       f.input :title
-      f.input :issued_on, as: :datepicker
-      f.input :expires_on, as: :datepicker
+      f.input :issued_on, as: :string, input_html: {type: "date"}
+      f.input :expires_on, as: :string, input_html: {type: "date"}
       f.input :file, as: :file
     end
     f.actions

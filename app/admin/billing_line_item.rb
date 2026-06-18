@@ -61,7 +61,7 @@ ActiveAdmin.register BillingLineItem do
       f.input :rate
       f.input :amount
       f.input :tva
-      f.input :started_on, as: :datepicker
+      f.input :started_on, as: :string, input_html: {type: "date"}
     end
     f.actions
   end

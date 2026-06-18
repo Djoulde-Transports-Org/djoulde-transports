@@ -58,10 +58,10 @@ ActiveAdmin.register BillingStatement do
     f.semantic_errors
     f.inputs do
       f.input :number
-      f.input :month, as: :datepicker
+      f.input :month, as: :string, input_html: {type: "date"}
       f.input :status, as: :select, collection: BillingStatement.statuses.keys
-      f.input :issued_on, as: :datepicker
-      f.input :due_on, as: :datepicker
+      f.input :issued_on, as: :string, input_html: {type: "date"}
+      f.input :due_on, as: :string, input_html: {type: "date"}
     end
     f.actions
   end

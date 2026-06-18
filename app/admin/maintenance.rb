@@ -52,7 +52,7 @@ ActiveAdmin.register Maintenance do
       f.input :performed_by, as: :select, collection: User.order(:email).pluck(:email, :id)
       f.input :kind, as: :select, collection: Maintenance.kinds.keys
       f.input :state, as: :select, collection: Maintenance.states.keys
-      f.input :performed_on, as: :datepicker
+      f.input :performed_on, as: :string, input_html: {type: "date"}
       f.input :cost
       f.input :odometer_km
       f.input :estimated_duration
