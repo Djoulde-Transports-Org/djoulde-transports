@@ -80,7 +80,7 @@ GEM
     annotaterb (4.22.0)
       activerecord (>= 6.0.0)
       activesupport (>= 6.0.0)
-    api-pagination (6.0.0)
+    api-pagination (7.1.0)
     ast (2.4.3)
     audited (5.8.0)
       activerecord (>= 5.2, < 8.2)
@@ -451,7 +451,7 @@ PLATFORMS
 
 DEPENDENCIES
   annotaterb (~> 4.16)
-  api-pagination (~> 6.0)
+  api-pagination (~> 7.1)
   audited (~> 5.7)
   bootsnap
   brakeman
