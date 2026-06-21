@@ -84,7 +84,7 @@ gem "api-pagination", "~> 7.1"
 # tailwindcss-rails standalone CLI (no node/yarn). Session auth reuses the
 # Devise User model, gated to the super_admin role.
 gem "activeadmin", "4.0.0.beta22"
-gem "tailwindcss-rails", "~> 4.4"
+gem "tailwindcss-rails", "~> 4.6"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
