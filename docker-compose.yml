@@ -1,7 +1,5 @@
 # Full dev stack for djoulde-transports.
-# Ticket 02 wires mysql, redis, and rails. Ticket 05 promotes proxy to the
-# single public entry point. frontend remains a skeleton placeholder until
-# ticket 13 (SvelteKit).
+# Ticket 02: mysql, redis, rails. Ticket 05: nginx proxy. Ticket 13: SvelteKit frontend.
 
 services:
   mysql:
@@ -64,9 +62,19 @@ services:
       - bundle_cache:/usr/local/bundle
 
   frontend:
-    image: alpine:3.20
-    command: ["sh", "-c", "echo 'frontend service placeholder — SvelteKit in ./frontend (ticket 13)'"]
-    profiles: ["skeleton"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    expose:
+      - "5173"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - dev
 
   proxy:
     image: nginx:1.27-alpine
@@ -77,11 +85,10 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - dev
-    # NOTE: frontend is omitted from depends_on while it's a skeleton-profile
-    # placeholder; compose v2 rejects depends_on across profiles. Ticket 13
-    # promotes frontend to a full service and should restore the dependency.
+      - frontend
 
 volumes:
   mysql_data:
   redis_data:
   bundle_cache:
+  frontend_node_modules:
