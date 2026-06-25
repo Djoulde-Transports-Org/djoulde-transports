@@ -86,7 +86,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    annotaterb (4.22.0)
+    annotaterb (4.23.0)
       activerecord (>= 6.0.0)
       activesupport (>= 6.0.0)
     api-pagination (7.1.0)
@@ -202,7 +202,7 @@ GEM
     jbuilder (2.15.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
-    json (2.19.9)
+    json (2.20.0)
     kamal (2.12.0)
       activesupport (>= 7.0)
       base64 (~> 0.2)
@@ -478,7 +478,7 @@ PLATFORMS
 
 DEPENDENCIES
   activeadmin (= 4.0.0.beta22)
-  annotaterb (~> 4.16)
+  annotaterb (~> 4.23)
   api-pagination (~> 7.1)
   audited (~> 5.7)
   bootsnap

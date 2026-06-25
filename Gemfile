@@ -119,5 +119,5 @@ group :development do
 
   # Annotate models with schema info as comments
   # Maintained fork of `annotate` with Rails 8 support [https://github.com/drwl/annotaterb]
-  gem "annotaterb", "~> 4.16"
+  gem "annotaterb", "~> 4.23"
 end
