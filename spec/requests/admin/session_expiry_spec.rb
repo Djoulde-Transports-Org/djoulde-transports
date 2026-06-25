@@ -40,7 +40,7 @@ RSpec.describe "Admin session expiry", type: :request do
 
       get "/admin/routes", headers: html
 
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to("/login")
       expect(flash[:alert]).to match(/sign in again/i)
     end
   end
@@ -63,7 +63,7 @@ RSpec.describe "Admin session expiry", type: :request do
 
       delete destroy_user_session_path, headers: {"Accept" => "text/html"}
 
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to("/login")
     end
   end
 end
