@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   # Active Admin (ticket 12). Devise sessions stay enabled for the cookie-based
   # /admin browser login. Confirmations/passwords/unlocks are driven by email
   # links.
-  devise_for :users, skip: [ :registrations ]
+  devise_for :users, skip: [ :registrations ], controllers: { sessions: "users/sessions" }
 
   use_doorkeeper
 
