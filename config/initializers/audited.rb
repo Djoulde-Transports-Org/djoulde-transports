@@ -20,12 +20,12 @@ Rails.application.config.active_record.yaml_column_permitted_classes |= [
 # it lacks the Ransack allowlist that the rest of our models get for free. The
 # Active Admin read-only audit index needs to sort/filter on these columns.
 #
-# after_initialize runs after route loading (which triggers ActiveAdmin to
-# require "audited/audit"), so Audited::Audit is fully defined by this point.
-# Using on_load(:active_record) fires immediately when ActiveRecord::Base is
-# already loaded, which in test/CI happens before routes are processed and
-# Audited::Audit exists, causing a NameError.
+# Explicitly require the audit model so the constant is guaranteed to be defined
+# regardless of whether ActiveAdmin has already loaded its resources (e.g. during
+# db:prepare the routes are not processed, so Audited::Audit would otherwise be
+# uninitialized when after_initialize fires).
 Rails.application.config.after_initialize do
+  require "audited/audit"
   Audited::Audit.singleton_class.class_eval do
     def ransackable_attributes(_auth_object = nil)
       %w(id action auditable_type auditable_id associated_type associated_id
