@@ -39,7 +39,7 @@ RSpec.describe "Admin discard", type: :request do
 
     get "/admin/routes", headers: {"Accept" => "text/html"}
 
-    expect(response).to redirect_to(new_user_session_path)
+    expect(response).to redirect_to("/login")
   end
 
   it "redirects an anonymous visitor to the login page" do

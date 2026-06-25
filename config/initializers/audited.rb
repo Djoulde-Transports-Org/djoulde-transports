@@ -26,6 +26,22 @@ Rails.application.config.active_record.yaml_column_permitted_classes |= [
 # uninitialized when after_initialize fires).
 Rails.application.config.after_initialize do
   require "audited/audit"
+
+  # audited 5.8.0 defines belongs_to :user and :associated without optional: true.
+  # Rails 6+ makes belongs_to required by default, so presence validators are added
+  # automatically. When no current user exists (tests, background jobs) the audit
+  # record fails validation, causing update_attribute (used by discard 2.0) to roll
+  # back and return false, making every discard! raise "A discarded record cannot
+  # be discarded". Remove only the presence validators for these two optional
+  # associations; :auditable intentionally stays required.
+  Audited::Audit._validators.delete(:user)
+  Audited::Audit._validators.delete(:associated)
+  to_remove = Audited::Audit._validate_callbacks.select do |c|
+    c.filter.is_a?(ActiveRecord::Validations::PresenceValidator) &&
+      (c.filter.attributes & %i(user associated)).any?
+  end
+  to_remove.each { |c| Audited::Audit._validate_callbacks.delete(c) }
+
   Audited::Audit.singleton_class.class_eval do
     def ransackable_attributes(_auth_object = nil)
       %w(id action auditable_type auditable_id associated_type associated_id
