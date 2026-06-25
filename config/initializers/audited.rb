@@ -18,14 +18,14 @@ Rails.application.config.active_record.yaml_column_permitted_classes |= [
 
 # Audited::Audit ships from the gem and does not inherit ApplicationRecord, so
 # it lacks the Ransack allowlist that the rest of our models get for free. The
-# Active Admin (ticket 12) read-only audit index needs to sort/filter on these.
+# Active Admin read-only audit index needs to sort/filter on these columns.
 #
-# We hook the same `on_load(:active_record)` channel audited uses to require
-# its model, so this runs *after* the model is already defined with its
-# intended optional `belongs_to`s. Force-requiring "audited/audit" from a late
-# initializer instead would reload it while `belongs_to_required_by_default` is
-# on, adding spurious presence validators that break every audited write.
-ActiveSupport.on_load(:active_record) do
+# after_initialize runs after route loading (which triggers ActiveAdmin to
+# require "audited/audit"), so Audited::Audit is fully defined by this point.
+# Using on_load(:active_record) fires immediately when ActiveRecord::Base is
+# already loaded, which in test/CI happens before routes are processed and
+# Audited::Audit exists, causing a NameError.
+Rails.application.config.after_initialize do
   Audited::Audit.singleton_class.class_eval do
     def ransackable_attributes(_auth_object = nil)
       %w(id action auditable_type auditable_id associated_type associated_id
@@ -37,7 +37,3 @@ ActiveSupport.on_load(:active_record) do
     end
   end
 end
-
-# Audited::Audit ships from the gem and does not inherit ApplicationRecord, so
-# it lacks the Ransack allowlist that the rest of our models get for free. The
-# Active Admin (ticket 12) read-only audit index needs to sort/filter on these.
