@@ -23,14 +23,14 @@ class ApplicationController < ActionController::Base
     # config/initializers/session_boot_token.rb.
     if session[:boot_token] != Rails.application.config.x.session_boot_token
       sign_out(current_user)
-      redirect_to new_user_session_path,
+      redirect_to "/login",
         alert: "Your session expired. Please sign in again to continue."
       return
     end
 
     return if current_user.has_role?(:super_admin)
 
-    redirect_to new_user_session_path,
+    redirect_to "/login",
       alert: "You are not authorized to access the admin area."
   end
 
@@ -47,6 +47,6 @@ class ApplicationController < ActionController::Base
   # Send users back to the login page after signing out instead of Devise's
   # default root path.
   def after_sign_out_path_for(_resource_or_scope)
-    new_user_session_path
+    "/login"
   end
 end

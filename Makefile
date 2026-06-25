@@ -1,4 +1,4 @@
-.PHONY: help dev up-detached down clean logs build build-frontend setup install_deps_rails console bash rspec rubocop rubocop-fix vitest svelte-check svelte-lint svelte-lint-fix svelte-format svelte-format-check
+.PHONY: help dev up-detached down clean logs build build-frontend setup install_deps_rails console bash rspec rubocop rubocop-fix vitest svelte-check svelte-lint svelte-lint-fix svelte-format svelte-format-check lint-fix-all
 
 .DEFAULT_GOAL := help
 
@@ -32,6 +32,9 @@ help:
 	@echo "  make svelte-lint-fix      ESLint with auto-fix"
 	@echo "  make svelte-format        Prettier (write)"
 	@echo "  make svelte-format-check  Prettier (check only)"
+	@echo ""
+	@echo "All"
+	@echo "  make lint-fix-all         Rubocop -A + Prettier + ESLint --fix"
 
 install_deps_rails:
 	$(COMPOSE) run --rm dev bash -c 'bundle check || bundle install'
@@ -100,6 +103,10 @@ svelte-format:
 
 svelte-format-check:
 	cd frontend && npm run format:check
+
+lint-fix-all:
+	$(COMPOSE) exec dev bundle exec rubocop -A
+	cd frontend && npm run format && npm run lint:fix
 
 # Catch-all: swallows path arguments to `make rspec ...` / `make vitest ...`.
 # Required so GNU Make doesn't fail with "no rule to make target 'spec/foo'".
