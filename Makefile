@@ -1,4 +1,4 @@
-.PHONY: help dev up-detached down clean logs build build-frontend setup install_deps_rails console bash rspec rubocop rubocop-fix vitest svelte-check svelte-lint svelte-lint-fix svelte-format svelte-format-check lint-fix-all
+.PHONY: help dev up-detached down clean logs build build-frontend setup install_deps_rails console bash rspec rubocop rubocop-fix test-frontend vitest svelte-check svelte-lint svelte-lint-fix svelte-format svelte-format-check lint-fix-all
 
 .DEFAULT_GOAL := help
 
@@ -26,7 +26,8 @@ help:
 	@echo "  make rubocop-fix          Run rubocop with auto-correct"
 	@echo ""
 	@echo "Frontend"
-	@echo "  make vitest [PATH]        Run Vitest"
+	@echo "  make test-frontend        Run all frontend tests"
+	@echo "  make vitest [PATH]        Run Vitest (optional path to a single file)"
 	@echo "  make svelte-check         Type-check with svelte-check"
 	@echo "  make svelte-lint          ESLint"
 	@echo "  make svelte-lint-fix      ESLint with auto-fix"
@@ -82,10 +83,13 @@ rubocop-fix:
 rspec:
 	$(COMPOSE) exec dev bundle exec rspec $(filter-out $@,$(MAKECMDGOALS))
 
-# Same pattern, but strip a leading slash so both
-#   make vitest spec/frontend/foo.test.ts
-#   make vitest /spec/frontend/foo.test.ts
-# resolve to the same in-container path.
+test-frontend:
+	cd frontend && npx vitest run
+
+# Strip a leading slash so both
+#   make vitest test/lib/components/common/Button.test.ts
+#   make vitest /test/lib/components/common/Button.test.ts
+# resolve to the same path.
 vitest:
 	cd frontend && npx vitest run $(patsubst /%,%,$(filter-out $@,$(MAKECMDGOALS)))
 
