@@ -50,7 +50,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up test database
-        run: bundle exec rails db:prepare
+        run: bundle exec rails db:schema:load
 
       - name: Run RSpec
         run: bundle exec rspec
