@@ -35,4 +35,13 @@ RSpec.describe API::V1::Entities::Session do
   it "exposes the resource_owner_id as user_id" do
     expect(payload[:user_id]).to eq(user.id)
   end
+
+  it "exposes an empty roles array when the user has no roles" do
+    expect(payload[:roles]).to eq([])
+  end
+
+  it "exposes the user's role names when roles are present" do
+    user.add_role(:super_admin)
+    expect(payload[:roles]).to eq([ "super_admin" ])
+  end
 end

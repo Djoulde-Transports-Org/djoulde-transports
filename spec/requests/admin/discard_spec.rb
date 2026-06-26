@@ -33,13 +33,13 @@ RSpec.describe "Admin discard", type: :request do
       .to raise_error(ActionController::RoutingError)
   end
 
-  it "redirects a signed-in non-admin away from the admin area" do
+  it "returns 404 for a signed-in non-admin attempting to reach the admin area" do
     plain = User.create!(email: "plain@example.com", password: AdminAuth::PASSWORD)
     sign_in plain
 
     get "/admin/routes", headers: {"Accept" => "text/html"}
 
-    expect(response).to redirect_to("/login")
+    expect(response).to have_http_status(:not_found)
   end
 
   it "redirects an anonymous visitor to the login page" do
