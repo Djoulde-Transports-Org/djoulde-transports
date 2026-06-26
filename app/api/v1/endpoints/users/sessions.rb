@@ -39,6 +39,12 @@ module API::V1::Endpoints::Users
           scopes:            "default"
         )
       end
+
+      def establish_devise_session(issued_token)
+        env["rack.session"].clear
+        env["warden"].set_user(user, scope: :user)
+        env["rack.session"][:token_expires_at] = issued_token.created_at.to_i + issued_token.expires_in
+      end
     end
 
     resource :sessions do
@@ -52,7 +58,10 @@ module API::V1::Endpoints::Users
         user_valid!
         application_exists!
 
-        present token, with: API::V1::Entities::Session
+        issued_token = token
+        establish_devise_session(issued_token)
+
+        present issued_token, with: API::V1::Entities::Session
       end
     end
   end

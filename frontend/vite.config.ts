@@ -4,6 +4,14 @@ import {defineConfig} from 'vitest/config';
 
 export default defineConfig(({mode}) => ({
   plugins: [tailwindcss(), sveltekit()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
   resolve: {
     conditions: mode === 'test' ? ['browser'] : [],
   },

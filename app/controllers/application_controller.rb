@@ -28,10 +28,16 @@ class ApplicationController < ActionController::Base
       return
     end
 
+    if session[:token_expires_at].present? && Time.current.to_i > session[:token_expires_at]
+      sign_out(current_user)
+      redirect_to "/login",
+        alert: "Your session expired. Please sign in again to continue."
+      return
+    end
+
     return if current_user.has_role?(:super_admin)
 
-    redirect_to "/login",
-      alert: "You are not authorized to access the admin area."
+    raise ActionController::RoutingError, "Not Found"
   end
 
   def current_admin
