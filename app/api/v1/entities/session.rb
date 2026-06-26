@@ -15,5 +15,8 @@ module API::V1::Entities
     expose :user_id, documentation: {type: "Integer", desc: "The user ID"} do |token, _opts|
       token.resource_owner_id
     end
+    expose :roles, documentation: {type: "Array", desc: "The user's role names"} do |token, _opts|
+      ::User.find(token.resource_owner_id).roles.pluck(:name)
+    end
   end
 end
