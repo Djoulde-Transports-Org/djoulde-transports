@@ -7,9 +7,4 @@ export type Session = {
   roles: Role[];
 };
 
-export type Role =
-  | 'super_admin'
-  | 'dispatcher'
-  | 'billing'
-  | 'maintenance'
-  | 'driver_readonly';
+export type Role = 'super_admin' | 'dispatcher' | 'billing' | 'maintenance' | 'driver_readonly';
