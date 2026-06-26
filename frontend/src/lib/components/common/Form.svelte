@@ -1,11 +1,6 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
-  import {untrack} from 'svelte';
-  import {createForm} from 'felte';
-  import {validator} from '@felte/validator-yup';
-
   import type {Snippet} from 'svelte';
-  import type {AnyObjectSchema} from 'yup';
-  import type {Errors} from '@felte/common';
+  import type {AnyObjectSchema, ValidationError} from 'yup';
 
   let {
     id,
@@ -18,17 +13,51 @@
     schema: AnyObjectSchema;
     onSubmit: (values: T) => Promise<void>;
     class?: string;
-    children: Snippet<[{errors: Errors<T>; isValid: boolean; isSubmitting: boolean}]>;
+    children: Snippet<[{errors: Record<string, string>; isValid: boolean; isSubmitting: boolean}]>;
   } = $props();
 
-  const {form, errors, isValid, isSubmitting} = untrack(() =>
-    createForm<T>({
-      extend: validator({schema}),
-      onSubmit,
-    })
-  );
+  let errors = $state<Record<string, string>>({});
+  let isValid = $state(true);
+  let isSubmitting = $state(false);
+
+  const toValues = (form: HTMLFormElement): Record<string, unknown> =>
+    Object.fromEntries(new FormData(form).entries());
+
+  const validate = async (form: HTMLFormElement): Promise<boolean> => {
+    try {
+      await schema.validate(toValues(form), {abortEarly: false});
+      errors = {};
+      isValid = true;
+      return true;
+    } catch (err) {
+      const next: Record<string, string> = {};
+      const yupErr = err as ValidationError;
+      for (const e of yupErr.inner ?? []) next[e.path ?? ''] = e.message;
+      if (yupErr.path && !yupErr.inner?.length) next[yupErr.path] = yupErr.message;
+      errors = next;
+      isValid = false;
+      return false;
+    }
+  };
+
+  const oninput = (event: Event) => {
+    validate(event.currentTarget as HTMLFormElement);
+  };
+
+  const onsubmit = async (event: SubmitEvent) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const valid = await validate(form);
+    if (!valid) return;
+    isSubmitting = true;
+    try {
+      await onSubmit(toValues(form) as T);
+    } finally {
+      isSubmitting = false;
+    }
+  };
 </script>
 
-<form use:form {id} data-testid={id ? `form-${id}` : undefined} class={className}>
-  {@render children({errors: $errors, isValid: $isValid, isSubmitting: $isSubmitting})}
+<form {id} data-testid={id ? `form-${id}` : undefined} class={className} {oninput} {onsubmit}>
+  {@render children({errors, isValid, isSubmitting})}
 </form>
