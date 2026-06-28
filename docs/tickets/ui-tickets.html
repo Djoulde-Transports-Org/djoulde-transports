@@ -1,0 +1,602 @@
+<title>Djoulde Transports — Tickets d'implémentation</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ground:      #0F1009;
+    --surface:     #191B14;
+    --surface-2:   #222419;
+    --border:      #2B2E22;
+    --border-soft: #212318;
+    --text:        #E8E3D5;
+    --text-mid:    #B0AB9E;
+    --text-muted:  #8C8779;
+    --accent:      #D4782A;
+    --accent-dim:  rgba(212,120,42,0.12);
+    --green:       #3D7A52;
+    --green-dim:   rgba(61,122,82,0.13);
+    --yellow:      #C09A20;
+    --yellow-dim:  rgba(192,154,32,0.13);
+    --red:         #B83B30;
+    --red-dim:     rgba(184,59,48,0.13);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    padding: 48px 24px 96px;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 1040px; margin: 0 auto; }
+
+  /* ── PAGE HEADER ─────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 52px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left { display: flex; align-items: flex-start; gap: 14px; }
+
+  .logo-hex {
+    width: 40px; height: 40px; flex-shrink: 0; margin-top: 3px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: var(--ground); letter-spacing: 0.03em;
+  }
+
+  .page-title {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text); line-height: 1.2; margin-bottom: 4px;
+    text-wrap: balance;
+  }
+
+  .page-sub { font-size: 12px; color: var(--text-muted); }
+  .page-sub b { color: var(--text-mid); font-weight: 600; }
+
+  .size-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    align-self: flex-start;
+  }
+
+  .legend-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-right: 4px; }
+
+  /* ── SIZE BADGES ─────────────────────────────── */
+  .sz {
+    font-size: 10px; font-weight: 800; padding: 2px 9px;
+    border-radius: 100px; letter-spacing: 0.04em;
+  }
+  .sz-s { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(61,122,82,0.25); }
+  .sz-m { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(192,154,32,0.25); }
+  .sz-l { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(184,59,48,0.25); }
+
+  /* ── MODULE SECTION ──────────────────────────── */
+  .module { margin-bottom: 40px; }
+
+  .module-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .module-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .module-rule { flex: 1; height: 1px; background: var(--border); }
+
+  .module-count {
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 2px 9px; border-radius: 100px; white-space: nowrap;
+  }
+
+  /* ── TICKET GRID ─────────────────────────────── */
+  .ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* ── TICKET CARD ─────────────────────────────── */
+  .ticket {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 15px 17px 17px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    transition: border-color 0.13s;
+  }
+
+  .ticket:hover { border-color: rgba(212,120,42,0.32); }
+
+  .ticket-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ticket-id {
+    font-size: 10px; font-weight: 800;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.07em;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(212,120,42,0.2);
+    padding: 2px 8px; border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .ticket-title {
+    font-size: 13.5px; font-weight: 700;
+    color: var(--text); line-height: 1.3;
+  }
+
+  .ticket-desc {
+    font-size: 12px; color: var(--text-muted); line-height: 1.5;
+  }
+
+  .ticket-deliverables {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 9px;
+    border-top: 1px solid var(--border-soft);
+    margin-top: auto;
+  }
+
+  .ticket-deliverables li {
+    font-size: 11.5px;
+    color: var(--text-mid);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.45;
+  }
+
+  .ticket-deliverables li::before {
+    content: '·';
+    position: absolute;
+    left: 3px;
+    color: var(--accent);
+    font-weight: 900;
+    line-height: 1.45;
+  }
+
+  /* ── FOOTER NOTE ─────────────────────────────── */
+  .footer-note {
+    margin-top: 52px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .footer-note span { color: var(--text-mid); font-weight: 600; }
+
+  @media (max-width: 680px) {
+    .ticket-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; gap: 16px; }
+    .size-legend { align-self: flex-start; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="page-header">
+    <div class="header-left">
+      <div class="logo-hex">DT</div>
+      <div>
+        <div class="page-title">Djoulde Transports — Tickets d'implémentation</div>
+        <div class="page-sub"><b>24 tickets</b> · <b>8 modules</b> · Frontend + API</div>
+      </div>
+    </div>
+    <div class="size-legend">
+      <span class="legend-label">Taille</span>
+      <span class="sz sz-s">S</span>
+      <span class="sz sz-m">M</span>
+      <span class="sz sz-l">L</span>
+    </div>
+  </header>
+
+  <!-- ── CORE ─────────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Core</span>
+      <span class="module-rule"></span>
+      <span class="module-count">3 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-001</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">App shell &amp; sidebar navigation</div>
+        <div class="ticket-desc">Layout foundation that all views are built inside.</div>
+        <ul class="ticket-deliverables">
+          <li>Svelte app wrapper — fixed sidebar (224px) + scrollable main area</li>
+          <li>Nav items with icons, hover states, and orange active indicator bar</li>
+          <li>Client-side view routing — nav click swaps view without page reload</li>
+          <li>Sidebar user row at bottom with avatar initials and role label</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-002</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Topbar component</div>
+        <div class="ticket-desc">Persistent header that contextualises the active view.</div>
+        <ul class="ticket-deliverables">
+          <li>Page title syncs with active nav item on route change</li>
+          <li>Live indicator pill with pulsing animated dot</li>
+          <li>Real-time clock display, updates every second</li>
+          <li>Named slot for contextual action buttons (e.g. "+ Nouveau trajet")</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-024</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">DataTable — composant table réutilisable</div>
+        <div class="ticket-desc">Composant unique partagé par toutes les vues liste. Doit être construit avant DT-006, DT-011, DT-014, DT-018, DT-022.</div>
+        <ul class="ticket-deliverables">
+          <li>Props : <code style="font-size:11px;color:var(--accent)">endpoint</code>, <code style="font-size:11px;color:var(--accent)">columns</code> (key + label + render?), <code style="font-size:11px;color:var(--accent)">filters</code> (chips), <code style="font-size:11px;color:var(--accent)">searchParam</code>, <code style="font-size:11px;color:var(--accent)">paginated</code>, <code style="font-size:11px;color:var(--accent)">limit</code></li>
+          <li>Mode <code style="font-size:11px;color:var(--accent)">paginated: false</code> — charge tout en une requête (Flotte ~200, Employés ~250)</li>
+          <li>Mode <code style="font-size:11px;color:var(--accent)">paginated: true</code> — pagination curseur avec params <code style="font-size:11px;color:var(--accent)">after</code> + <code style="font-size:11px;color:var(--accent)">limit</code>, contrôles next/prev, réinitialise le curseur à chaque changement de filtre (Trajets, Documents, Maintenances)</li>
+          <li>Callback <code style="font-size:11px;color:var(--accent)">render(val, row)</code> par colonne pour injecter badges, pills d'expiration, formatage — le composant ne connaît pas le domaine</li>
+          <li>États gérés en interne : loading skeleton, erreur, liste vide — slots nommés pour les personnaliser</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── DASHBOARD ─────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Dashboard</span>
+      <span class="module-rule"></span>
+      <span class="module-count">3 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-003</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">KPI stats cards</div>
+        <div class="ticket-desc">Four headline numbers that summarise the operation at a glance.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint returning fleet, trip, liter, and billing aggregates</li>
+          <li>Cards: camions actifs, trajets en cours, litres livrés (mois), facturation HT (mois)</li>
+          <li>Sub-text breakdown per card (e.g. "4 en route · 2 prêts · 1 maintenance")</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-004</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Fleet status lanes widget</div>
+        <div class="ticket-desc">Compact fleet overview on the dashboard — not the full fleet table.</div>
+        <ul class="ticket-deliverables">
+          <li>One row per truck: plate, animated progress bar, status badge, route info</li>
+          <li>Three visual states: En route (moving node), Maintenance (hatching), Prêt (idle node)</li>
+          <li>"Voir tout" button navigates to Flotte view</li>
+          <li>Reuses fleet API payload — no second request</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-005</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Recent trips table widget</div>
+        <div class="ticket-desc">Last 6 trips shown read-only on the dashboard.</div>
+        <ul class="ticket-deliverables">
+          <li>Columns: N° trajet, Camion, Route, Chauffeur, Quantité, Statut, Date</li>
+          <li>Status badges: En cours, Terminé</li>
+          <li>"Voir tout" link navigates to Trajets view</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FLOTTE ─────────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Flotte</span>
+      <span class="module-rule"></span>
+      <span class="module-count">5 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-006</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Fleet list table</div>
+        <div class="ticket-desc">Main fleet view — one row per truck, clickable for detail.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /trucks (plate, model, tanker, capacity, status, last oil change)</li>
+          <li>Columns: Immatriculation, Modèle, Citerne, Statut, Dernière vidange</li>
+          <li>Row hover highlight; cursor pointer to signal clickability</li>
+          <li>Overflow-x: auto container for wide screens</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-007</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Document expiry tracking columns</div>
+        <div class="ticket-desc">Four document columns per truck with color-coded expiry pills.</div>
+        <ul class="ticket-deliverables">
+          <li>Store 4 expiry dates per truck: Ass. camion, Ass. produit, Visite tech., Permis ch.</li>
+          <li>Days-remaining computed server-side; pill color: green (&gt;60j) / yellow (15–60j) / red (&lt;15j or expired)</li>
+          <li>API endpoints to create and update expiry dates</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-008</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Fleet filters &amp; search</div>
+        <div class="ticket-desc">Status chips and a search bar to narrow 150+ trucks quickly.</div>
+        <ul class="ticket-deliverables">
+          <li>Filter chips: Tous / En route / Prêts / Maintenance — client-side row filtering</li>
+          <li>Search input filters by plate number or model in real time</li>
+          <li>Active chip and search term persist across drawer open/close</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-009</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Truck detail drawer</div>
+        <div class="ticket-desc">Slide-in panel with full truck context, opened by clicking any row.</div>
+        <ul class="ticket-deliverables">
+          <li>Sections: tanker + last oil change summary, driver card (name / ID / phone), 4 document rows with expiry, 3 stats boxes (trips / km / litres)</li>
+          <li>Populated from fleet list payload — no extra request on open</li>
+          <li>Closes on overlay click or Escape key</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-010</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Add truck form</div>
+        <div class="ticket-desc">Drawer to register a new truck and its associated documents.</div>
+        <ul class="ticket-deliverables">
+          <li>Fields: plate, model, year, tanker ID, capacity, last oil change date</li>
+          <li>Four document expiry date pickers</li>
+          <li>Driver assignment dropdown filtered to Chauffeur employees</li>
+          <li>API POST /trucks; new row appended to fleet table on success</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── EMPLOYÉS ───────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Employés</span>
+      <span class="module-rule"></span>
+      <span class="module-count">3 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-011</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Employee list table</div>
+        <div class="ticket-desc">Full employee directory with operational info visible at a glance.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /employees (name, emp ID, role, phone, address, hire date, status, assigned truck)</li>
+          <li>Employee ID shown as sub-text below name in the name cell</li>
+          <li>Role badge styles: orange for Chauffeur, yellow for Technicien, neutral for Dispatcher/Admin</li>
+          <li>Status badges: Actif (green), En congé (yellow), Inactif (neutral)</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-012</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Employee filters &amp; search</div>
+        <div class="ticket-desc">Same filter + search pattern as the fleet view.</div>
+        <ul class="ticket-deliverables">
+          <li>Filter chips: Tous / Chauffeurs / Techniciens / Admin</li>
+          <li>Real-time search by name or employee ID</li>
+          <li>Count in "Tous" chip updates to reflect filtered results</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-013</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Add / edit employee form</div>
+        <div class="ticket-desc">Drawer to onboard or update an employee record.</div>
+        <ul class="ticket-deliverables">
+          <li>Fields: full name, role (select), phone, address, hire date, status</li>
+          <li>Truck assignment field shown only when role = Chauffeur</li>
+          <li>API POST /employees and PUT /employees/:id</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── TRAJETS ────────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Trajets</span>
+      <span class="module-rule"></span>
+      <span class="module-count">4 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-014</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Trip list table</div>
+        <div class="ticket-desc">Full trip history with status filtering.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /trips with optional status filter</li>
+          <li>Columns: N° trajet, Camion/Citerne, Route, Chauffeur, Gasoil (L), Essence (L), Montant HT, Statut, Départ</li>
+          <li>Filter chips: Tous / En cours / Planifiés / Terminés / Annulés</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-015</span><span class="sz sz-l">L</span></div>
+        <div class="ticket-title">New trip drawer</div>
+        <div class="ticket-desc">4-section form to plan a convoy and generate a delivery note.</div>
+        <ul class="ticket-deliverables">
+          <li>Section 01 Convoi — truck select with auto-populated tanker and pairing card</li>
+          <li>Section 02 Itinéraire — origin, destination, departure + arrival date/time; route rate shown on selection</li>
+          <li>Section 03 Chauffeur — optional assignment with "habituel" hint for regular driver</li>
+          <li>Section 04 Bon de livraison — reference number + fuel quantities (gasoil / essence)</li>
+          <li>API POST /trips; closes drawer and refreshes trip list on success</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-016</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Tank fill visualizer</div>
+        <div class="ticket-desc">Live capacity bar inside the trip form, segmented by fuel type.</div>
+        <ul class="ticket-deliverables">
+          <li>Segmented bar (gasoil + essence) filling against the selected tanker's capacity</li>
+          <li>States: empty prompt, partial warning (X L remaining), exact fill confirmation, over-capacity error</li>
+          <li>Reads capacity reactively from the selected truck field</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-017</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Estimated billing in trip form</div>
+        <div class="ticket-desc">Live billing preview computed from liters × route rate.</div>
+        <ul class="ticket-deliverables">
+          <li>Computes HT = total liters × route rate per liter</li>
+          <li>Displays TVA 18% and total TTC inline</li>
+          <li>Updates reactively on any quantity or route change; hidden when inputs are incomplete</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── MAINTENANCE ────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Maintenance</span>
+      <span class="module-rule"></span>
+      <span class="module-count">2 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-018</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Maintenance list view</div>
+        <div class="ticket-desc">Card-based log of maintenance sessions, ongoing and completed.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /maintenance (truck, type, technician, start date, duration, cost, status)</li>
+          <li>Ongoing cards get a yellow left border; completed cards are neutral</li>
+          <li>Filter chips: Tous / En cours / Terminés</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-019</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Create maintenance entry</div>
+        <div class="ticket-desc">Drawer to open a new maintenance session for a truck.</div>
+        <ul class="ticket-deliverables">
+          <li>Fields: truck select, maintenance type, technician, start date/time, estimated duration, estimated cost</li>
+          <li>On creation: sets the selected truck's status to Maintenance</li>
+          <li>API POST /maintenance; card added to list on success</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FACTURATION ────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Facturation</span>
+      <span class="module-rule"></span>
+      <span class="module-count">2 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-020</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Billing cards view</div>
+        <div class="ticket-desc">Monthly billing summaries with payment status at a glance.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /billing (month, HT, TVA, TTC, status: brouillon / émise / payée)</li>
+          <li>Card left border color encodes status: neutral / orange / green</li>
+          <li>Filter chips: Toutes / Brouillon / Émises / Payées</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-021</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Monthly billing generation</div>
+        <div class="ticket-desc">One-click generation of a billing draft from completed trips.</div>
+        <ul class="ticket-deliverables">
+          <li>Pulls all completed trips for the selected month</li>
+          <li>Computes total HT, TVA 18%, and total TTC</li>
+          <li>Creates a Brouillon record; opens it for review before publishing</li>
+          <li>API POST /billing/generate with a month parameter</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── DOCUMENTS ─────────────────────────────── -->
+  <section class="module">
+    <div class="module-header">
+      <span class="module-label">Documents</span>
+      <span class="module-rule"></span>
+      <span class="module-count">2 tickets</span>
+    </div>
+    <div class="ticket-grid">
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-022</span><span class="sz sz-s">S</span></div>
+        <div class="ticket-title">Document list table &amp; filters</div>
+        <div class="ticket-desc">Searchable archive of all files linked to fleet entities.</div>
+        <ul class="ticket-deliverables">
+          <li>API endpoint: GET /documents (name, category, linked entity, upload date, file size)</li>
+          <li>Filter chips: Tous / Camions / Citernes / Trajets / Maintenance</li>
+          <li>Category badge per row</li>
+        </ul>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-top"><span class="ticket-id">DT-023</span><span class="sz sz-m">M</span></div>
+        <div class="ticket-title">Document upload</div>
+        <div class="ticket-desc">Drawer to attach a file to any fleet entity.</div>
+        <ul class="ticket-deliverables">
+          <li>Fields: file picker (PDF/image), document name, category select, entity link (filtered by category)</li>
+          <li>Client-side validation: file type and max size</li>
+          <li>API POST /documents as multipart form; row appended to list on success</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer-note">
+    <div><span>S</span> — 1 à 2 jours</div>
+    <div><span>M</span> — 3 à 4 jours</div>
+    <div><span>L</span> — 5 jours et plus</div>
+    <div style="margin-left:auto;color:var(--text-muted)">Djoulde Transports · Conakry</div>
+  </footer>
+
+</div>
