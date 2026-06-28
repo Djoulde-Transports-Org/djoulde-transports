@@ -1,0 +1,631 @@
+<title>Djoulde Transports — API Coverage</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ground:      #0F1009;
+    --surface:     #191B14;
+    --surface-2:   #222419;
+    --border:      #2B2E22;
+    --border-soft: #1E2018;
+    --text:        #E8E3D5;
+    --text-mid:    #B0AB9E;
+    --text-muted:  #8C8779;
+    --accent:      #D4782A;
+    --accent-dim:  rgba(212,120,42,0.11);
+    --green:       #3D7A52;
+    --green-dim:   rgba(61,122,82,0.12);
+    --yellow:      #C09A20;
+    --yellow-dim:  rgba(192,154,32,0.12);
+    --red:         #B83B30;
+    --red-dim:     rgba(184,59,48,0.12);
+    --neutral-dim: rgba(176,171,158,0.08);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    padding: 48px 24px 96px;
+  }
+
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  /* ── HEADER ──────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    margin-bottom: 36px; padding-bottom: 26px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-hex {
+    width: 40px; height: 40px; flex-shrink: 0; margin-top: 3px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: var(--ground); letter-spacing: 0.03em;
+  }
+  .page-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); margin-bottom: 4px; }
+  .page-sub   { font-size: 12px; color: var(--text-muted); }
+  .page-sub b { color: var(--text-mid); font-weight: 600; }
+
+  /* ── SUMMARY ROW ─────────────────────────────── */
+  .summary {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 44px;
+  }
+  .sum-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .sum-card .sv { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 5px; }
+  .sum-card .sl { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .c-green  { color: var(--green); }
+  .c-yellow { color: var(--yellow); }
+  .c-red    { color: var(--red); }
+  .c-muted  { color: var(--text-muted); }
+
+  /* ── SECTION ─────────────────────────────────── */
+  .section { margin-bottom: 40px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+  }
+  .section-rule { flex: 1; height: 1px; background: var(--border); }
+  .section-count {
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 2px 9px; border-radius: 100px; white-space: nowrap;
+  }
+
+  /* ── ENDPOINT ROW ────────────────────────────── */
+  .ep-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    border-left-width: 3px;
+    padding: 13px 16px;
+    margin-bottom: 7px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: start;
+  }
+  .ep-row.ready  { border-left-color: var(--green); }
+  .ep-row.tweak  { border-left-color: var(--yellow); }
+  .ep-row.missing { border-left-color: var(--red); }
+  .ep-row.unused { border-left-color: var(--border); opacity: 0.65; }
+
+  .ep-route {
+    font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--text); margin-bottom: 3px; display: flex; align-items: center; gap: 7px;
+    flex-wrap: wrap;
+  }
+
+  .method {
+    font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 3px;
+    letter-spacing: 0.06em; flex-shrink: 0;
+  }
+  .m-get    { background: rgba(61,122,82,0.18);  color: var(--green); }
+  .m-post   { background: var(--accent-dim);     color: var(--accent); }
+  .m-patch  { background: rgba(192,154,32,0.15); color: var(--yellow); }
+  .m-delete { background: rgba(184,59,48,0.14);  color: var(--red); }
+
+  .ep-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+
+  .ep-tickets { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tid {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(212,120,42,0.18);
+    padding: 1px 7px; border-radius: 3px;
+  }
+
+  .ep-changes { margin-top: 8px; }
+  .ep-changes ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .ep-changes li {
+    font-size: 11.5px; color: var(--text-mid); padding-left: 14px; position: relative; line-height: 1.45;
+  }
+  .ep-changes li::before { content: '·'; position: absolute; left: 3px; color: var(--yellow); font-weight: 900; }
+
+  .missing-note { margin-top: 8px; }
+  .missing-note ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .missing-note li {
+    font-size: 11.5px; color: var(--text-mid); padding-left: 14px; position: relative; line-height: 1.45;
+  }
+  .missing-note li::before { content: '·'; position: absolute; left: 3px; color: var(--red); font-weight: 900; }
+
+  .status-pill {
+    font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 100px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .s-ready   { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(61,122,82,0.25); }
+  .s-tweak   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(192,154,32,0.25); }
+  .s-missing { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(184,59,48,0.25); }
+  .s-unused  { background: var(--neutral-dim); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .ep-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  /* ── SCALE NOTE ──────────────────────────────── */
+  .scale-note {
+    background: rgba(192,154,32,0.07); border: 1px solid rgba(192,154,32,0.22);
+    border-left: 3px solid var(--yellow); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 44px;
+  }
+  .scale-note-title {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--yellow); margin-bottom: 10px;
+  }
+  .scale-note ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .scale-note li {
+    font-size: 12px; color: var(--text-mid); padding-left: 14px; position: relative; line-height: 1.5;
+  }
+  .scale-note li::before { content: '·'; position: absolute; left: 3px; color: var(--yellow); font-weight: 900; }
+  .scale-note code { font-size: 11px; color: var(--yellow); }
+
+  /* ── INDEX NOTE ──────────────────────────────── */
+  .idx-note { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-soft); }
+  .idx-note-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 6px;
+  }
+  .idx-note ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .idx-note li {
+    font-size: 11px; color: var(--text-muted); padding-left: 14px; position: relative;
+    font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; line-height: 1.5;
+  }
+  .idx-note li::before { content: '·'; position: absolute; left: 3px; color: var(--border); font-weight: 900; }
+
+  /* ── UI COMPONENT TICKET ─────────────────────── */
+  .ep-row.ui-ticket { border-left-color: #5B7FCC; }
+  .s-ui { background: rgba(91,127,204,0.12); color: #7A9FE8; border: 1px solid rgba(91,127,204,0.25); }
+  .ep-changes li code.c-ui { color: #7A9FE8; }
+  .prop-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11.5px; }
+  .prop-table th { text-align: left; padding: 5px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  .prop-table td { padding: 6px 10px; color: var(--text-mid); border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  .prop-table tr:last-child td { border-bottom: none; }
+  .prop-table code { font-size: 11px; color: #7A9FE8; }
+  .prop-table .pt-type { color: var(--text-muted); font-family: ui-monospace, monospace; font-size: 10.5px; }
+  .consumer-list { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .consumer { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; background: rgba(91,127,204,0.1); color: #7A9FE8; border: 1px solid rgba(91,127,204,0.2); }
+
+  @media (max-width: 640px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .ep-row { grid-template-columns: 1fr; }
+    .ep-right { align-items: flex-start; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="page-header">
+    <div class="logo-hex">DT</div>
+    <div>
+      <div class="page-title">API Coverage — Tickets d'implémentation</div>
+      <div class="page-sub">Cartographie des endpoints existants contre les <b>24 tickets</b> UI</div>
+    </div>
+  </header>
+
+  <div class="summary">
+    <div class="sum-card"><div class="sv c-green">8</div><div class="sl">Prêts à l'emploi</div></div>
+    <div class="sum-card"><div class="sv c-yellow">9</div><div class="sl">Nécessitent des ajustements</div></div>
+    <div class="sum-card"><div class="sv c-red">4</div><div class="sl">À construire</div></div>
+    <div class="sum-card"><div class="sv c-muted">14</div><div class="sl">Non utilisés par l'UI</div></div>
+  </div>
+
+  <!-- ── SCALE NOTES ───────────────────────────── -->
+  <div class="scale-note">
+    <div class="scale-note-title">Notes de performance — volumes attendus</div>
+    <ul>
+      <li><strong style="color:var(--text-mid)">Trucks (~200) et Employees (~250) :</strong> pas de pagination. Charger la liste complète en une requête — les réponses restent petites.</li>
+      <li><strong style="color:var(--text-mid)">Trips (~1M/mois), Documents et Maintenances (millions) :</strong> pagination curseur obligatoire. Utiliser <code>after</code> (id du dernier item) + <code>limit</code> — évite le <code>OFFSET</code> SQL qui dégrade linéairement. Exemple : <code>GET /trips?after=&lt;cursor&gt;&amp;limit=50</code> → réponse inclut <code>next_cursor</code> et <code>has_more</code>.</li>
+      <li><strong style="color:var(--text-mid)">Recherche + curseur :</strong> le curseur est lié aux filtres actifs. Tout changement de filtre remet le curseur à null (première page). Le curseur doit être traité comme opaque côté frontend.</li>
+      <li><strong style="color:var(--text-mid)">Recherche par plaque (texte libre) :</strong> <code>LIKE 'GN-%'</code> avec préfixe fonctionne avec un index btree standard. Si la recherche doit être arbitraire (sous-chaîne), activer l'extension <code>pg_trgm</code> et créer un index GIN sur <code>plate_number</code>.</li>
+    </ul>
+  </div>
+
+  <!-- ── READY ──────────────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">Prêts à l'emploi</span>
+      <span class="section-rule"></span>
+      <span class="section-count">8 endpoints</span>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/sessions</div>
+        <div class="ep-desc">Login — retourne un token Bearer. Aucune modification nécessaire.</div>
+        <div class="ep-tickets"><span class="tid">Auth</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/me</div>
+        <div class="ep-desc">Retourne l'utilisateur authentifié avec ses rôles. Utilisé pour le user row dans la sidebar.</div>
+        <div class="ep-tickets"><span class="tid">DT-001</span><span class="tid">DT-002</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/routes</div>
+        <div class="ep-desc">Liste des routes avec le champ <code style="font-size:11px;color:var(--accent)">rate</code>. Alimente le sélecteur dans le formulaire trajet et le calcul de facturation estimée.</div>
+        <div class="ep-tickets"><span class="tid">DT-015</span><span class="tid">DT-017</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/billing_statements</div>
+        <div class="ep-desc">Liste avec filtre par <code style="font-size:11px;color:var(--accent)">status</code>. Entity expose total_amount, total_tva, grand_total, month. Correspond exactement aux cartes de facturation.</div>
+        <div class="ep-tickets"><span class="tid">DT-020</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/billing_statements/create</div>
+        <div class="ep-desc">Crée un brouillon pour un mois donné avec ses line items. Couvre le bouton "Générer état mensuel".</div>
+        <div class="ep-tickets"><span class="tid">DT-021</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-patch">PATCH</span>/api/v1/billing_statements/:id/issue &nbsp;·&nbsp; /mark_paid</div>
+        <div class="ep-desc">Transitions de statut brouillon → émise → payée. Couvre les changements de statut dans la vue facturation.</div>
+        <div class="ep-tickets"><span class="tid">DT-021</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/documents</div>
+        <div class="ep-desc">Filtres par <code style="font-size:11px;color:var(--accent)">documentable_type</code> et <code style="font-size:11px;color:var(--accent)">doc_type</code>. Couvre les chips de filtre de la vue Documents. Expose issued_on, expires_on, title, doc_type.</div>
+        <div class="ep-tickets"><span class="tid">DT-022</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+    <div class="ep-row ready">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/documents/create</div>
+        <div class="ep-desc">Supporte le multipart, le type polymorphique via documentable_type + documentable_id. Couvre l'upload de documents.</div>
+        <div class="ep-tickets"><span class="tid">DT-023</span></div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ready">Prêt</span></div>
+    </div>
+
+  </section>
+
+  <!-- ── NEEDS TWEAKING ─────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">Nécessitent des ajustements</span>
+      <span class="section-rule"></span>
+      <span class="section-count">9 endpoints</span>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/trucks</div>
+        <div class="ep-desc">Actuellement aucun filtre. Entity expose plate_number, make, model, year, status, tank imbriqué — mais pas le chauffeur assigné ni la dernière vidange. <strong style="color:var(--green)">Pas de pagination requise</strong> (flotte ~200 camions max — charger la liste complète).</div>
+        <div class="ep-tickets"><span class="tid">DT-004</span><span class="tid">DT-006</span><span class="tid">DT-007</span><span class="tid">DT-008</span><span class="tid">DT-010</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Ajouter filtre <code style="font-size:11px;color:var(--accent)">status</code> (En route / Prêt / Maintenance) — requis pour DT-008 et la sélection de camion dans DT-015</li>
+            <li>Ajouter filtre <code style="font-size:11px;color:var(--accent)">search</code> pour recherche par plaque — utiliser <code style="font-size:11px;color:var(--accent)">LIKE 'GN-%'</code> (préfixe) compatible index btree ; activer <code style="font-size:11px;color:var(--accent)">pg_trgm</code> si recherche sous-chaîne nécessaire</li>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">driver</code> imbriqué (id, nom, téléphone) dans l'entity Truck — nécessite le modèle Employee d'abord (voir section Manquants)</li>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">last_oil_change_on</code> calculé depuis les maintenances de type vidange</li>
+            <li>Exposer les 4 dates d'expiration de documents comme champs calculés dans l'entity (requêtes depuis documents polymorphiques avec doc_type)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/trucks/:id</div>
+        <div class="ep-desc">Même entity que la liste. Manque les informations pour le drawer de détail camion.</div>
+        <div class="ep-tickets"><span class="tid">DT-009</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Ajouter les statistiques calculées : <code style="font-size:11px;color:var(--accent)">trips_count</code>, <code style="font-size:11px;color:var(--accent)">total_km</code>, <code style="font-size:11px;color:var(--accent)">total_liters_delivered</code></li>
+            <li>Même enrichissements que GET /trucks (driver, expiration documents) — une seule entity partagée à mettre à jour</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/trucks/create &nbsp;·&nbsp; <span class="method m-patch">PATCH</span>/api/v1/trucks/:id/update</div>
+        <div class="ep-desc">Crée un camion avec sa citerne. Ne gère pas l'affectation d'un chauffeur.</div>
+        <div class="ep-tickets"><span class="tid">DT-010</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Ajouter param <code style="font-size:11px;color:var(--accent)">driver_id</code> optionnel pour affecter un chauffeur au camion — nécessite le modèle Employee</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/trips</div>
+        <div class="ep-desc">Filtre par truck_id, tank_id, route_id, status — bon. Mais l'entity n'expose que des IDs : truck_id, tank_id, route_id, driver_id. L'UI a besoin des noms pour afficher les colonnes. <strong style="color:var(--red)">Volume ~1M/mois — pagination curseur obligatoire.</strong></div>
+        <div class="ep-tickets"><span class="tid">DT-005</span><span class="tid">DT-014</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">truck.plate_number</code> et <code style="font-size:11px;color:var(--accent)">tank.plate_number</code> imbriqués dans l'entity Trip</li>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">route.origin</code> et <code style="font-size:11px;color:var(--accent)">route.destination</code> imbriqués</li>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">driver.name</code> imbriqué (nécessite le modèle Employee)</li>
+            <li>Exposer les quantités depuis <code style="font-size:11px;color:var(--accent)">delivery_note.gasoline_quantity</code> et <code style="font-size:11px;color:var(--accent)">diesel_quantity</code> — déjà imbriqué, vérifier que c'est inclus</li>
+            <li><strong style="color:var(--yellow)">Pagination curseur :</strong> ajouter params <code style="font-size:11px;color:var(--accent)">after</code> (id du dernier item reçu) et <code style="font-size:11px;color:var(--accent)">limit</code> (défaut 50). La réponse retourne <code style="font-size:11px;color:var(--accent)">next_cursor</code> et <code style="font-size:11px;color:var(--accent)">has_more</code>. Ne pas utiliser OFFSET — dégrade à partir de quelques milliers de lignes.</li>
+            <li><strong style="color:var(--yellow)">Paramètres de recherche :</strong> ajouter <code style="font-size:11px;color:var(--accent)">status</code>, <code style="font-size:11px;color:var(--accent)">truck_plate</code> (recherche préfixe), <code style="font-size:11px;color:var(--accent)">driver_id</code>, <code style="font-size:11px;color:var(--accent)">date_from</code>, <code style="font-size:11px;color:var(--accent)">date_to</code>, <code style="font-size:11px;color:var(--accent)">route_id</code>. Tous les filtres s'appliquent avant le curseur. Changement de filtre = curseur remis à null.</li>
+          </ul>
+        </div>
+        <div class="idx-note">
+          <div class="idx-note-label">Index Postgres requis</div>
+          <ul>
+            <li>CREATE INDEX ON trips (status, scheduled_start_at, id);</li>
+            <li>CREATE INDEX ON trips (truck_id, scheduled_start_at, id);</li>
+            <li>CREATE INDEX ON trips (driver_id, scheduled_start_at, id);</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/trips/create</div>
+        <div class="ep-desc">Crée un trajet et son bon de livraison. À vérifier : les params acceptés correspondent-ils exactement au formulaire ?</div>
+        <div class="ep-tickets"><span class="tid">DT-015</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Vérifier que le endpoint accepte <code style="font-size:11px;color:var(--accent)">scheduled_start_at</code>, <code style="font-size:11px;color:var(--accent)">scheduled_end_at</code>, <code style="font-size:11px;color:var(--accent)">driver_id</code>, et les params du bon de livraison en une seule requête</li>
+            <li>Vérifier que la création du bon de livraison (number, gasoline_quantity, diesel_quantity) est bien imbriquée dans le même appel</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/maintenances</div>
+        <div class="ep-desc">Filtre par truck_id et kind — pas par state. L'UI a besoin de filtrer par "En cours" / "Terminé". L'entity expose performed_by_id mais pas le nom du technicien. <strong style="color:var(--red)">Volume attendu en millions — pagination curseur obligatoire.</strong></div>
+        <div class="ep-tickets"><span class="tid">DT-018</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Ajouter filtre <code style="font-size:11px;color:var(--accent)">state</code> (started / completed) au endpoint liste</li>
+            <li>Exposer <code style="font-size:11px;color:var(--accent)">performed_by.name</code> imbriqué dans l'entity Maintenance — nécessite le modèle Employee</li>
+            <li><strong style="color:var(--yellow)">Pagination curseur :</strong> ajouter params <code style="font-size:11px;color:var(--accent)">after</code> et <code style="font-size:11px;color:var(--accent)">limit</code> (défaut 50). Réponse retourne <code style="font-size:11px;color:var(--accent)">next_cursor</code> et <code style="font-size:11px;color:var(--accent)">has_more</code>.</li>
+            <li><strong style="color:var(--yellow)">Paramètres de recherche :</strong> ajouter <code style="font-size:11px;color:var(--accent)">state</code>, <code style="font-size:11px;color:var(--accent)">truck_id</code>, <code style="font-size:11px;color:var(--accent)">kind</code>, <code style="font-size:11px;color:var(--accent)">date_from</code>, <code style="font-size:11px;color:var(--accent)">date_to</code>.</li>
+          </ul>
+        </div>
+        <div class="idx-note">
+          <div class="idx-note-label">Index Postgres requis</div>
+          <ul>
+            <li>CREATE INDEX ON maintenances (state, id);</li>
+            <li>CREATE INDEX ON maintenances (truck_id, started_at, id);</li>
+            <li>CREATE INDEX ON maintenances (kind, state, id);</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/maintenances/create</div>
+        <div class="ep-desc">Crée une entrée de maintenance. À vérifier : met-il à jour le statut du camion à "Maintenance" automatiquement ?</div>
+        <div class="ep-tickets"><span class="tid">DT-019</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Vérifier et ajouter si nécessaire : la création d'une maintenance doit passer le truck.status à <code style="font-size:11px;color:var(--accent)">maintenance</code></li>
+            <li>Vérifier que la complétion (<code style="font-size:11px;color:var(--accent)">state: completed</code>) repasse le truck.status à <code style="font-size:11px;color:var(--accent)">ready</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/documents &nbsp;(entity + pagination)</div>
+        <div class="ep-desc">Entity manque la taille du fichier, affichée dans la colonne "Taille" de la vue Documents. <strong style="color:var(--red)">Volume attendu en millions — pagination curseur obligatoire.</strong></div>
+        <div class="ep-tickets"><span class="tid">DT-022</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Ajouter <code style="font-size:11px;color:var(--accent)">file_size</code> dans l'entity Document (bytes, à formater côté frontend)</li>
+            <li><strong style="color:var(--yellow)">Pagination curseur :</strong> ajouter params <code style="font-size:11px;color:var(--accent)">after</code> et <code style="font-size:11px;color:var(--accent)">limit</code> (défaut 50). Réponse retourne <code style="font-size:11px;color:var(--accent)">next_cursor</code> et <code style="font-size:11px;color:var(--accent)">has_more</code>.</li>
+            <li><strong style="color:var(--yellow)">Paramètres de recherche :</strong> ajouter <code style="font-size:11px;color:var(--accent)">documentable_type</code>, <code style="font-size:11px;color:var(--accent)">documentable_id</code>, <code style="font-size:11px;color:var(--accent)">doc_type</code>, <code style="font-size:11px;color:var(--accent)">date_from</code>, <code style="font-size:11px;color:var(--accent)">date_to</code>, <code style="font-size:11px;color:var(--accent)">search</code> (titre du document).</li>
+          </ul>
+        </div>
+        <div class="idx-note">
+          <div class="idx-note-label">Index Postgres requis</div>
+          <ul>
+            <li>CREATE INDEX ON documents (documentable_type, documentable_id, id);</li>
+            <li>CREATE INDEX ON documents (doc_type, issued_on, id);</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+    <div class="ep-row tweak">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/trucks &nbsp;(stats dashboard)</div>
+        <div class="ep-desc">Pas de endpoint dédié pour les KPIs du tableau de bord. Le frontend devrait faire 3+ requêtes séparées et agréger.</div>
+        <div class="ep-tickets"><span class="tid">DT-003</span><span class="tid">DT-004</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Option A (recommandée) : créer un endpoint <code style="font-size:11px;color:var(--accent)">GET /api/v1/dashboard</code> retournant les agrégats en une requête</li>
+            <li>Option B : ajouter le filtre status à GET /trucks et laisser le frontend agréger depuis les 3 listes — acceptable mais moins efficace</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-tweak">Ajustement</span></div>
+    </div>
+
+  </section>
+
+  <!-- ── MISSING ────────────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">À construire</span>
+      <span class="section-rule"></span>
+      <span class="section-count">4 endpoints</span>
+    </div>
+
+    <div class="ep-row missing">
+      <div>
+        <div class="ep-route"><span class="method m-get">GET</span>/api/v1/employees</div>
+        <div class="ep-desc">Le modèle User n'a que email + password. Aucun champ nom, téléphone, adresse, date d'embauche. Aucun endpoint liste n'existe. <strong style="color:var(--green)">Pas de pagination requise</strong> (~250 employés max — charger la liste complète).</div>
+        <div class="ep-tickets"><span class="tid">DT-011</span><span class="tid">DT-012</span></div>
+        <div class="missing-note">
+          <ul>
+            <li>Créer un modèle <code style="font-size:11px;color:var(--red)">Employee</code> (ou étendre User) avec : first_name, last_name, phone, address, hire_date, status, role</li>
+            <li>Ajouter <code style="font-size:11px;color:var(--red)">driver_id</code> sur le modèle Truck pour l'affectation chauffeur</li>
+            <li>Endpoint GET /employees avec filtres <code style="font-size:11px;color:var(--red)">role</code> et <code style="font-size:11px;color:var(--red)">search</code> (nom, prénom) — alimente aussi les sélecteurs dans les formulaires camion et trajet</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-missing">Manquant</span></div>
+    </div>
+
+    <div class="ep-row missing">
+      <div>
+        <div class="ep-route"><span class="method m-post">POST</span>/api/v1/employees &nbsp;·&nbsp; <span class="method m-patch">PATCH</span>/api/v1/employees/:id</div>
+        <div class="ep-desc">Création et mise à jour d'un employé. Bloqué par le modèle Employee manquant.</div>
+        <div class="ep-tickets"><span class="tid">DT-013</span></div>
+        <div class="missing-note">
+          <ul>
+            <li>POST /employees : crée un employé, crée un User associé pour l'accès si nécessaire</li>
+            <li>PATCH /employees/:id : met à jour les champs de profil et le statut (Actif / En congé / Inactif)</li>
+            <li>L'affectation camion (driver_id sur Truck) peut passer par PATCH /trucks/:id/update si le champ est ajouté</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-missing">Manquant</span></div>
+    </div>
+
+  </section>
+
+  <!-- ── UI COMPONENTS ────────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">Composants UI à construire</span>
+      <span class="section-rule"></span>
+      <span class="section-count">1 composant</span>
+    </div>
+
+    <div class="ep-row ui-ticket">
+      <div>
+        <div class="ep-route" style="color:#7A9FE8;font-size:13px">
+          DataTable.svelte
+          <span style="font-size:10px;font-weight:500;color:var(--text-muted);font-family:ui-monospace,monospace">frontend/src/lib/components/common/</span>
+        </div>
+        <div class="ep-desc">Composant table réutilisable unique pour toutes les vues liste de l'application. Gère l'état des filtres, le curseur de pagination, le chargement et les erreurs. Chaque vue passe uniquement sa config (colonnes, endpoint, filtres) — aucune logique de fetch ou de pagination dupliquée.</div>
+        <div class="ep-tickets"><span class="tid">DT-024</span></div>
+        <div class="ep-changes">
+          <ul>
+            <li>Le composant est <strong style="color:var(--text-mid)">headless côté logique</strong> mais stylé avec le design system existant (styles <code class="c-ui">.tbl-wrap</code>, <code class="c-ui">.chip</code>, <code class="c-ui">th/td</code> du mockup)</li>
+            <li>Prop <code class="c-ui">paginated</code> (boolean) : <code class="c-ui">false</code> pour Trucks et Employees (charge tout en une requête, pas de contrôles next/prev) — <code class="c-ui">true</code> pour Trips, Documents, Maintenances (curseur + has_more)</li>
+            <li>Prop <code class="c-ui">columns</code> : tableau de <code class="c-ui">&#123; key, label, render? &#125;</code> — la fonction <code class="c-ui">render</code> optionnelle reçoit la valeur et la ligne entière, permet d'injecter badges, pills d'expiration, formatage de taille fichier sans que le composant connaisse le domaine</li>
+            <li>Prop <code class="c-ui">filters</code> : tableau de <code class="c-ui">&#123; key, label, value &#125;</code> pour les chips de filtre — le composant remet le curseur à null à chaque changement de filtre</li>
+            <li>Prop <code class="c-ui">searchParam</code> : nom du query param auquel l'input de recherche est mappé (ex. <code class="c-ui">truck_plate</code>, <code class="c-ui">search</code>)</li>
+            <li>États internes gérés : filtres actifs, curseur courant, données, loading, erreur — exposés via des slots nommés pour les états vides et d'erreur personnalisables</li>
+            <li>Doit être construit <strong style="color:var(--text-mid)">avant</strong> les vues Flotte, Trajets, Employés, Documents, Maintenances — toutes en dépendent</li>
+          </ul>
+        </div>
+
+        <table class="prop-table">
+          <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>endpoint</code></td><td class="pt-type">string</td><td>Chemin API à appeler — le composant ajoute les params de filtre et de curseur</td></tr>
+            <tr><td><code>columns</code></td><td class="pt-type">Column[]</td><td><code>&#123; key: string, label: string, render?: (val, row) => string &#125;</code></td></tr>
+            <tr><td><code>filters</code></td><td class="pt-type">Filter[]</td><td><code>&#123; key: string, label: string, value: string &#125;</code> — génère les chips</td></tr>
+            <tr><td><code>searchParam</code></td><td class="pt-type">string?</td><td>Nom du param de recherche texte. Omis = pas d'input recherche.</td></tr>
+            <tr><td><code>paginated</code></td><td class="pt-type">boolean</td><td><code>false</code> = charge tout (trucks, employees). <code>true</code> = curseur + next/prev.</td></tr>
+            <tr><td><code>limit</code></td><td class="pt-type">number?</td><td>Taille de page si paginated. Défaut : 50.</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:12px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Utilisé par</div>
+          <div class="consumer-list">
+            <span class="consumer">Flotte (DT-006)</span>
+            <span class="consumer">Trajets (DT-005)</span>
+            <span class="consumer">Employés (DT-012)</span>
+            <span class="consumer">Documents (DT-022)</span>
+            <span class="consumer">Maintenance (DT-018)</span>
+          </div>
+        </div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-ui">À construire</span></div>
+    </div>
+
+  </section>
+
+  <!-- ── NOT NEEDED ─────────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">Non utilisés par l'UI actuelle</span>
+      <span class="section-rule"></span>
+      <span class="section-count">14 endpoints</span>
+    </div>
+
+    <div class="ep-row unused">
+      <div>
+        <div class="ep-route" style="color:var(--text-muted)"><span class="method m-delete">DELETE</span>7× endpoints delete (trucks, tanks, routes, trips, maintenances, documents, billing_statements)</div>
+        <div class="ep-desc">Aucune action de suppression dans l'UI du mockup. Non requis pour la v1.</div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-unused">Non requis</span></div>
+    </div>
+
+    <div class="ep-row unused">
+      <div>
+        <div class="ep-route" style="color:var(--text-muted)"><span class="method m-get">GET</span><span class="method m-post">POST</span><span class="method m-patch">PATCH</span><span class="method m-delete">DELETE</span>/api/v1/tanks/*</div>
+        <div class="ep-desc">Les citernes sont gérées via les endpoints trucks (création imbriquée). Pas d'UI de gestion autonome des citernes dans le mockup.</div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-unused">Non requis</span></div>
+    </div>
+
+    <div class="ep-row unused">
+      <div>
+        <div class="ep-route" style="color:var(--text-muted)"><span class="method m-post">POST</span><span class="method m-patch">PATCH</span><span class="method m-delete">DELETE</span>/api/v1/routes/*</div>
+        <div class="ep-desc">GET /routes est utilisé (sélecteur). Mais pas d'UI de gestion des routes (création, modification) dans le mockup.</div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-unused">Non requis</span></div>
+    </div>
+
+    <div class="ep-row unused">
+      <div>
+        <div class="ep-route" style="color:var(--text-muted)"><span class="method m-get">GET</span>/api/v1/billing_line_items &nbsp;·&nbsp; GET /api/v1/billing_line_items/:id</div>
+        <div class="ep-desc">Le détail des lignes de facturation n'est pas affiché dans le mockup. Les totaux dans BillingStatement suffisent.</div>
+      </div>
+      <div class="ep-right"><span class="status-pill s-unused">Non requis</span></div>
+    </div>
+
+  </section>
+
+</div>
