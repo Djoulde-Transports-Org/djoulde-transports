@@ -15,7 +15,7 @@
   const guard = (path: string) => {
     const isPublic = PUBLIC_ROUTES.includes(path);
     if (!get(isAuthenticated) && !isPublic) goto(resolve('/login'));
-    else if (get(isAuthenticated) && isPublic) goto(resolve('/'));
+    else if (get(isAuthenticated) && isPublic) goto(resolve('/dashboard'));
   };
 
   onMount(() => guard($page.url.pathname));
