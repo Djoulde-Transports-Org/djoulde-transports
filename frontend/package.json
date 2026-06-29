@@ -48,6 +48,7 @@
     "felte": "^1.2.0",
     "flowbite": "^4.0.0",
     "flowbite-svelte": "^1.0.0",
+    "lucide-svelte": "^1.0.1",
     "yup": "^1.0.0"
   }
 }
