@@ -1,0 +1,1620 @@
+<title>Djoulde Transports — Interface opérationnelle</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ground:      #111210;
+    --surface:     #1A1C17;
+    --surface-2:   #222420;
+    --surface-3:   #292B25;
+    --border:      #2A2C26;
+    --border-soft: #232520;
+    --text:        #E5E1D6;
+    --text-mid:    #B0AC9F;
+    --text-muted:  #888076;
+    --accent:      #D4782A;
+    --accent-dim:  rgba(212,120,42,0.13);
+    --accent-glow: rgba(212,120,42,0.22);
+    --green:       #3D7A52;
+    --green-dim:   rgba(61,122,82,0.14);
+    --yellow:      #C09A20;
+    --yellow-dim:  rgba(192,154,32,0.14);
+    --red:         #A83228;
+    --red-dim:     rgba(168,50,40,0.14);
+    --sidebar-w:   224px;
+    --topbar-h:    54px;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app { display: flex; height: 100vh; width: 100%; }
+
+  /* ── SIDEBAR ─────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .logo-hex {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; letter-spacing: 0.02em;
+    color: var(--ground); flex-shrink: 0;
+  }
+
+  .logo-text .name { font-size: 13px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text); line-height: 1.2; }
+  .logo-text .sub  { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; line-height: 1; }
+
+  .sidebar-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+
+  .nav-group-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--text-muted); padding: 10px 10px 5px; margin-top: 4px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 9px; padding: 8px 10px;
+    border-radius: 6px; cursor: pointer; color: var(--text-muted);
+    font-size: 13px; font-weight: 500; margin-bottom: 1px;
+    user-select: none; transition: background 0.12s, color 0.12s; position: relative;
+  }
+
+  .nav-item:hover { background: var(--surface-2); color: var(--text-mid); }
+
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 2px; background: var(--accent); border-radius: 0 2px 2px 0;
+  }
+
+  .nav-ico { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .nav-badge {
+    margin-left: auto; background: var(--accent); color: var(--ground);
+    font-size: 10px; font-weight: 800; padding: 1px 6px;
+    border-radius: 10px; min-width: 18px; text-align: center;
+  }
+
+  .sidebar-user { padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  .user-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px;
+    border-radius: 6px; cursor: pointer; transition: background 0.12s;
+  }
+
+  .user-row:hover { background: var(--surface-2); }
+
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent-dim); border: 1.5px solid rgba(212,120,42,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: var(--accent); flex-shrink: 0; letter-spacing: 0.02em;
+  }
+
+  .user-info .uname { font-size: 12px; font-weight: 600; color: var(--text); }
+  .user-info .urole { font-size: 10px; color: var(--text-muted); letter-spacing: 0.03em; }
+
+  /* ── MAIN ────────────────────────────────────── */
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+
+  .topbar {
+    height: var(--topbar-h); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 10px;
+    flex-shrink: 0; background: var(--surface);
+  }
+
+  .topbar-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; flex: 1; }
+
+  .live-pill {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border-radius: 100px; background: var(--green-dim);
+    border: 1px solid rgba(61,122,82,0.25); font-size: 11px; font-weight: 600; color: var(--green);
+  }
+
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.85); }
+  }
+
+  .topbar-clock { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px;
+    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: none; transition: all 0.13s; letter-spacing: 0.01em; white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--accent); color: var(--ground); }
+  .btn-primary:hover { background: #DE8230; }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text-mid); }
+
+  /* ── CONTENT ─────────────────────────────────── */
+  .content {
+    flex: 1; overflow-y: auto; padding: 22px 24px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── STATS ROW ───────────────────────────────── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+
+  .stat-val { font-size: 30px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+
+  .stat-val.c-accent { color: var(--accent); }
+  .stat-val.c-green  { color: var(--green); }
+  .stat-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* ── SECTION ─────────────────────────────────── */
+  .section { margin-bottom: 22px; }
+
+  .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+  .section-ttl { font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-muted); }
+
+  /* ── FLEET LANES ─────────────────────────────── */
+  .fleet-lanes { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+  .lane-header {
+    display: grid; grid-template-columns: 110px 1fr 130px 190px; gap: 16px;
+    align-items: center; padding: 8px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border);
+  }
+
+  .lh-col { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+
+  .fleet-lane {
+    display: grid; grid-template-columns: 110px 1fr 130px 190px; gap: 16px;
+    align-items: center; padding: 13px 20px; border-bottom: 1px solid var(--border-soft);
+    transition: background 0.1s; cursor: pointer;
+  }
+
+  .fleet-lane:last-child { border-bottom: none; }
+  .fleet-lane:hover { background: var(--surface-2); }
+
+  .truck-id { font-size: 13px; font-weight: 800; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--text); }
+  .truck-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  .road { position: relative; height: 26px; display: flex; align-items: center; }
+
+  .road-rail { position: absolute; left: 0; right: 0; height: 1.5px; background: var(--border); border-radius: 1px; }
+  .road-fill { position: absolute; left: 0; height: 1.5px; background: var(--accent); border-radius: 1px; }
+
+  .road-node {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%;
+    transform: translate(-50%, -50%); top: 50%; background: var(--accent);
+    animation: node-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes node-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px var(--accent-glow); }
+    50%       { box-shadow: 0 0 0 5px rgba(212,120,42,0.08); }
+  }
+
+  .road-node-idle {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    transform: translateY(-50%); top: 50%; left: 10px;
+    background: var(--surface-3); border: 1.5px solid var(--border);
+  }
+
+  .maint-hatching {
+    position: absolute; left: 0; right: 0; height: 1.5px;
+    background: repeating-linear-gradient(90deg, var(--yellow) 0px, var(--yellow) 5px, transparent 5px, transparent 9px);
+  }
+
+  .maint-icon {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 10px; height: 10px; background: var(--yellow); border-radius: 2px;
+  }
+
+  .route-col {}
+  .route-line { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+  .r-city { font-weight: 700; color: var(--text); }
+  .r-arr  { color: var(--text-muted); font-size: 10px; }
+  .r-eta  { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .r-note { font-size: 11px; color: var(--text-muted); }
+
+  /* ── BADGE ───────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+    border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap;
+  }
+
+  .bd { width: 5px; height: 5px; border-radius: 50%; }
+
+  .badge-route   { background: var(--accent-dim);  color: var(--accent); border: 1px solid rgba(212,120,42,0.22); }
+  .badge-route .bd { background: var(--accent); }
+  .badge-maint   { background: var(--yellow-dim);  color: var(--yellow); border: 1px solid rgba(192,154,32,0.22); }
+  .badge-maint .bd { background: var(--yellow); }
+  .badge-ready   { background: var(--green-dim);   color: var(--green);  border: 1px solid rgba(61,122,82,0.22); }
+  .badge-ready .bd { background: var(--green); }
+  .badge-done    { background: var(--green-dim);   color: var(--green);  border: 1px solid rgba(61,122,82,0.22); }
+  .badge-done .bd  { background: var(--green); }
+  .badge-neutral { background: var(--surface-2);   color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ── TABLE ───────────────────────────────────── */
+  .tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--surface-2); }
+
+  th {
+    padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+
+  td { padding: 11px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border-soft); color: var(--text-mid); vertical-align: middle; }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+
+  .td-id     { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12px; color: var(--text-muted); }
+  .td-strong { font-weight: 600; color: var(--text); }
+  .td-num    { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 600; color: var(--text); }
+
+  /* ── FILTER ROW ──────────────────────────────── */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+
+  .chip {
+    padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); transition: all 0.12s;
+  }
+
+  .chip:hover { background: var(--surface-2); color: var(--text-mid); }
+
+  .chip.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(212,120,42,0.28); }
+
+  .ml-auto { margin-left: auto; }
+
+  /* ── FLEET GRID ──────────────────────────────── */
+  .fleet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .truck-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: border-color 0.14s; }
+  .truck-card:hover { border-color: rgba(212,120,42,0.35); }
+
+  .tc-hd { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 13px; }
+  .tc-plate { font-size: 15px; font-weight: 900; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; color: var(--text); }
+  .tc-model { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .tc-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .spec { display: flex; flex-direction: column; gap: 2px; }
+  .spec-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .spec-val { font-size: 12.5px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* ── MAINTENANCE CARDS ───────────────────────── */
+  .maint-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 15px 18px; margin-bottom: 8px; display: flex; align-items: center;
+    justify-content: space-between; gap: 16px; cursor: pointer; transition: border-color 0.13s;
+  }
+
+  .maint-card:hover { border-color: rgba(212,120,42,0.32); }
+  .maint-card.ongoing { border-left: 3px solid var(--yellow); }
+
+  .mc-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .mc-meta  { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); }
+  .mc-right { text-align: right; flex-shrink: 0; }
+  .mc-cost  { font-size: 14px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; margin-bottom: 3px; }
+  .mc-dur   { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+
+  /* ── BILLING ─────────────────────────────────── */
+  .bill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+
+  .bill-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px; cursor: pointer; transition: border-color 0.14s; position: relative; overflow: hidden;
+  }
+
+  .bill-card:hover { border-color: rgba(212,120,42,0.35); }
+  .bill-card.st-draft  { border-left: 3px solid var(--border); }
+  .bill-card.st-issued { border-left: 3px solid var(--accent); }
+  .bill-card.st-paid   { border-left: 3px solid var(--green); }
+
+  .bill-status { position: absolute; top: 14px; right: 14px; }
+  .bill-month  { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+  .bill-amount { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 4px; }
+  .bill-meta   { font-size: 11px; color: var(--text-muted); }
+
+  /* ── SCROLLBAR ───────────────────────────────── */
+  .sidebar-nav::-webkit-scrollbar { width: 3px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .road-node, .live-dot { animation: none; }
+  }
+
+  /* ── EXPIRY PILLS ────────────────────────────── */
+  .exp { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .exp-ok   { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(61,122,82,0.22); }
+  .exp-warn { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(192,154,32,0.22); }
+  .exp-crit { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(168,50,40,0.22); }
+
+  .fleet-search {
+    width: 210px; padding: 5px 12px; font-size: 12px; height: 30px;
+    background: var(--ground); border: 1px solid var(--border); border-radius: 100px;
+    color: var(--text); outline: none; font-family: inherit; transition: border-color 0.13s;
+  }
+  .fleet-search:focus { border-color: rgba(212,120,42,0.45); }
+  .fleet-search::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+  /* ── TRUCK DRAWER INTERNALS ──────────────────── */
+  .driver-card { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--ground); border:1px solid var(--border); border-radius:8px; }
+  .driver-info .di-name  { font-size:14px; font-weight:800; color:var(--text); margin-bottom:2px; }
+  .driver-info .di-emp   { font-size:11px; color:var(--text-muted); margin-bottom:5px; }
+  .driver-info .di-phone { font-size:12px; color:var(--text-mid); font-variant-numeric:tabular-nums; }
+  .doc-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft); }
+  .doc-row:last-child { border-bottom:none; }
+  .doc-lbl  { font-size:12.5px; color:var(--text-mid); }
+  .doc-date { font-size:11px; color:var(--text-muted); margin-top:2px; }
+  .stat-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:4px; }
+  .stat-box  { background:var(--ground); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+  .stat-box .sb-val { font-size:18px; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; color:var(--text); margin-bottom:5px; }
+  .stat-box .sb-lbl { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); }
+
+  /* ── DRAWER ──────────────────────────────────── */
+  .d-overlay {
+    position: fixed; inset: 0; background: rgba(10,11,9,0.72);
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+  }
+
+  .d-overlay.open { opacity: 1; pointer-events: all; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 560px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    z-index: 101; display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .d-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 22px 24px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+
+  .d-title { font-size: 16px; font-weight: 900; letter-spacing: -0.01em; color: var(--text); margin-bottom: 3px; }
+  .d-sub   { font-size: 12px; color: var(--text-muted); }
+
+  .d-close {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0; transition: all 0.12s; margin-top: 2px;
+  }
+
+  .d-close:hover { background: var(--surface-2); color: var(--text); }
+
+  .d-body {
+    flex: 1; overflow-y: auto; padding: 20px 24px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+
+  .d-body::-webkit-scrollbar { width: 4px; }
+  .d-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .d-footer {
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+    padding: 16px 24px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--surface);
+  }
+
+  /* Form sections */
+  .fsec { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--border-soft); }
+  .fsec:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .fsec-label { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+
+  .fsec-num {
+    font-size: 10px; font-weight: 900; letter-spacing: 0.1em; color: var(--accent);
+    background: var(--accent-dim); border: 1px solid rgba(212,120,42,0.2);
+    border-radius: 4px; padding: 2px 7px;
+  }
+
+  .fsec-title { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mid); }
+  .fsec-opt   { font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0; text-transform: none; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  .f-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+
+  .f-input,
+  .f-select {
+    width: 100%; background: var(--ground); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 9px 12px; font-size: 13px;
+    font-family: inherit; outline: none; appearance: none;
+    transition: border-color 0.13s, box-shadow 0.13s;
+  }
+
+  .f-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888076' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer;
+  }
+
+  .f-input:focus, .f-select:focus { border-color: rgba(212,120,42,0.55); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .f-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+  .f-input[type="date"], .f-input[type="time"] { font-variant-numeric: tabular-nums; color-scheme: dark; }
+
+  .f-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .f-hint.c-accent { color: var(--accent); }
+
+  .pair-card {
+    margin-top: 12px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+
+  .pair-block { flex: 1; background: var(--ground); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+  .pair-id    { font-size: 14px; font-weight: 900; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 2px; }
+  .pair-model { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+
+  .pair-connector { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .pair-line  { width: 28px; height: 1.5px; background: var(--border); }
+  .pair-arrow { font-size: 12px; color: var(--text-muted); }
+
+  .route-preview {
+    margin-top: 10px; display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+  }
+
+  .rp-city  { font-weight: 700; color: var(--text); }
+  .rp-arrow { color: var(--text-muted); font-size: 11px; }
+  .rp-rate  { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  .tank-viz { margin-top: 14px; background: var(--ground); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+
+  .tv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .tv-label  { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .tv-total  { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-mid); transition: color 0.15s; }
+
+  .tv-total.over { color: var(--red); }
+  .tv-total.full { color: var(--green); }
+
+  .tv-track { height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 100px; overflow: hidden; display: flex; margin-bottom: 10px; }
+
+  .tv-seg { height: 100%; transition: width 0.2s ease; min-width: 0; }
+  .tv-seg-diesel  { background: #8C6A3C; }
+  .tv-seg-petrol  { background: var(--accent); }
+
+  .tv-legend { display: flex; gap: 14px; margin-bottom: 8px; }
+
+  .tvl { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+  .tvl::before { content: ''; display: block; width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .tvl-diesel::before { background: #8C6A3C; }
+  .tvl-petrol::before { background: var(--accent); }
+
+  .tv-status { font-size: 12px; font-weight: 600; color: var(--text-muted); min-height: 18px; transition: color 0.15s; }
+  .tv-status.ok   { color: var(--green); }
+  .tv-status.warn { color: var(--yellow); }
+  .tv-status.err  { color: var(--red); }
+
+  .est-amount {
+    margin-top: 12px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .ea-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .ea-val   { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent); letter-spacing: -0.01em; }
+  .ea-sub   { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
+</style>
+
+<div class="app">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-hex">DT</div>
+      <div class="logo-text">
+        <div class="name">Djoulde</div>
+        <div class="sub">Transports · Conakry</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-group-label">Opérations</div>
+
+      <div class="nav-item active" onclick="go('dashboard',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/>
+        </svg>
+        Tableau de bord
+      </div>
+
+      <div class="nav-item" onclick="go('flotte',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <rect x="1" y="5" width="10" height="6" rx="1"/><path d="M11 7h3l1 2v2h-4V7z"/>
+          <circle cx="3.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="12.5" r="1.5"/>
+        </svg>
+        Flotte
+      </div>
+
+      <div class="nav-item" onclick="go('trajets',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <polyline points="2,10 5,5 9,9 13,3"/><line x1="2" y1="13" x2="14" y2="13"/>
+        </svg>
+        Trajets
+        <span class="nav-badge">4</span>
+      </div>
+
+      <div class="nav-item" onclick="go('maintenance',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M13.2 2.8a3 3 0 0 0-4.2 4.2L2 14l1.4 1.4 7-7a3 3 0 0 0 2.8-5.6z"/>
+        </svg>
+        Maintenance
+        <span class="nav-badge" style="background:var(--yellow);color:var(--ground)">1</span>
+      </div>
+
+      <div class="nav-item" onclick="go('employes',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5"/>
+          <circle cx="12.5" cy="5.5" r="2"/><path d="M12.5 10.5c1.8 0 3 1.2 3 3.5"/>
+        </svg>
+        Employés
+      </div>
+
+      <div class="nav-group-label">Finance</div>
+
+      <div class="nav-item" onclick="go('facturation',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <rect x="2" y="2" width="12" height="12" rx="1.2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/>
+        </svg>
+        Facturation
+      </div>
+
+      <div class="nav-item" onclick="go('documents',this)">
+        <svg class="nav-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M4 2h5l3 3v9H4z"/><polyline points="9,2 9,5 12,5"/>
+          <line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="12" x2="10" y2="12"/>
+        </svg>
+        Documents
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-row">
+        <div class="avatar">MD</div>
+        <div class="user-info">
+          <div class="uname">Mamadou Diallo</div>
+          <div class="urole">Dispatcher</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pg-title">Tableau de bord</div>
+      <div class="live-pill"><div class="live-dot"></div>En direct</div>
+      <div class="topbar-clock">Mer. 25 juin 2025 &nbsp;·&nbsp; 14:32</div>
+      <button class="btn btn-ghost">Exporter</button>
+      <button class="btn btn-primary" onclick="openDrawer()">+ Nouveau trajet</button>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Camions actifs</div>
+            <div class="stat-val c-accent">7</div>
+            <div class="stat-sub">4 en route &nbsp;·&nbsp; 2 prêts &nbsp;·&nbsp; 1 maintenance</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Trajets en cours</div>
+            <div class="stat-val">4</div>
+            <div class="stat-sub">2 prévus cette semaine</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Litres livrés — juin</div>
+            <div class="stat-val c-green">248 400</div>
+            <div class="stat-sub">+12 % vs mai</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Facturation juin HT</div>
+            <div class="stat-val">124,2M</div>
+            <div class="stat-sub">GNF &nbsp;·&nbsp; brouillon</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-hd">
+            <div class="section-ttl">État de la flotte</div>
+            <button class="btn btn-ghost" onclick="go('flotte', document.querySelector('.nav-item:nth-child(3)'))">Voir tout →</button>
+          </div>
+          <div class="fleet-lanes">
+            <div class="lane-header">
+              <span class="lh-col">Camion</span><span class="lh-col">Progression</span>
+              <span class="lh-col">Statut</span><span class="lh-col">Route</span>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-2341-A</div><div class="truck-sub">TC-041 · 33 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-fill" style="width:68%"></div><div class="road-node" style="left:68%"></div></div>
+              <div><span class="badge badge-route"><span class="bd"></span>En route</span></div>
+              <div class="route-col"><div class="route-line"><span class="r-city">Conakry</span><span class="r-arr">→</span><span class="r-city">Kindia</span></div><div class="r-eta">Arr. estimée 17h15</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-1892-B</div><div class="truck-sub">TC-038 · 28 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-fill" style="width:31%"></div><div class="road-node" style="left:31%"></div></div>
+              <div><span class="badge badge-route"><span class="bd"></span>En route</span></div>
+              <div class="route-col"><div class="route-line"><span class="r-city">Conakry</span><span class="r-arr">→</span><span class="r-city">Labé</span></div><div class="r-eta">Arr. estimée 21h40</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-3310-C</div><div class="truck-sub">TC-052 · 33 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-fill" style="width:85%"></div><div class="road-node" style="left:85%"></div></div>
+              <div><span class="badge badge-route"><span class="bd"></span>En route</span></div>
+              <div class="route-col"><div class="route-line"><span class="r-city">Conakry</span><span class="r-arr">→</span><span class="r-city">Mamou</span></div><div class="r-eta">Arr. estimée 15h55</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-0045-D</div><div class="truck-sub">TC-019 · 28 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-fill" style="width:12%"></div><div class="road-node" style="left:12%"></div></div>
+              <div><span class="badge badge-route"><span class="bd"></span>En route</span></div>
+              <div class="route-col"><div class="route-line"><span class="r-city">Conakry</span><span class="r-arr">→</span><span class="r-city">Kankan</span></div><div class="r-eta">Arr. estimée 09h30 (+1j)</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-4478-E</div><div class="truck-sub">TC-027 · 33 000 L</div></div>
+              <div class="road"><div class="maint-hatching"></div><div class="maint-icon"></div></div>
+              <div><span class="badge badge-maint"><span class="bd"></span>Maintenance</span></div>
+              <div class="route-col"><div class="r-note">Révision moteur</div><div class="r-eta">En atelier depuis 3h · Conakry</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-2890-F</div><div class="truck-sub">TC-033 · 28 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-node-idle"></div></div>
+              <div><span class="badge badge-ready"><span class="bd"></span>Prêt</span></div>
+              <div class="route-col"><div class="r-note">Disponible</div><div class="r-eta">Dépôt Conakry</div></div>
+            </div>
+            <div class="fleet-lane">
+              <div><div class="truck-id">GN-5521-G</div><div class="truck-sub">TC-044 · 33 000 L</div></div>
+              <div class="road"><div class="road-rail"></div><div class="road-node-idle"></div></div>
+              <div><span class="badge badge-ready"><span class="bd"></span>Prêt</span></div>
+              <div class="route-col"><div class="r-note">Disponible</div><div class="r-eta">Dépôt Conakry</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-hd">
+            <div class="section-ttl">Derniers trajets</div>
+            <button class="btn btn-ghost" onclick="go('trajets', document.querySelector('.nav-item:nth-child(4)'))">Voir tout →</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>N° trajet</th><th>Camion</th><th>Route</th><th>Chauffeur</th><th>Quantité</th><th>Statut</th><th>Date</th></tr></thead>
+              <tbody>
+                <tr><td class="td-id">#TRJ-0094</td><td class="td-strong">GN-3310-C</td><td>Conakry → Mamou</td><td>Ibrahima Sow</td><td class="td-num">33 000 L</td><td><span class="badge badge-route"><span class="bd"></span>En cours</span></td><td class="td-id">25/06</td></tr>
+                <tr><td class="td-id">#TRJ-0093</td><td class="td-strong">GN-2341-A</td><td>Conakry → Kindia</td><td>Sekou Camara</td><td class="td-num">33 000 L</td><td><span class="badge badge-route"><span class="bd"></span>En cours</span></td><td class="td-id">25/06</td></tr>
+                <tr><td class="td-id">#TRJ-0092</td><td class="td-strong">GN-1892-B</td><td>Conakry → Faranah</td><td>Moussa Kouyaté</td><td class="td-num">28 000 L</td><td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td><td class="td-id">24/06</td></tr>
+                <tr><td class="td-id">#TRJ-0091</td><td class="td-strong">GN-5521-G</td><td>Conakry → Kindia</td><td>Alpha Barry</td><td class="td-num">33 000 L</td><td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td><td class="td-id">24/06</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLOTTE -->
+      <div class="view" id="view-flotte">
+        <div class="filter-row">
+          <button class="chip active">Tous (7)</button>
+          <button class="chip">En route (4)</button>
+          <button class="chip">Prêts (2)</button>
+          <button class="chip">Maintenance (1)</button>
+          <input class="fleet-search" type="text" placeholder="Rechercher un camion...">
+          <div class="ml-auto"><button class="btn btn-primary">+ Ajouter camion</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Immatriculation</th>
+                <th>Modèle</th>
+                <th>Citerne</th>
+                <th>Statut</th>
+                <th>Dernière vidange</th>
+                <th>Ass. camion</th>
+                <th>Ass. produit</th>
+                <th>Visite tech.</th>
+                <th>Permis ch.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="openTruckDrawer('GN-2341-A')" style="cursor:pointer">
+                <td class="td-strong">GN-2341-A</td>
+                <td class="td-id">Volvo FH · 2019</td>
+                <td class="td-id">TC-041 · 33 000 L</td>
+                <td><span class="badge badge-route"><span class="bd"></span>En route</span></td>
+                <td class="td-id">12/06/2025</td>
+                <td><span class="exp exp-warn">dans 45j</span></td>
+                <td><span class="exp exp-ok">dans 120j</span></td>
+                <td><span class="exp exp-crit">dans 8j</span></td>
+                <td><span class="exp exp-ok">dans 200j</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-1892-B')" style="cursor:pointer">
+                <td class="td-strong">GN-1892-B</td>
+                <td class="td-id">Renault T · 2020</td>
+                <td class="td-id">TC-038 · 28 000 L</td>
+                <td><span class="badge badge-route"><span class="bd"></span>En route</span></td>
+                <td class="td-id">08/06/2025</td>
+                <td><span class="exp exp-ok">dans 210j</span></td>
+                <td><span class="exp exp-warn">dans 30j</span></td>
+                <td><span class="exp exp-ok">dans 95j</span></td>
+                <td><span class="exp exp-crit">Expiré</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-3310-C')" style="cursor:pointer">
+                <td class="td-strong">GN-3310-C</td>
+                <td class="td-id">Volvo FH · 2021</td>
+                <td class="td-id">TC-052 · 33 000 L</td>
+                <td><span class="badge badge-route"><span class="bd"></span>En route</span></td>
+                <td class="td-id">18/06/2025</td>
+                <td><span class="exp exp-ok">dans 88j</span></td>
+                <td><span class="exp exp-ok">dans 88j</span></td>
+                <td><span class="exp exp-ok">dans 180j</span></td>
+                <td><span class="exp exp-warn">dans 55j</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-4478-E')" style="cursor:pointer">
+                <td class="td-strong">GN-4478-E</td>
+                <td class="td-id">Mercedes Actros · 2018</td>
+                <td class="td-id">TC-027 · 33 000 L</td>
+                <td><span class="badge badge-maint"><span class="bd"></span>Maintenance</span></td>
+                <td class="td-id" style="color:var(--text-muted);font-style:italic">En atelier</td>
+                <td><span class="exp exp-crit">dans 12j</span></td>
+                <td><span class="exp exp-warn">dans 55j</span></td>
+                <td><span class="exp exp-warn">dans 45j</span></td>
+                <td><span class="exp exp-ok">dans 330j</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-2890-F')" style="cursor:pointer">
+                <td class="td-strong">GN-2890-F</td>
+                <td class="td-id">DAF XF · 2022</td>
+                <td class="td-id">TC-033 · 28 000 L</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Prêt</span></td>
+                <td class="td-id">20/06/2025</td>
+                <td><span class="exp exp-ok">dans 180j</span></td>
+                <td><span class="exp exp-ok">dans 180j</span></td>
+                <td><span class="exp exp-ok">dans 220j</span></td>
+                <td><span class="exp exp-crit">dans 10j</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-5521-G')" style="cursor:pointer">
+                <td class="td-strong">GN-5521-G</td>
+                <td class="td-id">Volvo FH · 2020</td>
+                <td class="td-id">TC-044 · 33 000 L</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Prêt</span></td>
+                <td class="td-id">22/06/2025</td>
+                <td><span class="exp exp-ok">dans 95j</span></td>
+                <td><span class="exp exp-warn">dans 60j</span></td>
+                <td><span class="exp exp-ok">dans 150j</span></td>
+                <td><span class="exp exp-ok">dans 80j</span></td>
+              </tr>
+              <tr onclick="openTruckDrawer('GN-0045-D')" style="cursor:pointer">
+                <td class="td-strong">GN-0045-D</td>
+                <td class="td-id">Scania R · 2017</td>
+                <td class="td-id">TC-019 · 28 000 L</td>
+                <td><span class="badge badge-route"><span class="bd"></span>En route</span></td>
+                <td class="td-id">02/06/2025</td>
+                <td><span class="exp exp-warn">dans 25j</span></td>
+                <td><span class="exp exp-ok">dans 310j</span></td>
+                <td><span class="exp exp-warn">dans 35j</span></td>
+                <td><span class="exp exp-crit">Expiré</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EMPLOYÉS -->
+      <div class="view" id="view-employes">
+        <div class="filter-row">
+          <button class="chip active">Tous (11)</button>
+          <button class="chip">Chauffeurs (7)</button>
+          <button class="chip">Techniciens (2)</button>
+          <button class="chip">Admin (2)</button>
+          <input class="fleet-search" type="text" placeholder="Rechercher un employé...">
+          <div class="ml-auto"><button class="btn btn-primary">+ Ajouter employé</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Employé</th>
+                <th>Rôle</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th>Embauché le</th>
+                <th>Statut</th>
+                <th>Camion assigné</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="td-strong">Sekou Camara</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-001</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 622 45 87 31</td>
+                <td class="td-id">Kipé, Conakry</td>
+                <td class="td-id">15/03/2021</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-2341-A</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Ibrahima Sow</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-002</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 664 12 09 55</td>
+                <td class="td-id">Ratoma, Conakry</td>
+                <td class="td-id">08/07/2020</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-3310-C</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Moussa Kouyaté</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-003</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 628 77 34 12</td>
+                <td class="td-id">Matoto, Conakry</td>
+                <td class="td-id">01/01/2022</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-1892-B</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Alpha Barry</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-004</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 655 20 66 48</td>
+                <td class="td-id">Dixinn, Conakry</td>
+                <td class="td-id">20/09/2019</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-5521-G</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Fodé Diallo</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-005</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 621 88 55 73</td>
+                <td class="td-id">Kaloum, Conakry</td>
+                <td class="td-id">05/04/2023</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-0045-D</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Oumar Baldé</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-006</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 660 33 91 27</td>
+                <td class="td-id">Coleah, Conakry</td>
+                <td class="td-id">12/11/2018</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-strong">GN-2890-F</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Thierno Bah</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-007</div></td>
+                <td><span class="badge badge-route">Chauffeur</span></td>
+                <td class="td-id">+224 625 14 72 80</td>
+                <td class="td-id">Kipé, Conakry</td>
+                <td class="td-id">28/02/2021</td>
+                <td><span class="badge badge-maint"><span class="bd"></span>En congé</span></td>
+                <td class="td-id">—</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Mamadou Diallo</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-008</div></td>
+                <td><span class="badge badge-neutral">Dispatcher</span></td>
+                <td class="td-id">+224 670 55 44 22</td>
+                <td class="td-id">Dixinn, Conakry</td>
+                <td class="td-id">10/06/2019</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-id">—</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Ibrahima Konaté</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-009</div></td>
+                <td><span class="badge badge-maint">Technicien</span></td>
+                <td class="td-id">+224 622 38 96 54</td>
+                <td class="td-id">Ratoma, Conakry</td>
+                <td class="td-id">03/08/2020</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-id">—</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Mamadou Touré</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-010</div></td>
+                <td><span class="badge badge-maint">Technicien</span></td>
+                <td class="td-id">+224 655 77 11 83</td>
+                <td class="td-id">Matoto, Conakry</td>
+                <td class="td-id">17/01/2022</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-id">—</td>
+              </tr>
+              <tr>
+                <td><div class="td-strong">Fatoumata Diallo</div><div class="td-id" style="font-size:11px;margin-top:1px">EMP-011</div></td>
+                <td><span class="badge badge-neutral">Administratrice</span></td>
+                <td class="td-id">+224 624 66 38 41</td>
+                <td class="td-id">Kaloum, Conakry</td>
+                <td class="td-id">01/07/2019</td>
+                <td><span class="badge badge-ready"><span class="bd"></span>Actif</span></td>
+                <td class="td-id">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TRAJETS -->
+      <div class="view" id="view-trajets">
+        <div class="filter-row">
+          <button class="chip active">Tous</button><button class="chip">En cours</button>
+          <button class="chip">Planifiés</button><button class="chip">Terminés</button><button class="chip">Annulés</button>
+          <div class="ml-auto"><button class="btn btn-primary" onclick="openDrawer()">+ Nouveau trajet</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>N° trajet</th><th>Camion / Citerne</th><th>Route</th><th>Chauffeur</th><th>Gasoil (L)</th><th>Essence (L)</th><th>Montant HT</th><th>Statut</th><th>Départ</th></tr></thead>
+            <tbody>
+              <tr><td class="td-id">#TRJ-0094</td><td class="td-strong">GN-3310-C / TC-052</td><td>Conakry → Mamou</td><td>Ibrahima Sow</td><td class="td-num">20 000</td><td class="td-num">13 000</td><td class="td-num">2 904 000 GNF</td><td><span class="badge badge-route"><span class="bd"></span>En cours</span></td><td class="td-id">25/06 08:00</td></tr>
+              <tr><td class="td-id">#TRJ-0093</td><td class="td-strong">GN-2341-A / TC-041</td><td>Conakry → Kindia</td><td>Sekou Camara</td><td class="td-num">33 000</td><td class="td-num">—</td><td class="td-num">1 980 000 GNF</td><td><span class="badge badge-route"><span class="bd"></span>En cours</span></td><td class="td-id">25/06 06:30</td></tr>
+              <tr><td class="td-id">#TRJ-0092</td><td class="td-strong">GN-1892-B / TC-038</td><td>Conakry → Faranah</td><td>Moussa Kouyaté</td><td class="td-num">15 000</td><td class="td-num">13 000</td><td class="td-num">3 360 000 GNF</td><td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td><td class="td-id">24/06 07:00</td></tr>
+              <tr><td class="td-id">#TRJ-0091</td><td class="td-strong">GN-5521-G / TC-044</td><td>Conakry → Kindia</td><td>Alpha Barry</td><td class="td-num">33 000</td><td class="td-num">—</td><td class="td-num">1 980 000 GNF</td><td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td><td class="td-id">24/06 06:00</td></tr>
+              <tr><td class="td-id">#TRJ-0090</td><td class="td-strong">GN-0045-D / TC-019</td><td>Conakry → Kankan</td><td>Fodé Diallo</td><td class="td-num">28 000</td><td class="td-num">—</td><td class="td-num">4 200 000 GNF</td><td><span class="badge badge-route"><span class="bd"></span>En cours</span></td><td class="td-id">25/06 03:00</td></tr>
+              <tr><td class="td-id">#TRJ-0089</td><td class="td-strong">GN-2890-F / TC-033</td><td>Conakry → Labé</td><td>Oumar Baldé</td><td class="td-num">28 000</td><td class="td-num">—</td><td class="td-num">3 640 000 GNF</td><td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td><td class="td-id">23/06 07:30</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE -->
+      <div class="view" id="view-maintenance">
+        <div class="filter-row">
+          <button class="chip active">Tous</button><button class="chip">En cours</button><button class="chip">Terminés</button>
+          <div class="ml-auto"><button class="btn btn-primary">+ Ouvrir un chantier</button></div>
+        </div>
+        <div class="maint-card ongoing">
+          <div><div class="mc-title">GN-4478-E &nbsp;·&nbsp; Révision moteur</div><div class="mc-meta"><span>Démarré le 25/06 à 11h00</span><span>Durée estimée : 6h</span><span>Technicien : Ibrahima Konaté</span></div></div>
+          <div class="mc-right"><div class="mc-cost">850 000 GNF</div><div class="mc-dur">En cours · 3h écoulées</div><span class="badge badge-maint"><span class="bd"></span>En cours</span></div>
+        </div>
+        <div class="maint-card">
+          <div><div class="mc-title">GN-3310-C &nbsp;·&nbsp; Changement pneus (× 6)</div><div class="mc-meta"><span>Terminé le 22/06</span><span>Durée réelle : 4h</span><span>Technicien : Mamadou Touré</span></div></div>
+          <div class="mc-right"><div class="mc-cost">1 200 000 GNF</div><div class="mc-dur">Durée : 4h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
+        </div>
+        <div class="maint-card">
+          <div><div class="mc-title">GN-1892-B &nbsp;·&nbsp; Vidange + filtres</div><div class="mc-meta"><span>Terminé le 08/06</span><span>Durée réelle : 2h</span><span>Technicien : Ibrahima Konaté</span></div></div>
+          <div class="mc-right"><div class="mc-cost">320 000 GNF</div><div class="mc-dur">Durée : 2h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
+        </div>
+        <div class="maint-card">
+          <div><div class="mc-title">GN-2341-A &nbsp;·&nbsp; Réparation système hydraulique citerne</div><div class="mc-meta"><span>Terminé le 12/06</span><span>Durée réelle : 8h</span><span>Technicien : Mamadou Touré</span></div></div>
+          <div class="mc-right"><div class="mc-cost">2 100 000 GNF</div><div class="mc-dur">Durée : 8h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
+        </div>
+      </div>
+
+      <!-- FACTURATION -->
+      <div class="view" id="view-facturation">
+        <div class="filter-row">
+          <button class="chip active">Toutes</button><button class="chip">Brouillon</button>
+          <button class="chip">Émises</button><button class="chip">Payées</button>
+          <div class="ml-auto"><button class="btn btn-ghost">Générer état mensuel</button></div>
+        </div>
+        <div class="bill-grid">
+          <div class="bill-card st-draft"><div class="bill-status"><span class="badge badge-neutral">Brouillon</span></div><div class="bill-month">Juin 2025</div><div class="bill-amount">124 200 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 22 356 000 &nbsp;·&nbsp; TTC : 146 556 000</div></div>
+          <div class="bill-card st-issued"><div class="bill-status"><span class="badge badge-route"><span class="bd"></span>Émise</span></div><div class="bill-month">Mai 2025</div><div class="bill-amount">110 800 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 19 944 000 &nbsp;·&nbsp; TTC : 130 744 000</div></div>
+          <div class="bill-card st-paid"><div class="bill-status"><span class="badge badge-ready"><span class="bd"></span>Payée</span></div><div class="bill-month">Avril 2025</div><div class="bill-amount">98 600 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 17 748 000 &nbsp;·&nbsp; TTC : 116 348 000</div></div>
+          <div class="bill-card st-paid"><div class="bill-status"><span class="badge badge-ready"><span class="bd"></span>Payée</span></div><div class="bill-month">Mars 2025</div><div class="bill-amount">105 300 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 18 954 000 &nbsp;·&nbsp; TTC : 124 254 000</div></div>
+          <div class="bill-card st-paid"><div class="bill-status"><span class="badge badge-ready"><span class="bd"></span>Payée</span></div><div class="bill-month">Février 2025</div><div class="bill-amount">89 100 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 16 038 000 &nbsp;·&nbsp; TTC : 105 138 000</div></div>
+          <div class="bill-card st-paid"><div class="bill-status"><span class="badge badge-ready"><span class="bd"></span>Payée</span></div><div class="bill-month">Janvier 2025</div><div class="bill-amount">101 450 000 GNF</div><div class="bill-meta">HT &nbsp;·&nbsp; TVA 18% : 18 261 000 &nbsp;·&nbsp; TTC : 119 711 000</div></div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="view" id="view-documents">
+        <div class="filter-row">
+          <button class="chip active">Tous</button><button class="chip">Camions</button><button class="chip">Citernes</button>
+          <button class="chip">Trajets</button><button class="chip">Maintenance</button>
+          <div class="ml-auto"><button class="btn btn-primary">+ Ajouter document</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Catégorie</th><th>Entité liée</th><th>Ajouté le</th><th>Taille</th></tr></thead>
+            <tbody>
+              <tr><td class="td-strong">Carte grise GN-2341-A</td><td><span class="badge badge-neutral">Camion</span></td><td class="td-id">GN-2341-A</td><td class="td-id">15/01/2025</td><td class="td-id">340 Ko</td></tr>
+              <tr><td class="td-strong">Contrôle technique TC-041</td><td><span class="badge badge-neutral">Citerne</span></td><td class="td-id">TC-041</td><td class="td-id">10/03/2025</td><td class="td-id">880 Ko</td></tr>
+              <tr><td class="td-strong">Bon de livraison #TRJ-0089</td><td><span class="badge badge-neutral">Trajet</span></td><td class="td-id">#TRJ-0089</td><td class="td-id">23/06/2025</td><td class="td-id">120 Ko</td></tr>
+              <tr><td class="td-strong">Rapport révision moteur — GN-4478-E</td><td><span class="badge badge-maint"><span class="bd"></span>Maintenance</span></td><td class="td-id">GN-4478-E</td><td class="td-id">25/06/2025</td><td class="td-id">560 Ko</td></tr>
+              <tr><td class="td-strong">Assurance flotte 2025 — Djoulde Transports</td><td><span class="badge badge-neutral">Général</span></td><td class="td-id">—</td><td class="td-id">02/01/2025</td><td class="td-id">2,1 Mo</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DRAWER OVERLAY -->
+  <div class="d-overlay" id="d-overlay" onclick="closeAllDrawers()"></div>
+
+  <!-- NEW TRIP DRAWER -->
+  <div class="drawer" id="d-trajet" role="dialog" aria-modal="true" aria-label="Nouveau trajet">
+    <div class="d-header">
+      <div>
+        <div class="d-title">Nouveau trajet</div>
+        <div class="d-sub">Préparez le convoi et le bon de livraison</div>
+      </div>
+      <button class="d-close" onclick="closeDrawer()" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="d-body">
+
+      <!-- 01 CONVOI -->
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">01</span><span class="fsec-title">Convoi</span></div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Tracteur</label>
+            <select class="f-select" id="f-truck" onchange="onTruckChange()">
+              <option value="">Choisir un tracteur...</option>
+              <option value="GN-2890-F">GN-2890-F — Prêt</option>
+              <option value="GN-5521-G">GN-5521-G — Prêt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="f-label">Citerne associée</label>
+            <div class="f-input" id="f-tank-display" style="color:var(--text-muted);font-style:italic;cursor:default">— sélectionnez un tracteur</div>
+          </div>
+        </div>
+        <div class="pair-card" id="f-pair" style="display:none">
+          <div class="pair-block">
+            <div class="pair-id" id="pc-truck-id">—</div>
+            <div class="pair-model" id="pc-truck-model">—</div>
+            <span class="badge badge-ready" style="font-size:10px;padding:2px 8px"><span class="bd"></span>Prêt</span>
+          </div>
+          <div class="pair-connector"><div class="pair-line"></div><div class="pair-arrow">⊳</div><div class="pair-line"></div></div>
+          <div class="pair-block">
+            <div class="pair-id" id="pc-tank-id">—</div>
+            <div class="pair-model" id="pc-tank-cap">—</div>
+            <span class="badge badge-ready" style="font-size:10px;padding:2px 8px"><span class="bd"></span>Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 ITINÉRAIRE -->
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">02</span><span class="fsec-title">Itinéraire</span></div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Origine</label>
+            <select class="f-select" id="f-origin" onchange="onRouteChange()">
+              <option value="">Ville de départ...</option>
+              <option>Conakry</option><option>Kindia</option><option>Mamou</option><option>Labé</option>
+              <option>Kankan</option><option>Faranah</option><option>Boké</option><option>Kamsar</option>
+              <option>Fria</option><option>Siguiri</option><option>Guéckédou</option><option>Nzérékoré</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="f-label">Destination</label>
+            <select class="f-select" id="f-dest" onchange="onRouteChange()">
+              <option value="">Ville d'arrivée...</option>
+              <option>Conakry</option><option>Kindia</option><option>Mamou</option><option>Labé</option>
+              <option>Kankan</option><option>Faranah</option><option>Boké</option><option>Kamsar</option>
+              <option>Fria</option><option>Siguiri</option><option>Guéckédou</option><option>Nzérékoré</option>
+            </select>
+          </div>
+        </div>
+        <div class="route-preview" id="f-route-preview" style="display:none">
+          <span class="rp-city" id="rp-from">—</span>
+          <span class="rp-arrow">→</span>
+          <span class="rp-city" id="rp-to">—</span>
+          <span class="rp-rate" id="rp-rate">—</span>
+        </div>
+        <div class="grid-2" style="margin-top:10px;margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Date de départ</label>
+            <input class="f-input" type="date" id="f-date" value="2025-06-26">
+          </div>
+          <div class="field">
+            <label class="f-label">Heure prévue</label>
+            <input class="f-input" type="time" id="f-time" value="06:30">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="f-label">Date d'arrivée prévue</label>
+            <input class="f-input" type="date" id="f-arr-date" value="2025-06-26">
+          </div>
+          <div class="field">
+            <label class="f-label">Heure d'arrivée prévue</label>
+            <input class="f-input" type="time" id="f-arr-time" value="14:00">
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 CHAUFFEUR -->
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">03</span><span class="fsec-title">Chauffeur</span><span class="fsec-opt">(optionnel)</span></div>
+        <div class="field">
+          <label class="f-label">Affectation</label>
+          <select class="f-select" id="f-driver" onchange="onDriverChange()">
+            <option value="">Non affecté pour l'instant</option>
+            <option>Sekou Camara</option><option>Ibrahima Sow</option><option>Moussa Kouyaté</option>
+            <option>Alpha Barry</option><option>Fodé Diallo</option><option>Oumar Baldé</option>
+          </select>
+          <div class="f-hint c-accent" id="f-driver-hint" style="display:none">Chauffeur habituel de ce camion</div>
+        </div>
+      </div>
+
+      <!-- 04 BON DE LIVRAISON -->
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">04</span><span class="fsec-title">Bon de livraison</span></div>
+        <div class="field" style="margin-bottom:10px">
+          <label class="f-label">Numéro de bon</label>
+          <input class="f-input" type="text" id="f-note-num" placeholder="BL-2025-0095" value="BL-2025-0095">
+        </div>
+        <div class="grid-2" style="margin-bottom:4px">
+          <div class="field">
+            <label class="f-label">Gasoil (L)</label>
+            <input class="f-input" type="number" id="f-diesel" min="0" placeholder="0" oninput="updateFill()">
+            <div class="f-hint">Diesel</div>
+          </div>
+          <div class="field">
+            <label class="f-label">Essence (L)</label>
+            <input class="f-input" type="number" id="f-petrol" min="0" placeholder="0" oninput="updateFill()">
+            <div class="f-hint">Carburant</div>
+          </div>
+        </div>
+
+        <div class="tank-viz">
+          <div class="tv-header">
+            <div class="tv-label">Remplissage citerne</div>
+            <div class="tv-total" id="tv-total">0 L / — L</div>
+          </div>
+          <div class="tv-track">
+            <div class="tv-seg tv-seg-diesel" id="tv-diesel" style="width:0%"></div>
+            <div class="tv-seg tv-seg-petrol" id="tv-petrol" style="width:0%"></div>
+          </div>
+          <div class="tv-legend">
+            <span class="tvl tvl-diesel">Gasoil</span>
+            <span class="tvl tvl-petrol">Essence</span>
+          </div>
+          <div class="tv-status" id="tv-status">Sélectionnez un tracteur pour voir la capacité citerne.</div>
+        </div>
+
+        <div class="est-amount" id="f-est" style="display:none">
+          <div>
+            <div class="ea-label">Montant estimé HT</div>
+            <div class="f-hint" id="ea-formula" style="margin-top:3px">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="ea-val" id="ea-val">—</div>
+            <div class="ea-sub">GNF · TVA 18% en sus</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="d-footer">
+      <button class="btn btn-ghost" onclick="closeDrawer()">Annuler</button>
+      <button class="btn btn-primary" onclick="submitTrip()">Créer le trajet</button>
+    </div>
+  </div>
+
+</div>
+
+  <!-- TRUCK DETAIL DRAWER -->
+  <div class="drawer" id="d-truck" role="dialog" aria-modal="true" aria-label="Détails camion">
+    <div class="d-header">
+      <div>
+        <div class="d-title" id="dt-plate">—</div>
+        <div class="d-sub" id="dt-sub">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:3px">
+        <span id="dt-status-badge"></span>
+        <button class="d-close" onclick="closeTruckDrawer()" aria-label="Fermer">✕</button>
+      </div>
+    </div>
+
+    <div class="d-body">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--ground);border:1px solid var(--border);border-radius:8px;margin-bottom:20px">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Citerne · Capacité</div>
+          <div id="dt-tanker" style="font-size:13px;font-weight:600;color:var(--text)">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Dernière vidange</div>
+          <div id="dt-oil" style="font-size:13px;font-weight:600;color:var(--text)">—</div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-title">Chauffeur assigné</span></div>
+        <div id="dt-driver-content"></div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-title">Documents</span></div>
+        <div id="dt-docs-content"></div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-title">Statistiques</span></div>
+        <div class="stat-trio" id="dt-stats-content"></div>
+      </div>
+
+    </div>
+
+    <div class="d-footer">
+      <button class="btn btn-ghost" onclick="closeTruckDrawer()">Fermer</button>
+      <button class="btn btn-primary">Modifier</button>
+    </div>
+  </div>
+
+<script>
+  const TITLES = {
+    dashboard: 'Tableau de bord', flotte: 'Flotte', employes: 'Employés', trajets: 'Trajets',
+    maintenance: 'Maintenance', facturation: 'Facturation', documents: 'Documents',
+  };
+
+  function go(name, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const view = document.getElementById('view-' + name);
+    if (view) view.classList.add('active');
+    if (el)   el.classList.add('active');
+    document.getElementById('pg-title').textContent = TITLES[name] || name;
+    document.querySelector('.content').scrollTop = 0;
+  }
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', function () {
+      const row = this.closest('.filter-row');
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  /* ── DRAWER ──────────────────────────────────── */
+  const TRUCKS = {
+    'GN-2890-F': { tank: 'TC-033', cap: 28000, model: 'DAF XF · 2022',   driver: 'Oumar Baldé'  },
+    'GN-5521-G': { tank: 'TC-044', cap: 33000, model: 'Volvo FH · 2020', driver: 'Alpha Barry'   },
+  };
+
+  const ROUTES = {
+    'Conakry|Kindia': 60, 'Conakry|Labé': 130, 'Conakry|Mamou': 88,
+    'Conakry|Kankan': 150, 'Conakry|Faranah': 120, 'Conakry|Boké': 75,
+    'Conakry|Kamsar': 80, 'Conakry|Fria': 55, 'Conakry|Siguiri': 175,
+    'Kindia|Mamou': 45, 'Mamou|Labé': 55, 'Labé|Kankan': 110,
+  };
+
+  let currentCap = null;
+  let currentRate = null;
+  let defaultDriver = null;
+
+  function openDrawer() {
+    document.getElementById('d-overlay').classList.add('open');
+    document.getElementById('d-trajet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('f-truck').focus();
+  }
+
+  function closeDrawer() {
+    document.getElementById('d-overlay').classList.remove('open');
+    document.getElementById('d-trajet').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
+
+  function closeAllDrawers() { closeDrawer(); closeTruckDrawer(); }
+
+  /* ── TRUCK DETAIL DRAWER ─────────────────────── */
+  const FLEET_DETAILS = {
+    'GN-2341-A': {
+      model: 'Volvo FH · 2019', tanker: 'TC-041 · 33 000 L', oil: '12/06/2025', statusKey: 'route',
+      driver: { name: 'Sekou Camara', emp: 'EMP-001', phone: '+224 622 45 87 31' },
+      docs: [
+        { label: 'Assurance camion',  date: '09/08/2025', text: 'dans 45j',  cls: 'exp-warn' },
+        { label: 'Assurance produit', date: '23/10/2025', text: 'dans 120j', cls: 'exp-ok'   },
+        { label: 'Visite technique',  date: '03/07/2025', text: 'dans 8j',   cls: 'exp-crit' },
+        { label: 'Permis chauffeur',  date: '11/01/2026', text: 'dans 200j', cls: 'exp-ok'   },
+      ],
+      stats: { trips: 142, km: '28 400', liters: '4 686 000' },
+    },
+    'GN-1892-B': {
+      model: 'Renault T · 2020', tanker: 'TC-038 · 28 000 L', oil: '08/06/2025', statusKey: 'route',
+      driver: { name: 'Moussa Kouyaté', emp: 'EMP-003', phone: '+224 628 77 34 12' },
+      docs: [
+        { label: 'Assurance camion',  date: '21/01/2026', text: 'dans 210j', cls: 'exp-ok'   },
+        { label: 'Assurance produit', date: '25/07/2025', text: 'dans 30j',  cls: 'exp-warn' },
+        { label: 'Visite technique',  date: '28/09/2025', text: 'dans 95j',  cls: 'exp-ok'   },
+        { label: 'Permis chauffeur',  date: '14/06/2025', text: 'Expiré',    cls: 'exp-crit' },
+      ],
+      stats: { trips: 118, km: '22 100', liters: '3 304 000' },
+    },
+    'GN-3310-C': {
+      model: 'Volvo FH · 2021', tanker: 'TC-052 · 33 000 L', oil: '18/06/2025', statusKey: 'route',
+      driver: { name: 'Ibrahima Sow', emp: 'EMP-002', phone: '+224 664 12 09 55' },
+      docs: [
+        { label: 'Assurance camion',  date: '21/09/2025', text: 'dans 88j',  cls: 'exp-ok'   },
+        { label: 'Assurance produit', date: '21/09/2025', text: 'dans 88j',  cls: 'exp-ok'   },
+        { label: 'Visite technique',  date: '22/12/2025', text: 'dans 180j', cls: 'exp-ok'   },
+        { label: 'Permis chauffeur',  date: '19/08/2025', text: 'dans 55j',  cls: 'exp-warn' },
+      ],
+      stats: { trips: 167, km: '33 400', liters: '5 511 000' },
+    },
+    'GN-4478-E': {
+      model: 'Mercedes Actros · 2018', tanker: 'TC-027 · 33 000 L', oil: 'En atelier', statusKey: 'maint',
+      driver: null,
+      docs: [
+        { label: 'Assurance camion',  date: '07/07/2025', text: 'dans 12j',  cls: 'exp-crit' },
+        { label: 'Assurance produit', date: '19/08/2025', text: 'dans 55j',  cls: 'exp-warn' },
+        { label: 'Visite technique',  date: '09/08/2025', text: 'dans 45j',  cls: 'exp-warn' },
+        { label: 'Permis chauffeur',  date: '—',          text: 'N/A',       cls: 'exp-ok'   },
+      ],
+      stats: { trips: 97, km: '19 800', liters: '3 201 600' },
+    },
+    'GN-2890-F': {
+      model: 'DAF XF · 2022', tanker: 'TC-033 · 28 000 L', oil: '20/06/2025', statusKey: 'ready',
+      driver: { name: 'Oumar Baldé', emp: 'EMP-006', phone: '+224 660 33 91 27' },
+      docs: [
+        { label: 'Assurance camion',  date: '22/12/2025', text: 'dans 180j', cls: 'exp-ok'   },
+        { label: 'Assurance produit', date: '22/12/2025', text: 'dans 180j', cls: 'exp-ok'   },
+        { label: 'Visite technique',  date: '01/02/2026', text: 'dans 220j', cls: 'exp-ok'   },
+        { label: 'Permis chauffeur',  date: '05/07/2025', text: 'dans 10j',  cls: 'exp-crit' },
+      ],
+      stats: { trips: 88, km: '17 600', liters: '2 464 000' },
+    },
+    'GN-5521-G': {
+      model: 'Volvo FH · 2020', tanker: 'TC-044 · 33 000 L', oil: '22/06/2025', statusKey: 'ready',
+      driver: { name: 'Alpha Barry', emp: 'EMP-004', phone: '+224 655 20 66 48' },
+      docs: [
+        { label: 'Assurance camion',  date: '28/09/2025', text: 'dans 95j',  cls: 'exp-ok'   },
+        { label: 'Assurance produit', date: '24/08/2025', text: 'dans 60j',  cls: 'exp-warn' },
+        { label: 'Visite technique',  date: '22/11/2025', text: 'dans 150j', cls: 'exp-ok'   },
+        { label: 'Permis chauffeur',  date: '13/09/2025', text: 'dans 80j',  cls: 'exp-ok'   },
+      ],
+      stats: { trips: 122, km: '24 400', liters: '4 026 000' },
+    },
+    'GN-0045-D': {
+      model: 'Scania R · 2017', tanker: 'TC-019 · 28 000 L', oil: '02/06/2025', statusKey: 'route',
+      driver: { name: 'Fodé Diallo', emp: 'EMP-005', phone: '+224 621 88 55 73' },
+      docs: [
+        { label: 'Assurance camion',  date: '20/07/2025', text: 'dans 25j',  cls: 'exp-warn' },
+        { label: 'Assurance produit', date: '30/04/2026', text: 'dans 310j', cls: 'exp-ok'   },
+        { label: 'Visite technique',  date: '30/07/2025', text: 'dans 35j',  cls: 'exp-warn' },
+        { label: 'Permis chauffeur',  date: '10/06/2025', text: 'Expiré',    cls: 'exp-crit' },
+      ],
+      stats: { trips: 74, km: '22 200', liters: '2 072 000' },
+    },
+  };
+
+  const STATUS_BADGE_MAP = {
+    route: '<span class="badge badge-route"><span class="bd"></span>En route</span>',
+    ready: '<span class="badge badge-ready"><span class="bd"></span>Prêt</span>',
+    maint: '<span class="badge badge-maint"><span class="bd"></span>Maintenance</span>',
+  };
+
+  function openTruckDrawer(plate) {
+    const t = FLEET_DETAILS[plate];
+    if (!t) return;
+
+    document.getElementById('dt-plate').textContent = plate;
+    document.getElementById('dt-sub').textContent   = t.model;
+    document.getElementById('dt-tanker').textContent = t.tanker;
+    document.getElementById('dt-oil').textContent   = t.oil;
+    document.getElementById('dt-status-badge').innerHTML = STATUS_BADGE_MAP[t.statusKey] || '';
+
+    const dEl = document.getElementById('dt-driver-content');
+    if (t.driver) {
+      const ini = t.driver.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      dEl.innerHTML =
+        '<div class="driver-card">' +
+          '<div class="avatar">' + ini + '</div>' +
+          '<div class="driver-info">' +
+            '<div class="di-name">' + t.driver.name + '</div>' +
+            '<div class="di-emp">' + t.driver.emp + '</div>' +
+            '<div class="di-phone">' + t.driver.phone + '</div>' +
+          '</div>' +
+        '</div>';
+    } else {
+      dEl.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">Aucun chauffeur assigné</div>';
+    }
+
+    document.getElementById('dt-docs-content').innerHTML = t.docs.map(function(d) {
+      return '<div class="doc-row">' +
+        '<div><div class="doc-lbl">' + d.label + '</div><div class="doc-date">' + d.date + '</div></div>' +
+        '<span class="exp ' + d.cls + '">' + d.text + '</span>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('dt-stats-content').innerHTML =
+      '<div class="stat-box"><div class="sb-val">' + t.stats.trips + '</div><div class="sb-lbl">Trajets effectués</div></div>' +
+      '<div class="stat-box"><div class="sb-val">' + t.stats.km + ' km</div><div class="sb-lbl">Kilométrage</div></div>' +
+      '<div class="stat-box"><div class="sb-val" style="font-size:15px">' + t.stats.liters + ' L</div><div class="sb-lbl">Litres livrés</div></div>';
+
+    document.getElementById('d-overlay').classList.add('open');
+    document.getElementById('d-truck').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeTruckDrawer() {
+    document.getElementById('d-overlay').classList.remove('open');
+    document.getElementById('d-truck').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function onTruckChange() {
+    const key = document.getElementById('f-truck').value;
+    const pair = document.getElementById('f-pair');
+    const tankDisplay = document.getElementById('f-tank-display');
+
+    if (!key || !TRUCKS[key]) {
+      pair.style.display = 'none';
+      tankDisplay.textContent = '— sélectionnez un tracteur';
+      tankDisplay.style.color = 'var(--text-muted)';
+      currentCap = null;
+      setDriverDefault('', null);
+      updateFill();
+      return;
+    }
+
+    const t = TRUCKS[key];
+    currentCap = t.cap;
+    setDriverDefault(t.driver, t.driver);
+
+    tankDisplay.textContent = t.tank + ' · ' + t.cap.toLocaleString('fr-FR') + ' L';
+    tankDisplay.style.color = 'var(--text)';
+
+    document.getElementById('pc-truck-id').textContent    = key;
+    document.getElementById('pc-truck-model').textContent = t.model;
+    document.getElementById('pc-tank-id').textContent     = t.tank;
+    document.getElementById('pc-tank-cap').textContent    = t.cap.toLocaleString('fr-FR') + ' L · Citerne';
+    pair.style.display = 'flex';
+
+    updateFill();
+  }
+
+  function onRouteChange() {
+    const origin  = document.getElementById('f-origin').value;
+    const dest    = document.getElementById('f-dest').value;
+    const preview = document.getElementById('f-route-preview');
+
+    if (!origin || !dest || origin === dest) {
+      preview.style.display = 'none';
+      currentRate = null;
+      updateFill();
+      return;
+    }
+
+    const rate = ROUTES[origin + '|' + dest] || ROUTES[dest + '|' + origin] || null;
+    currentRate = rate;
+
+    document.getElementById('rp-from').textContent = origin;
+    document.getElementById('rp-to').textContent   = dest;
+    document.getElementById('rp-rate').textContent = rate
+      ? rate.toLocaleString('fr-FR') + ' GNF / L'
+      : 'Nouvelle route';
+    preview.style.display = 'flex';
+
+    updateFill();
+  }
+
+  function updateFill() {
+    const diesel = Math.max(0, parseFloat(document.getElementById('f-diesel').value) || 0);
+    const petrol = Math.max(0, parseFloat(document.getElementById('f-petrol').value) || 0);
+    const total  = diesel + petrol;
+    const cap    = currentCap;
+
+    const tvTotal  = document.getElementById('tv-total');
+    const tvStatus = document.getElementById('tv-status');
+    const tvDiesel = document.getElementById('tv-diesel');
+    const tvPetrol = document.getElementById('tv-petrol');
+
+    if (!cap) {
+      tvTotal.textContent = total.toLocaleString('fr-FR') + ' L / — L';
+      tvTotal.className = 'tv-total';
+      tvDiesel.style.width = '0%';
+      tvPetrol.style.width = '0%';
+      tvStatus.textContent = 'Sélectionnez un tracteur pour voir la capacité citerne.';
+      tvStatus.className = 'tv-status';
+      document.getElementById('f-est').style.display = 'none';
+      return;
+    }
+
+    const pct = v => Math.min(100, (v / cap) * 100).toFixed(2) + '%';
+    tvDiesel.style.width = pct(diesel);
+    tvPetrol.style.width = pct(petrol);
+    tvTotal.textContent = total.toLocaleString('fr-FR') + ' L / ' + cap.toLocaleString('fr-FR') + ' L';
+
+    if (total > cap) {
+      tvTotal.className = 'tv-total over';
+      tvStatus.textContent = 'Dépassement de capacité — réduisez de ' + (total - cap).toLocaleString('fr-FR') + ' L.';
+      tvStatus.className = 'tv-status err';
+    } else if (total === cap) {
+      tvTotal.className = 'tv-total full';
+      tvStatus.textContent = 'Citerne pleine. Prêt à créer le trajet.';
+      tvStatus.className = 'tv-status ok';
+    } else if (total > 0) {
+      tvTotal.className = 'tv-total';
+      tvStatus.textContent = (cap - total).toLocaleString('fr-FR') + ' L non renseignés.';
+      tvStatus.className = 'tv-status warn';
+    } else {
+      tvTotal.className = 'tv-total';
+      tvStatus.textContent = 'Renseignez les quantités chargées.';
+      tvStatus.className = 'tv-status';
+    }
+
+    if (currentRate && total > 0) {
+      const ht  = total * currentRate;
+      const tva = ht * 0.18;
+      document.getElementById('ea-val').textContent     = ht.toLocaleString('fr-FR') + ' GNF';
+      document.getElementById('ea-formula').textContent =
+        total.toLocaleString('fr-FR') + ' L × ' + currentRate + ' GNF/L · TVA : ' + Math.round(tva).toLocaleString('fr-FR') + ' GNF';
+      document.getElementById('f-est').style.display = 'flex';
+    } else {
+      document.getElementById('f-est').style.display = 'none';
+    }
+  }
+
+  function setDriverDefault(name, def) {
+    defaultDriver = def;
+    const sel  = document.getElementById('f-driver');
+    const hint = document.getElementById('f-driver-hint');
+    sel.value = name || '';
+    hint.style.display = (name && sel.value === name) ? 'block' : 'none';
+  }
+
+  function onDriverChange() {
+    const sel  = document.getElementById('f-driver');
+    const hint = document.getElementById('f-driver-hint');
+    hint.style.display = (defaultDriver && sel.value === defaultDriver) ? 'block' : 'none';
+  }
+
+  function submitTrip() {
+    const truck  = document.getElementById('f-truck').value;
+    const origin = document.getElementById('f-origin').value;
+    const dest   = document.getElementById('f-dest').value;
+    const route  = (origin && dest && origin !== dest) ? origin + '|' + dest : '';
+    const noteNum = document.getElementById('f-note-num').value;
+    const total   = (parseFloat(document.getElementById('f-diesel').value) || 0) +
+                    (parseFloat(document.getElementById('f-petrol').value) || 0);
+
+    if (!truck || !route || !noteNum || total === 0) {
+      const s = document.getElementById('tv-status');
+      s.textContent = 'Remplissez tous les champs obligatoires avant de continuer.';
+      s.className   = 'tv-status err';
+      return;
+    }
+
+    if (currentCap && total !== currentCap) {
+      const s = document.getElementById('tv-status');
+      s.textContent = 'La quantité totale doit correspondre à la capacité de la citerne.';
+      s.className   = 'tv-status err';
+      return;
+    }
+
+    closeDrawer();
+  }
+</script>
