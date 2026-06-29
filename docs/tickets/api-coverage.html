@@ -530,62 +530,6 @@
 
   </section>
 
-  <!-- ── UI COMPONENTS ────────────────────────────── -->
-  <section class="section">
-    <div class="section-header">
-      <span class="section-label">Composants UI à construire</span>
-      <span class="section-rule"></span>
-      <span class="section-count">1 composant</span>
-    </div>
-
-    <div class="ep-row ui-ticket">
-      <div>
-        <div class="ep-route" style="color:#7A9FE8;font-size:13px">
-          DataTable.svelte
-          <span style="font-size:10px;font-weight:500;color:var(--text-muted);font-family:ui-monospace,monospace">frontend/src/lib/components/common/</span>
-        </div>
-        <div class="ep-desc">Composant table réutilisable unique pour toutes les vues liste de l'application. Gère l'état des filtres, le curseur de pagination, le chargement et les erreurs. Chaque vue passe uniquement sa config (colonnes, endpoint, filtres) — aucune logique de fetch ou de pagination dupliquée.</div>
-        <div class="ep-tickets"><span class="tid">DT-024</span></div>
-        <div class="ep-changes">
-          <ul>
-            <li>Le composant est <strong style="color:var(--text-mid)">headless côté logique</strong> mais stylé avec le design system existant (styles <code class="c-ui">.tbl-wrap</code>, <code class="c-ui">.chip</code>, <code class="c-ui">th/td</code> du mockup)</li>
-            <li>Prop <code class="c-ui">paginated</code> (boolean) : <code class="c-ui">false</code> pour Trucks et Employees (charge tout en une requête, pas de contrôles next/prev) — <code class="c-ui">true</code> pour Trips, Documents, Maintenances (curseur + has_more)</li>
-            <li>Prop <code class="c-ui">columns</code> : tableau de <code class="c-ui">&#123; key, label, render? &#125;</code> — la fonction <code class="c-ui">render</code> optionnelle reçoit la valeur et la ligne entière, permet d'injecter badges, pills d'expiration, formatage de taille fichier sans que le composant connaisse le domaine</li>
-            <li>Prop <code class="c-ui">filters</code> : tableau de <code class="c-ui">&#123; key, label, value &#125;</code> pour les chips de filtre — le composant remet le curseur à null à chaque changement de filtre</li>
-            <li>Prop <code class="c-ui">searchParam</code> : nom du query param auquel l'input de recherche est mappé (ex. <code class="c-ui">truck_plate</code>, <code class="c-ui">search</code>)</li>
-            <li>États internes gérés : filtres actifs, curseur courant, données, loading, erreur — exposés via des slots nommés pour les états vides et d'erreur personnalisables</li>
-            <li>Doit être construit <strong style="color:var(--text-mid)">avant</strong> les vues Flotte, Trajets, Employés, Documents, Maintenances — toutes en dépendent</li>
-          </ul>
-        </div>
-
-        <table class="prop-table">
-          <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>endpoint</code></td><td class="pt-type">string</td><td>Chemin API à appeler — le composant ajoute les params de filtre et de curseur</td></tr>
-            <tr><td><code>columns</code></td><td class="pt-type">Column[]</td><td><code>&#123; key: string, label: string, render?: (val, row) => string &#125;</code></td></tr>
-            <tr><td><code>filters</code></td><td class="pt-type">Filter[]</td><td><code>&#123; key: string, label: string, value: string &#125;</code> — génère les chips</td></tr>
-            <tr><td><code>searchParam</code></td><td class="pt-type">string?</td><td>Nom du param de recherche texte. Omis = pas d'input recherche.</td></tr>
-            <tr><td><code>paginated</code></td><td class="pt-type">boolean</td><td><code>false</code> = charge tout (trucks, employees). <code>true</code> = curseur + next/prev.</td></tr>
-            <tr><td><code>limit</code></td><td class="pt-type">number?</td><td>Taille de page si paginated. Défaut : 50.</td></tr>
-          </tbody>
-        </table>
-
-        <div style="margin-top:12px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Utilisé par</div>
-          <div class="consumer-list">
-            <span class="consumer">Flotte (DT-006)</span>
-            <span class="consumer">Trajets (DT-005)</span>
-            <span class="consumer">Employés (DT-012)</span>
-            <span class="consumer">Documents (DT-022)</span>
-            <span class="consumer">Maintenance (DT-018)</span>
-          </div>
-        </div>
-      </div>
-      <div class="ep-right"><span class="status-pill s-ui">À construire</span></div>
-    </div>
-
-  </section>
-
   <!-- ── NOT NEEDED ─────────────────────────────── -->
   <section class="section">
     <div class="section-header">
