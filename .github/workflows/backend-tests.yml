@@ -41,7 +41,7 @@ jobs:
       REDIS_URL: redis://127.0.0.1:6379/0
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
