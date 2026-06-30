@@ -12,16 +12,27 @@
 
   const PUBLIC_ROUTES = ['/login'];
 
-  const guard = (path: string) => {
-    const isPublic = PUBLIC_ROUTES.includes(path);
-    if (!get(isAuthenticated) && !isPublic) goto(resolve('/login'));
-    else if (get(isAuthenticated) && isPublic) goto(resolve('/dashboard'));
+  const loginWithRedirect = (path: string) => {
+    // Query param appended to resolved path - resolve() cannot be the direct argument here
+    // eslint-disable-next-line svelte/no-navigation-without-resolve
+    goto(`${resolve('/login')}?redirect=${encodeURIComponent(path)}`);
   };
 
-  onMount(() => guard($page.url.pathname));
+  const guard = (path: string, cancel: (() => void) | undefined = undefined) => {
+    const isPublic = PUBLIC_ROUTES.includes(path);
+    if (!get(isAuthenticated) && !isPublic) {
+      cancel?.();
+      loginWithRedirect(path);
+    } else if (get(isAuthenticated) && isPublic) {
+      cancel?.();
+      goto(resolve('/dashboard'));
+    }
+  };
 
-  beforeNavigate(({to}) => {
-    if (to?.url.pathname) guard(to.url.pathname);
+  onMount(() => guard(get(page).url.pathname));
+
+  beforeNavigate(({to, cancel}) => {
+    if (to?.url.pathname) guard(to.url.pathname, cancel);
   });
 </script>
 
