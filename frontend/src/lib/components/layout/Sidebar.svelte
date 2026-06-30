@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type {NavHref} from '$lib/types/nav';
-
   import {page} from '$app/stores';
   import {resolve} from '$app/paths';
   import {authStore} from '$lib/store/session/auth';
@@ -14,14 +12,11 @@
   $: roleLabel = roleLabels[primaryRole] ?? primaryRole;
   $: initials = roleLabel.slice(0, 2).toUpperCase();
   $: activePath = $page.url.pathname;
-
-  $: isActive = (href: NavHref): boolean => {
-    const path = resolve(href);
-    return activePath === path || activePath.startsWith(path + '/');
-  };
 </script>
 
-<nav class="fixed top-0 left-0 w-[224px] h-screen flex flex-col justify-between bg-ground border-r border-border z-40">
+<nav
+  class="fixed top-0 left-0 w-[224px] h-screen flex flex-col justify-between bg-ground border-r border-border z-40"
+>
   <div class="flex flex-col overflow-y-auto">
     <!-- Brand -->
     <div class="flex items-center px-4 py-4 border-b border-border">
@@ -31,16 +26,19 @@
     <!-- Nav -->
     <ul class="list-none py-2.5 flex flex-col gap-0.5 m-0 p-0">
       {#each navItems as item (item.href)}
+        {@const itemPath = resolve(item.href)}
+        {@const active = activePath === itemPath || activePath.startsWith(itemPath + '/')}
         <li>
           <a
-            href={resolve(item.href)}
+            href={itemPath}
             class="flex items-center gap-2.5 px-4 py-[9px] text-[13px] no-underline relative transition-colors duration-[130ms]
-              {isActive(item.href)
+              {active
               ? 'text-dt-text bg-surface font-semibold'
               : 'text-dt-text-muted font-medium hover:text-dt-text hover:bg-surface'}"
           >
-            {#if isActive(item.href)}
-              <span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-accent rounded-r-sm"></span>
+            {#if active}
+              <span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-accent rounded-r-sm"
+              ></span>
             {/if}
             <Icon name={item.icon} size={16} class="shrink-0" />
             <span>{item.label}</span>
