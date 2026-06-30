@@ -2,6 +2,7 @@ import {get} from 'svelte/store';
 import {browser} from '$app/environment';
 import {goto} from '$app/navigation';
 import {resolve} from '$app/paths';
+import {page} from '$app/stores';
 import {authStore} from '$lib/store/session/auth';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -30,7 +31,12 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
 
   if (response.status === 401) {
     authStore.clearSession();
-    if (browser) await goto(resolve('/login'));
+    if (browser) {
+      const currentPath = get(page).url.pathname;
+      // Query param must be appended to the resolved path — resolve() cannot be the direct argument here
+      // eslint-disable-next-line svelte/no-navigation-without-resolve
+      await goto(`${resolve('/login')}?redirect=${encodeURIComponent(currentPath)}`);
+    }
     throw new ApiRequestError('unauthorized', 'Session expirée. Veuillez vous reconnecter.');
   }
 
