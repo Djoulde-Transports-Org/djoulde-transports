@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe API::V1::Endpoints::Users::Sessions do
+RSpec.describe API::V1::Endpoints::Users::Session::Create do
   subject(:do_request) do
     post "/api/v1/sessions", params: {email: email, password: password_param}
   end
