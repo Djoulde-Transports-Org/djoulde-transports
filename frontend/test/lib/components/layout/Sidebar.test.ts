@@ -1,14 +1,20 @@
-import {render} from '@testing-library/svelte';
+import {render, fireEvent, waitFor} from '@testing-library/svelte';
 import {writable} from 'svelte/store';
 import {authStore} from '$lib/store/session/auth';
 import Sidebar from '$lib/components/layout/Sidebar.svelte';
 import type {Session} from '$lib/types/session';
+import {goto} from '$app/navigation';
+import {logout} from '$lib/api/sessions';
 
 vi.mock('$app/paths', () => ({resolve: (path: string) => path}));
 vi.mock('$app/stores', () => ({
   page: writable({url: {pathname: '/dashboard'}}),
 }));
 vi.mock('$app/environment', () => ({browser: true}));
+vi.mock('$app/navigation', () => ({goto: vi.fn()}));
+vi.mock('$lib/api/sessions', () => ({
+  logout: vi.fn().mockResolvedValue(undefined),
+}));
 
 const makeSession = (overrides?: Partial<Session>): Session => ({
   access_token: 'tok_abc',
@@ -23,6 +29,7 @@ const makeSession = (overrides?: Partial<Session>): Session => ({
 describe('Sidebar', () => {
   beforeEach(() => {
     authStore.clearSession();
+    vi.clearAllMocks();
   });
 
   describe('brand', () => {
@@ -101,6 +108,44 @@ describe('Sidebar', () => {
       const {container} = render(Sidebar);
       const roleSpan = container.querySelector('span.text-dt-text-muted');
       expect(roleSpan).toHaveTextContent('Facturation');
+    });
+  });
+
+  describe('sign out', () => {
+    it('renders the logout button', () => {
+      const {getByTitle} = render(Sidebar);
+      expect(getByTitle('Se déconnecter')).toBeInTheDocument();
+    });
+
+    it('calls logout() when clicked', async () => {
+      const {getByTitle} = render(Sidebar);
+      fireEvent.click(getByTitle('Se déconnecter'));
+      await waitFor(() => expect(logout).toHaveBeenCalledOnce());
+    });
+
+    it('clears the session after logout', async () => {
+      authStore.setSession(makeSession());
+      const clearSpy = vi.spyOn(authStore, 'clearSession');
+      const {getByTitle} = render(Sidebar);
+      fireEvent.click(getByTitle('Se déconnecter'));
+      await waitFor(() => expect(clearSpy).toHaveBeenCalledOnce());
+    });
+
+    it('navigates to /login after logout', async () => {
+      const {getByTitle} = render(Sidebar);
+      fireEvent.click(getByTitle('Se déconnecter'));
+      await waitFor(() => expect(goto).toHaveBeenCalledWith('/login'));
+    });
+
+    it('still clears the session and navigates when logout() fails', async () => {
+      vi.mocked(logout).mockRejectedValueOnce(new Error('network error'));
+      const clearSpy = vi.spyOn(authStore, 'clearSession');
+      const {getByTitle} = render(Sidebar);
+      fireEvent.click(getByTitle('Se déconnecter'));
+      await waitFor(() => {
+        expect(clearSpy).toHaveBeenCalledOnce();
+        expect(goto).toHaveBeenCalledWith('/login');
+      });
     });
   });
 });
