@@ -9,7 +9,7 @@ Every API resource follows the same shape. Match this layout when adding a new r
 
 ## Endpoint layout
 
-One **action per file**, all wired together by a `Default` mount. Mirror this tree:
+**One action per file, no exceptions.** Every HTTP verb on a resource lives in its own file. All action files are wired together by a `Default` mount. Mirror this tree:
 
 ```
 app/api/v1/endpoints/<resource>/
@@ -38,6 +38,46 @@ module API::V1::Endpoints::Trucks
   end
 end
 ```
+
+### Mixed-auth resources
+
+When a resource has both public and authenticated actions (e.g. `POST /sessions` is public, `DELETE /sessions` requires a token), do NOT put `before { authenticate! }` in `Default`. Instead, each action class that requires auth carries its own `before { authenticate! }`.
+
+```
+app/api/v1/endpoints/users/
+  default.rb    # no before filter — auth is per-action
+  create.rb     # POST   /sessions  (public)
+  delete.rb     # DELETE /sessions  (authenticated — has own before { authenticate! })
+  me.rb         # GET    /me        (authenticated — has own before { authenticate! })
+```
+
+```ruby
+# app/api/v1/endpoints/users/default.rb
+module API::V1::Endpoints::Users
+  class Default < Grape::API
+    mount API::V1::Endpoints::Users::Create
+    mount API::V1::Endpoints::Users::Delete
+    mount API::V1::Endpoints::Users::Me
+  end
+end
+
+# app/api/v1/endpoints/users/delete.rb
+module API::V1::Endpoints::Users
+  class Delete < Grape::API
+    before { authenticate! }
+
+    resource :sessions do
+      desc "Log out; revoke the current bearer token."
+      delete do
+        doorkeeper_token.revoke
+        {success: true}
+      end
+    end
+  end
+end
+```
+
+Mixed-auth resources do not have a `common.rb` unless there are genuinely shared finders. Resources where all actions are authenticated use `common.rb` + `Default`'s `before { authenticate! }` as normal.
 
 ## Common module
 

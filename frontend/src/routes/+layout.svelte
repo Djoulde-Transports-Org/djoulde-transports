@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {onMount} from 'svelte';
-  import {page} from '$app/stores';
   import {goto, beforeNavigate} from '$app/navigation';
   import {resolve} from '$app/paths';
   import {get} from 'svelte/store';
@@ -18,21 +16,16 @@
     goto(`${resolve('/login')}?redirect=${encodeURIComponent(path)}`);
   };
 
-  const guard = (path: string, cancel: (() => void) | undefined = undefined) => {
-    const isPublic = PUBLIC_ROUTES.includes(path);
+  beforeNavigate(({to, cancel}) => {
+    if (!to?.url.pathname) return;
+    const isPublic = PUBLIC_ROUTES.includes(to.url.pathname);
     if (!get(isAuthenticated) && !isPublic) {
-      cancel?.();
-      loginWithRedirect(path);
+      cancel();
+      loginWithRedirect(to.url.pathname);
     } else if (get(isAuthenticated) && isPublic) {
-      cancel?.();
+      cancel();
       goto(resolve('/dashboard'));
     }
-  };
-
-  onMount(() => guard(get(page).url.pathname));
-
-  beforeNavigate(({to, cancel}) => {
-    if (to?.url.pathname) guard(to.url.pathname, cancel);
   });
 </script>
 

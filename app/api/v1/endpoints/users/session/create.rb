@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module API::V1::Endpoints::Users
-  class Sessions < Grape::API
+module API::V1::Endpoints::Users::Session
+  class Create < Grape::API
     helpers do
       def user
         @user ||= User.find_for_authentication(email: params[:email])
@@ -17,7 +17,6 @@ module API::V1::Endpoints::Users
           message: "Invalid email or password."
         ) unless user&.valid_password?(params[:password])
       end
-
 
       def application
         @application ||= user.oauth_application
