@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {onMount} from 'svelte';
-  import {page} from '$app/stores';
   import {goto, beforeNavigate} from '$app/navigation';
   import {resolve} from '$app/paths';
   import {get} from 'svelte/store';
@@ -12,16 +10,22 @@
 
   const PUBLIC_ROUTES = ['/login'];
 
-  const guard = (path: string) => {
-    const isPublic = PUBLIC_ROUTES.includes(path);
-    if (!get(isAuthenticated) && !isPublic) goto(resolve('/login'));
-    else if (get(isAuthenticated) && isPublic) goto(resolve('/'));
+  const loginWithRedirect = (path: string) => {
+    // Query param appended to resolved path - resolve() cannot be the direct argument here
+    // eslint-disable-next-line svelte/no-navigation-without-resolve
+    goto(`${resolve('/login')}?redirect=${encodeURIComponent(path)}`);
   };
 
-  onMount(() => guard($page.url.pathname));
-
-  beforeNavigate(({to}) => {
-    if (to?.url.pathname) guard(to.url.pathname);
+  beforeNavigate(({to, cancel}) => {
+    if (!to?.url.pathname) return;
+    const isPublic = PUBLIC_ROUTES.includes(to.url.pathname);
+    if (!get(isAuthenticated) && !isPublic) {
+      cancel();
+      loginWithRedirect(to.url.pathname);
+    } else if (get(isAuthenticated) && isPublic) {
+      cancel();
+      goto(resolve('/dashboard'));
+    }
   });
 </script>
 

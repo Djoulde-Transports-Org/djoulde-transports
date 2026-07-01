@@ -8,7 +8,7 @@ help:
 	@echo "djoulde-transports — local dev targets"
 	@echo ""
 	@echo "Stack"
-	@echo "  make dev                  Start the full stack (mysql, redis, dev, proxy, frontend)"
+	@echo "  make dev                  Build images then start the full stack (mysql, redis, dev, proxy, frontend)"
 	@echo "  make up-detached          Start the stack in the background"
 	@echo "  make down                 Stop and remove all services"
 	@echo "  make clean                Stop containers and remove orphans"
@@ -45,6 +45,7 @@ setup: install_deps_rails
 	-$(COMPOSE) run --rm dev bundle exec rails db:prepare
 
 dev: setup
+	$(COMPOSE) build dev frontend
 	$(COMPOSE) up dev frontend proxy
 
 up-detached:

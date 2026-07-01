@@ -1,2 +1,26 @@
 @import 'tailwindcss';
 @plugin "flowbite/plugin";
+
+@theme {
+  /* ── Brand palette derived from the Djoulde Transport logo ── */
+  --color-ground: #08101e;
+  --color-surface: #0e1a2e;
+  --color-surface-2: #162540;
+  --color-border: #1d3050;
+  --color-border-soft: #162038;
+  --color-dt-text: #e8ecf4;
+  --color-dt-text-mid: #8a9dc0;
+  --color-dt-text-muted: #526080;
+
+  /* Logo orange (flame / "Transport" wordmark) */
+  --color-accent: #e8621e;
+  --color-accent-dim: rgba(232, 98, 30, 0.12);
+
+  /* Logo blue (DT lettermark / "Djoulde" wordmark) */
+  --color-brand-blue: #1b4080;
+
+  /* Status colors */
+  --color-dt-green: #2e7a52;
+  --color-dt-yellow: #c09820;
+  --color-dt-red: #c03018;
+}
