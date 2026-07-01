@@ -45,8 +45,7 @@ module API::V1
       end
     end
 
-    mount API::V1::Endpoints::Users::Sessions
-    mount API::V1::Endpoints::Users::Me
+    mount API::V1::Endpoints::Users::Default
 
     mount API::V1::Endpoints::Trucks::Default
     mount API::V1::Endpoints::Tanks::Default
