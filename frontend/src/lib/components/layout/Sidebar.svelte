@@ -27,7 +27,7 @@
 >
   <div class="flex flex-col overflow-y-auto">
     <!-- Brand -->
-    <div class="flex items-center px-4 py-4 border-b border-border">
+    <div class="flex items-center px-4 py-4">
       <img src={logo} alt="Djoulde Transports" class="h-14 w-auto object-contain" />
     </div>
 
