@@ -1,8 +1,10 @@
 <script lang="ts">
   import {page} from '$app/stores';
   import {resolve} from '$app/paths';
+  import {goto} from '$app/navigation';
   import {authStore} from '$lib/store/session/auth';
   import {navItems, roleLabels} from '$lib/store/nav';
+  import {logout} from '$lib/api/sessions';
 
   import Icon from '$lib/components/common/Icon.svelte';
   import logo from '$lib/assets/djoulde-transport-logo.png';
@@ -12,6 +14,12 @@
   $: roleLabel = roleLabels[primaryRole] ?? primaryRole;
   $: initials = roleLabel.slice(0, 2).toUpperCase();
   $: activePath = $page.url.pathname;
+
+  const handleLogout = async () => {
+    await logout().catch(() => {});
+    authStore.clearSession();
+    goto(resolve('/login'));
+  };
 </script>
 
 <nav
@@ -55,11 +63,18 @@
     >
       {initials}
     </div>
-    <div class="flex flex-col gap-0 min-w-0">
+    <div class="flex flex-col gap-0 min-w-0 flex-1">
       <span class="text-[12px] font-semibold text-dt-text-mid truncate">
         Utilisateur #{session?.user_id ?? '—'}
       </span>
       <span class="text-[11px] text-dt-text-muted">{roleLabel}</span>
     </div>
+    <button
+      onclick={handleLogout}
+      class="transition-colors duration-[130ms] shrink-0"
+      title="Se déconnecter"
+    >
+      <Icon name="logout" size={15} class="text-accent hover:text-accent/80 cursor-pointer" />
+    </button>
   </div>
 </nav>
