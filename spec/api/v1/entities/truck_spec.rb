@@ -48,6 +48,45 @@ RSpec.describe API::V1::Entities::Truck do
     expect(payload["created_at"]).to match(/\d{4}-\d{2}-\d{2}T/)
   end
 
+  describe "driver" do
+    context "when no driver is assigned" do
+      it "exposes driver as nil" do
+        expect(payload["driver"]).to be_nil
+      end
+    end
+
+    context "when a driver is assigned" do
+      let(:driver) { Employee.create!(first_name: "Mamadou", last_name: "Diallo", phone_number: "+224600000000") }
+      let(:truck) do
+        Truck.create!(
+          plate_number: "GN-#{SecureRandom.hex(3).upcase}",
+          vin: "VIN#{SecureRandom.hex(8).upcase}",
+          make: "Volvo",
+          model: "FH",
+          year: 2022,
+          status: :ready,
+          driver: driver
+        )
+      end
+
+      it "exposes driver.id" do
+        expect(payload.dig("driver", "id")).to eq(driver.id)
+      end
+
+      it "exposes driver.first_name" do
+        expect(payload.dig("driver", "first_name")).to eq("Mamadou")
+      end
+
+      it "exposes driver.last_name" do
+        expect(payload.dig("driver", "last_name")).to eq("Diallo")
+      end
+
+      it "exposes driver.phone_number" do
+        expect(payload.dig("driver", "phone_number")).to eq("+224600000000")
+      end
+    end
+  end
+
   describe "tank" do
     context "when no tank is attached" do
       it "exposes tank as nil" do

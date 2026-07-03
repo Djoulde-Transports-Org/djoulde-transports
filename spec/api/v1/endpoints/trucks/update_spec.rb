@@ -53,6 +53,21 @@ RSpec.describe API::V1::Endpoints::Trucks::Update do
       end
     end
 
+    context "with a driver_id" do
+      let(:driver) { Employee.create!(first_name: "Ibra", last_name: "Bah") }
+      let(:params) { {driver_id: driver.id} }
+
+      before { do_request }
+
+      it "returns 200" do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns the nested driver" do
+        expect(response.parsed_body.dig("driver", "id")).to eq(driver.id)
+      end
+    end
+
     context "with nested tank attributes" do
       let!(:tank) do
         Tank.create!(truck: truck, plate_number: "TK-#{SecureRandom.hex(3)}", capacity: 30_000)

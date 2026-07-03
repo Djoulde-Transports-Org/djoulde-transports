@@ -57,6 +57,20 @@ RSpec.describe Trip do
     expect(trip.errors[:actual_end_at]).to be_present
   end
 
+  it "belongs_to driver (Employee, optional)", :aggregate_failures do
+    reflection = described_class.reflect_on_association(:driver)
+    expect(reflection.macro).to eq(:belongs_to)
+    expect(reflection.options[:class_name]).to eq("Employee")
+    expect(reflection.options[:optional]).to be true
+  end
+
+  it "accepts an Employee as driver" do
+    employee = Employee.create!(first_name: "Mamadou", last_name: "Diallo")
+    trip.save!
+    trip.update!(driver: employee)
+    expect(trip.reload.driver).to eq(employee)
+  end
+
   it "associates has_many :documents as :documentable" do
     reflection = described_class.reflect_on_association(:documents)
     expect(reflection.options[:as]).to eq(:documentable)

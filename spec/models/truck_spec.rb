@@ -33,6 +33,20 @@ RSpec.describe Truck do
     expect(truck.status).to eq("ready")
   end
 
+  it "belongs_to driver (Employee, optional)", :aggregate_failures do
+    reflection = described_class.reflect_on_association(:driver)
+    expect(reflection.macro).to eq(:belongs_to)
+    expect(reflection.options[:class_name]).to eq("Employee")
+    expect(reflection.options[:optional]).to be true
+  end
+
+  it "accepts a driver assignment" do
+    employee = Employee.create!(first_name: "Mamadou", last_name: "Diallo")
+    truck.save!
+    truck.update!(driver: employee)
+    expect(truck.reload.driver).to eq(employee)
+  end
+
   it "associates has_many :trips" do
     expect(described_class.reflect_on_association(:trips).macro).to eq(:has_many)
   end
