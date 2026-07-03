@@ -85,6 +85,21 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
       end
     end
 
+    context "with a driver_id" do
+      let(:driver) { Employee.create!(first_name: "Ibra", last_name: "Bah") }
+      let(:params) { super().merge(driver_id: driver.id) }
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "returns the nested driver" do
+        expect(response.parsed_body.dig("driver", "id")).to eq(driver.id)
+      end
+    end
+
     context "with a missing tank" do
       let(:params) { super().except(:tank) }
 

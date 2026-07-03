@@ -145,6 +145,27 @@ RSpec.describe API::V1::Endpoints::Trucks::Get do
       end
     end
 
+    context "when the truck has a driver" do
+      let(:driver) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+
+      before do
+        truck.update!(driver: driver)
+        do_request
+      end
+
+      it "returns the nested driver id" do
+        expect(response.parsed_body.dig("driver", "id")).to eq(driver.id)
+      end
+
+      it "returns the nested driver first_name" do
+        expect(response.parsed_body.dig("driver", "first_name")).to eq("Mamadou")
+      end
+
+      it "returns the nested driver last_name" do
+        expect(response.parsed_body.dig("driver", "last_name")).to eq("Diallo")
+      end
+    end
+
     context "with stats fields" do
       it "returns trips_count as 0 when there are no trips" do
         do_request

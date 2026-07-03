@@ -5,7 +5,13 @@ module API::V1::Endpoints::Trucks
     extend Grape::API::Helpers
 
     def truck
-      @truck ||= find_kept!(::Truck)
+      @truck ||= begin
+        record = policy_scope(::Truck).kept
+                   .includes(:tank, :maintenances, :documents, :driver)
+                   .find_by(id: params[:id])
+        not_found!(message: "Truck not found.") unless record
+        record
+      end
     end
 
     def truck_params

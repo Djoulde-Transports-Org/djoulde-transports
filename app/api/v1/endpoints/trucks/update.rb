@@ -24,7 +24,8 @@ module API::V1::Endpoints::Trucks
           optional :make,         type: String, documentation: {desc: "The make of the truck."}
           optional :model,        type: String, documentation: {desc: "The model of the truck."}
           optional :year,         type: Integer, documentation: {desc: "The year of the truck."}
-          optional :status,       type: String, values: ::Truck.statuses.keys, documentation: {desc: "The status of the truck."}
+          optional :status,     type: String,  values: ::Truck.statuses.keys, documentation: {desc: "The status of the truck."}
+          optional :driver_id,  type: Integer, documentation: {desc: "The ID of the driver (Employee) to assign to the truck."}
           optional :tank, type: Hash, documentation: {desc: "Attributes of the tank attached to the truck."} do
             optional :plate_number,    type: String, documentation: {desc: "The plate number of the tank."}
             optional :vin,             type: String, documentation: {desc: "The VIN of the tank."}

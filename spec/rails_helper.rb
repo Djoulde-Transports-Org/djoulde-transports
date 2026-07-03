@@ -79,6 +79,7 @@ RSpec.configure do |config|
   # unrelated request specs into spurious 429s. Clear the store before each
   # example so every spec starts from a clean throttle state.
   config.before do
+    Current.reset
     Rack::Attack.cache.store.clear if defined?(Rack::Attack)
   end
 

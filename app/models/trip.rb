@@ -35,7 +35,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (discarded_by_id => users.id)
-#  fk_rails_...  (driver_id => users.id)
+#  fk_rails_...  (driver_id => employees.id)
 #  fk_rails_...  (route_id => routes.id)
 #  fk_rails_...  (tank_id => tanks.id)
 #  fk_rails_...  (truck_id => trucks.id)
@@ -54,7 +54,7 @@ class Trip < ApplicationRecord
   belongs_to :truck
   belongs_to :tank
   belongs_to :route
-  belongs_to :driver,       class_name: "User", optional: true
+  belongs_to :driver,       class_name: "Employee", optional: true, inverse_of: :trips
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_one  :delivery_note, dependent: :restrict_with_error
