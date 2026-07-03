@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_02_120200) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -160,6 +160,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
     t.index ["expires_on"], name: "index_documents_on_expires_on"
     t.index ["number"], name: "index_documents_on_number", unique: true
     t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
+  end
+
+  create_table "employees", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "phone_number"
+    t.integer "role", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["created_by_id"], name: "index_employees_on_created_by_id"
+    t.index ["discarded_at"], name: "index_employees_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_employees_on_discarded_by_id"
+    t.index ["role"], name: "index_employees_on_role"
+    t.index ["user_id"], name: "index_employees_on_user_id", unique: true
   end
 
   create_table "maintenance_parts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -324,6 +342,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
     t.bigint "created_by_id"
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
+    t.bigint "driver_id"
     t.string "make"
     t.string "model"
     t.string "plate_number", null: false
@@ -334,6 +353,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
     t.index ["created_by_id"], name: "index_trucks_on_created_by_id"
     t.index ["discarded_at"], name: "index_trucks_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_trucks_on_discarded_by_id"
+    t.index ["driver_id"], name: "index_trucks_on_driver_id", unique: true
     t.index ["plate_number"], name: "index_trucks_on_plate_number", unique: true
     t.index ["vin"], name: "index_trucks_on_vin", unique: true
   end
@@ -385,6 +405,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
   add_foreign_key "delivery_notes", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "uploaded_by_id"
+  add_foreign_key "employees", "users"
+  add_foreign_key "employees", "users", column: "created_by_id"
+  add_foreign_key "employees", "users", column: "discarded_by_id"
   add_foreign_key "maintenance_parts", "maintenances"
   add_foreign_key "maintenance_parts", "users", column: "discarded_by_id"
   add_foreign_key "maintenances", "trucks"
@@ -398,11 +421,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_193011) do
   add_foreign_key "routes", "users", column: "discarded_by_id"
   add_foreign_key "tanks", "trucks"
   add_foreign_key "tanks", "users", column: "discarded_by_id"
+  add_foreign_key "trips", "employees", column: "driver_id"
   add_foreign_key "trips", "routes"
   add_foreign_key "trips", "tanks"
   add_foreign_key "trips", "trucks"
   add_foreign_key "trips", "users", column: "discarded_by_id"
-  add_foreign_key "trips", "users", column: "driver_id"
+  add_foreign_key "trucks", "employees", column: "driver_id"
   add_foreign_key "trucks", "users", column: "created_by_id"
   add_foreign_key "trucks", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "discarded_by_id"
