@@ -17,12 +17,14 @@
 #  updated_at      :datetime         not null
 #  created_by_id   :bigint
 #  discarded_by_id :bigint
+#  driver_id       :bigint
 #
 # Indexes
 #
 #  index_trucks_on_created_by_id    (created_by_id)
 #  index_trucks_on_discarded_at     (discarded_at)
 #  index_trucks_on_discarded_by_id  (discarded_by_id)
+#  index_trucks_on_driver_id        (driver_id) UNIQUE
 #  index_trucks_on_plate_number     (plate_number) UNIQUE
 #  index_trucks_on_vin              (vin) UNIQUE
 #
@@ -30,6 +32,7 @@
 #
 #  fk_rails_...  (created_by_id => users.id)
 #  fk_rails_...  (discarded_by_id => users.id)
+#  fk_rails_...  (driver_id => employees.id)
 #
 class Truck < ApplicationRecord
   include Discardable
@@ -39,6 +42,7 @@ class Truck < ApplicationRecord
 
   belongs_to :created_by,    class_name: "User", optional: true
   belongs_to :discarded_by,  class_name: "User", optional: true
+  belongs_to :driver,        class_name: "Employee", optional: true, inverse_of: :truck
 
   has_one  :tank,         dependent: :restrict_with_error
   has_many :trips,        dependent: :restrict_with_error
