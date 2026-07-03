@@ -6,7 +6,7 @@ module API::V1::Endpoints::Trucks
 
     resource :trucks do
       route_param :id, type: Integer do
-        desc "Get a truck."
+        desc "Get a truck by ID. Returns the full entity including document expiry dates and computed stats."
         get do
           authorize!(truck, :show)
           present truck, with: ::API::V1::Entities::Truck
