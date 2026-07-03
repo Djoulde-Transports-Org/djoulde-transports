@@ -13,7 +13,8 @@ module API::V1::Entities
     expose :created_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
     expose :updated_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
     expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
-    expose :tank, using: ::API::V1::Entities::Tank, documentation: {type: "Object", desc: "The tank attached to the truck."}
+    expose :tank,   using: ::API::V1::Entities::Tank,     documentation: {type: "Object", desc: "The tank attached to the truck."}
+    expose :driver, using: ::API::V1::Entities::Employee, documentation: {type: "Object", desc: "The driver (Employee) assigned to the truck."}
 
     expose :last_oil_change_on, format_with: :iso_8601_date,
            documentation: {type: "String", desc: "Date of the most recent oil change maintenance."} do |_, _|

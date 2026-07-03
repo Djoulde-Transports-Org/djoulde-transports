@@ -7,7 +7,7 @@ module API::V1::Endpoints::Trucks
     def truck
       @truck ||= begin
         record = policy_scope(::Truck).kept
-                   .includes(:tank, :maintenances, :documents)
+                   .includes(:tank, :maintenances, :documents, :driver)
                    .find_by(id: params[:id])
         not_found!(message: "Truck not found.") unless record
         record
