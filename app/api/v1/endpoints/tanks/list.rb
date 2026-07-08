@@ -2,6 +2,17 @@
 
 module API::V1::Endpoints::Tanks
   class List < Grape::API
+    helpers do
+      def base_tank_scope
+        policy_scope(::Tank).order(:plate_number)
+      end
+
+      def tank_scope
+        base_tank_scope
+          .then { |s| params[:truck_id] ? s.where(truck_id: params[:truck_id]) : s }
+      end
+    end
+
     resource :tanks do
       desc "List tanks (kept only)."
       paginate per_page: 25, max_per_page: 100
@@ -10,9 +21,7 @@ module API::V1::Endpoints::Tanks
       end
       get do
         authorize!(::Tank, :index)
-        scope = policy_scope(::Tank).order(:plate_number)
-        scope = scope.where(truck_id: params[:truck_id]) if params[:truck_id]
-        present paginate(scope), with: ::API::V1::Entities::Tank
+        present paginate(tank_scope), with: ::API::V1::Entities::Tank
       end
     end
   end
