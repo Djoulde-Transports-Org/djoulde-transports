@@ -10,9 +10,6 @@ module API::V1::Entities
     expose :year, documentation: {type: "Integer", desc: "The year of the truck."}
     expose :status, documentation: {type: "String", desc: "The status of the truck."}
     expose :created_by_id, documentation: {type: "Integer", desc: "The ID of the user who created the truck."}
-    expose :created_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
-    expose :updated_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
-    expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
     expose :tank,   using: ::API::V1::Entities::Tank,     documentation: {type: "Object", desc: "The tank attached to the truck."}
     expose :driver, using: ::API::V1::Entities::Employee, documentation: {type: "Object", desc: "The driver (Employee) assigned to the truck."}
 

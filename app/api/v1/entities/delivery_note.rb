@@ -12,8 +12,5 @@ module API::V1::Entities
     expose :product, documentation: {type: "String", desc: "The product carried (gasoline, diesel, or both)."} do |dn, _opts|
       dn.product&.to_s
     end
-    expose :created_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
-    expose :updated_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
-    expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
   end
 end

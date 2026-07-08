@@ -13,8 +13,5 @@ module API::V1::Entities
     expose :total_amount, documentation: {type: "Float",   desc: "The total amount before tax."}
     expose :total_tva,    documentation: {type: "Float",   desc: "The total tax (TVA)."}
     expose :grand_total,  documentation: {type: "Float",   desc: "The grand total including tax."}
-    expose :created_at,   format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
-    expose :updated_at,   format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
-    expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
   end
 end

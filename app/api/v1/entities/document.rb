@@ -14,8 +14,5 @@ module API::V1::Entities
     expose :file_attached, documentation: {type: "Boolean", desc: "Whether a file is attached to the document."} do |document|
       document.file.attached?
     end
-    expose :created_at,   format_with: :iso_8601, documentation: {type: "DateTime", desc: "The creation time."}
-    expose :updated_at,   format_with: :iso_8601, documentation: {type: "DateTime", desc: "The last update time."}
-    expose :discarded_at, format_with: :iso_8601, documentation: {type: "DateTime", desc: "The discard time."}
   end
 end

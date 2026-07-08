@@ -8,8 +8,5 @@ module API::V1::Entities
     expose :phone_number, documentation: {type: "String",  desc: "The phone number of the employee."}
     expose :role,         documentation: {type: "String",  desc: "The role of the employee (driver, mechanic, dispatcher, manager)."}
     expose :user_id,      documentation: {type: "Integer", desc: "The ID of the linked user account, if any."}
-    expose :created_at,   format_with: :iso_8601,      documentation: {type: "DateTime", desc: "The creation time."}
-    expose :updated_at,   format_with: :iso_8601,      documentation: {type: "DateTime", desc: "The last update time."}
-    expose :discarded_at, format_with: :iso_8601,      documentation: {type: "DateTime", desc: "The discard time."}
   end
 end
