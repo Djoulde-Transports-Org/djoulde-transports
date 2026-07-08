@@ -5,7 +5,14 @@ module API::V1::Endpoints::Trips
     extend Grape::API::Helpers
 
     def trip
-      @trip ||= find_kept!(::Trip)
+      @trip ||= begin
+        record = policy_scope(::Trip).kept
+                   .includes(:tank, :route, :driver, :delivery_note,
+                             truck: [ :maintenances, :documents, :tank, :driver ])
+                   .find_by(id: params[:id])
+        not_found!(message: "Trip not found.") unless record
+        record
+      end
     end
 
     def trip_params
