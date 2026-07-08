@@ -16,6 +16,9 @@ module API::V1::Entities
     expose :truck,           using: ::API::V1::Entities::Truck,           documentation: {type: "Object", desc: "The truck assigned to the trip."}
     expose :route,           using: ::API::V1::Entities::Route,           documentation: {type: "Object", desc: "The route of the trip."}
     expose :delivery_note,   using: ::API::V1::Entities::DeliveryNote,    documentation: {type: "Object", desc: "The delivery note for the trip."}
-    expose :billing_statement, using: ::API::V1::Entities::BillingStatement, documentation: {type: "Object", desc: "The billing statement for the trip."}
+    expose :billing_statement, using: ::API::V1::Entities::BillingStatement,
+           documentation: {type: "Object", desc: "The billing statement for the trip."} do |trip, _opts|
+      trip.billing_line_items.first&.billing_statement
+    end
   end
 end

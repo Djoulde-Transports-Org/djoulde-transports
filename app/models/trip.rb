@@ -24,13 +24,16 @@
 #
 # Indexes
 #
-#  index_trips_on_discarded_at     (discarded_at)
-#  index_trips_on_discarded_by_id  (discarded_by_id)
-#  index_trips_on_driver_id        (driver_id)
-#  index_trips_on_route_id         (route_id)
-#  index_trips_on_status           (status)
-#  index_trips_on_tank_id          (tank_id)
-#  index_trips_on_truck_id         (truck_id)
+#  index_trips_on_discarded_at                             (discarded_at)
+#  index_trips_on_discarded_by_id                          (discarded_by_id)
+#  index_trips_on_driver_id                                (driver_id)
+#  index_trips_on_driver_id_and_scheduled_start_at_and_id  (driver_id,scheduled_start_at,id)
+#  index_trips_on_route_id                                 (route_id)
+#  index_trips_on_status                                   (status)
+#  index_trips_on_status_and_scheduled_start_at_and_id     (status,scheduled_start_at,id)
+#  index_trips_on_tank_id                                  (tank_id)
+#  index_trips_on_truck_id                                 (truck_id)
+#  index_trips_on_truck_id_and_scheduled_start_at_and_id   (truck_id,scheduled_start_at,id)
 #
 # Foreign Keys
 #
@@ -57,7 +60,7 @@ class Trip < ApplicationRecord
   belongs_to :driver,       class_name: "Employee", optional: true, inverse_of: :trips
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  has_one  :delivery_note, dependent: :restrict_with_error
+  has_one  :delivery_note,    dependent: :restrict_with_error
   has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
