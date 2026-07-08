@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_02_120200) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_120000) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -330,10 +330,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_120200) do
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_trips_on_discarded_by_id"
+    t.index ["driver_id", "scheduled_start_at", "id"], name: "index_trips_on_driver_id_and_scheduled_start_at_and_id"
     t.index ["driver_id"], name: "index_trips_on_driver_id"
     t.index ["route_id"], name: "index_trips_on_route_id"
+    t.index ["status", "scheduled_start_at", "id"], name: "index_trips_on_status_and_scheduled_start_at_and_id"
     t.index ["status"], name: "index_trips_on_status"
     t.index ["tank_id"], name: "index_trips_on_tank_id"
+    t.index ["truck_id", "scheduled_start_at", "id"], name: "index_trips_on_truck_id_and_scheduled_start_at_and_id"
     t.index ["truck_id"], name: "index_trips_on_truck_id"
   end
 

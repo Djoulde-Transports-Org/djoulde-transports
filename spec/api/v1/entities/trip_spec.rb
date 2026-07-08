@@ -52,6 +52,39 @@ RSpec.describe API::V1::Entities::Trip do
     end
   end
 
+  describe "nested billing_statement" do
+    context "when no billing statement exists" do
+      it "exposes billing_statement as nil" do
+        expect(payload["billing_statement"]).to be_nil
+      end
+    end
+
+    context "when a billing statement is linked via a line item" do
+      let(:statement) do
+        BillingStatement.create!(number: "BS-001", month: Date.new(2026, 6, 1),
+                                 starts_on: Date.new(2026, 6, 1), ends_on: Date.new(2026, 6, 30))
+      end
+
+      before do
+        BillingLineItem.create!(
+          billing_statement: statement, trip: trip,
+          delivery_note_number: "DN-001", started_on: Date.new(2026, 6, 10),
+          origin: "Conakry", destination: "Labe",
+          gasoline_quantity: 0, diesel_quantity: 5_000,
+          rate: 1500, amount: 7_500_000, tva: 900_000
+        )
+      end
+
+      it "exposes billing_statement.id" do
+        expect(payload.dig("billing_statement", "id")).to eq(statement.id)
+      end
+
+      it "exposes billing_statement.number" do
+        expect(payload.dig("billing_statement", "number")).to eq("BS-001")
+      end
+    end
+  end
+
   describe "nested delivery_note" do
     context "when no delivery note exists" do
       it "exposes delivery_note as nil" do
