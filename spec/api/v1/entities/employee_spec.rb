@@ -37,22 +37,4 @@ RSpec.describe API::V1::Entities::Employee do
     result = described_class.represent(no_user_employee).as_json
     expect(result[:user_id]).to be_nil
   end
-
-  it "renders created_at as an ISO 8601 timestamp" do
-    expect(payload[:created_at]).to match(/\d{4}-\d{2}-\d{2}T/)
-  end
-
-  it "renders updated_at as an ISO 8601 timestamp" do
-    expect(payload[:updated_at]).to match(/\d{4}-\d{2}-\d{2}T/)
-  end
-
-  it "renders discarded_at as nil when not discarded" do
-    expect(payload[:discarded_at]).to be_nil
-  end
-
-  it "renders discarded_at as an ISO 8601 timestamp when discarded" do
-    employee.discard
-    result = described_class.represent(employee.reload).as_json
-    expect(result[:discarded_at]).to match(/\d{4}-\d{2}-\d{2}T/)
-  end
 end

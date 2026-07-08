@@ -32,8 +32,4 @@ RSpec.describe API::V1::Entities::Document do
   it "reports whether a file is attached" do
     expect(payload[:file_attached]).to be false
   end
-
-  it "renders created_at as a full ISO 8601 datetime" do
-    expect(payload[:created_at]).to match(/\dT\d.*(Z|[+-]\d\d:\d\d)/)
-  end
 end

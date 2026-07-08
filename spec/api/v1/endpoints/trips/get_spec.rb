@@ -37,12 +37,17 @@ RSpec.describe API::V1::Endpoints::Trips::Get do
         expect(response.parsed_body["id"]).to eq(trip.id)
       end
 
-      it "returns the trip truck_id" do
-        expect(response.parsed_body["truck_id"]).to eq(truck.id)
-      end
-
       it "includes the nested delivery note" do
         expect(response.parsed_body.dig("delivery_note", "number")).to eq(note.number)
+      end
+
+      it "includes the nested truck with plate_number" do
+        expect(response.parsed_body.dig("truck", "plate_number")).to eq(truck.plate_number)
+      end
+
+      it "includes the nested route origin and destination", :aggregate_failures do
+        expect(response.parsed_body.dig("route", "origin")).to eq("Conakry")
+        expect(response.parsed_body.dig("route", "destination")).to eq("Labe")
       end
     end
 

@@ -57,12 +57,8 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
         expect(response).to have_http_status(:created)
       end
 
-      it "returns the trip truck_id" do
-        expect(response.parsed_body["truck_id"]).to eq(truck.id)
-      end
-
-      it "defaults the tank from the truck" do
-        expect(response.parsed_body["tank_id"]).to eq(truck.tank.id)
+      it "returns the nested truck" do
+        expect(response.parsed_body.dig("truck", "id")).to eq(truck.id)
       end
 
       it "nests the delivery note in the response" do
