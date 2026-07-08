@@ -3,28 +3,24 @@
 module API::V1::Endpoints::Trips
   class List < Grape::API
     helpers do
+      def base_trip_scope
+        policy_scope(::Trip)
+          .includes(:route, :delivery_note, billing_line_items: :billing_statement,
+                    truck: [ :maintenances, :documents, :tank, :driver ])
+          .order("trips.id DESC")
+      end
+
       def trip_scope
-        scope = policy_scope(::Trip)
-                  .includes(:route, :delivery_note, billing_line_items: :billing_statement,
-                            truck: [ :maintenances, :documents, :tank, :driver ])
-                  .order("trips.id DESC")
-
-        scope = scope.where(truck_id:  params[:truck_id])  if params[:truck_id]
-        scope = scope.where(tank_id:   params[:tank_id])   if params[:tank_id]
-        scope = scope.where(route_id:  params[:route_id])  if params[:route_id]
-        scope = scope.where(driver_id: params[:driver_id]) if params[:driver_id]
-        scope = scope.where(status: ::Trip.statuses[params[:status]]) if params[:status]
-
-        if params[:truck_plate]
-          scope = scope.references(:trucks)
-                       .where("trucks.plate_number LIKE ?", "#{params[:truck_plate]}%")
-        end
-
-        scope = scope.where(scheduled_start_at: params[:date_from].beginning_of_day..) if params[:date_from]
-        scope = scope.where(scheduled_start_at: ..params[:date_to].end_of_day)         if params[:date_to]
-        scope = scope.where(trips: {id: ...params[:after]})                            if params[:after]
-
-        scope
+        base_trip_scope
+          .then { |s| params[:truck_id]    ? s.where(truck_id: params[:truck_id])                                                    : s }
+          .then { |s| params[:tank_id]     ? s.where(tank_id: params[:tank_id])                                                      : s }
+          .then { |s| params[:route_id]    ? s.where(route_id: params[:route_id])                                                    : s }
+          .then { |s| params[:driver_id]   ? s.where(driver_id: params[:driver_id])                                                  : s }
+          .then { |s| params[:status]      ? s.where(status: ::Trip.statuses[params[:status]])                                       : s }
+          .then { |s| params[:truck_plate] ? s.references(:trucks).where("trucks.plate_number LIKE ?", "#{params[:truck_plate]}%")   : s }
+          .then { |s| params[:date_from]   ? s.where(scheduled_start_at: params[:date_from].beginning_of_day..)                      : s }
+          .then { |s| params[:date_to]     ? s.where(scheduled_start_at: ..params[:date_to].end_of_day)                              : s }
+          .then { |s| params[:after]       ? s.where(trips: {id: ...params[:after]})                                                 : s }
       end
 
       def paginate_trips(scope)
