@@ -2,6 +2,20 @@
 
 module API::V1::Endpoints::Trucks
   class List < Grape::API
+    helpers do
+      def base_truck_scope
+        policy_scope(::Truck)
+          .includes(:tank, :maintenances, :documents)
+          .order(:id)
+      end
+
+      def truck_scope
+        base_truck_scope
+          .then { |s| params[:status]          ? s.where(status: ::Truck.statuses[params[:status]])                   : s }
+          .then { |s| params[:search].present? ? s.where("plate_number LIKE ?", "#{params[:search].upcase}%")         : s }
+      end
+    end
+
     resource :trucks do
       desc "List trucks (kept only)."
       paginate per_page: 25, max_per_page: 100
@@ -13,12 +27,7 @@ module API::V1::Endpoints::Trucks
       end
       get do
         authorize!(::Truck, :index)
-        scope = policy_scope(::Truck)
-          .includes(:tank, :maintenances, :documents)
-          .order(:id)
-        scope = scope.where(status: ::Truck.statuses[params[:status]]) if params[:status]
-        scope = scope.where("plate_number LIKE ?", "#{params[:search].upcase}%") if params[:search].present?
-        present paginate(scope), with: ::API::V1::Entities::Truck
+        present paginate(truck_scope), with: ::API::V1::Entities::Truck
       end
     end
   end
