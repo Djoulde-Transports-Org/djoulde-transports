@@ -10,8 +10,9 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
   let(:admin_token)  { admin_setup[1] }
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
   let(:viewer_token) { viewer_setup[1] }
-  let(:truck)        { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}", capacity: 1_500) }
-  let(:route)        { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
+  let(:truck)         { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}", capacity: 1_500) }
+  let(:route)         { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
+  let(:employee)      { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
   let(:delivery_note) { {number: "DN-#{SecureRandom.hex(2)}", gasoline_quantity: 1_000, diesel_quantity: 500} }
   let(:params) do
     {truck_id: truck.id, route_id: route.id, status: "scheduled", delivery_note: delivery_note}
@@ -61,12 +62,43 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
         expect(response.parsed_body.dig("truck", "id")).to eq(truck.id)
       end
 
+      it "returns the nested route with origin and destination" do
+        expect(response.parsed_body.dig("route", "origin")).to eq("Conakry")
+        expect(response.parsed_body.dig("route", "destination")).to eq("Labe")
+      end
+
       it "nests the delivery note in the response" do
         expect(response.parsed_body.dig("delivery_note", "number")).to eq(delivery_note[:number])
       end
 
       it "defaults the note's missing quantity to 0" do
         expect(response.parsed_body.dig("delivery_note", "missing_quantity")).to eq(0)
+      end
+
+    end
+
+    context "with a driver_id" do
+      let(:params) { super().merge(driver_id: employee.id) }
+
+      it "links the driver to the trip" do
+        expect { do_request }.to change { Trip.count }.by(1)
+        expect(Trip.last.driver_id).to eq(employee.id)
+      end
+    end
+
+    context "with scheduled_start_at and scheduled_end_at" do
+      let(:params) { super().merge(scheduled_start_at: "2026-07-10T08:00:00Z", scheduled_end_at: "2026-07-10T18:00:00Z") }
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "stores the scheduled window on the trip" do
+        trip = Trip.last
+        expect(trip.scheduled_start_at).to be_present
+        expect(trip.scheduled_end_at).to be_present
       end
     end
 
