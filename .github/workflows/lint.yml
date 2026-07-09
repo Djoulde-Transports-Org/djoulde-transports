@@ -1,0 +1,53 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  RUBY_VERSION: '3.4.9'
+  NODE_VERSION: '22'
+
+jobs:
+  lint-ruby:
+    name: Lint Ruby
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Lint Ruby
+        run: bundle exec rubocop -f github
+
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint frontend (ESLint)
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Check frontend formatting (Prettier)
+        run: npm run format:check
+        working-directory: frontend
