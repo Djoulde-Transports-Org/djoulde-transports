@@ -1,0 +1,29 @@
+name: Security
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  RUBY_VERSION: '3.4.9'
+
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Scan for Ruby security vulnerabilities
+        run: bin/brakeman --no-pager
+
+      - name: Scan for vulnerable gems
+        run: bin/bundler-audit --update

@@ -14,5 +14,8 @@ module API::V1::Entities
     expose :file_attached, documentation: {type: "Boolean", desc: "Whether a file is attached to the document."} do |document|
       document.file.attached?
     end
+    expose :file_size, documentation: {type: "Integer", desc: "The file size in bytes, or null if no file is attached."} do |document|
+      document.file.attached? ? document.file.byte_size : nil
+    end
   end
 end

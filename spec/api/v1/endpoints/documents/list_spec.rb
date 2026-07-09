@@ -30,13 +30,16 @@ RSpec.describe API::V1::Endpoints::Documents::List do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns kept documents" do
-      expect(response.parsed_body.pluck("id")).to include(document.id)
+    it "returns kept documents in the items array" do
+      expect(response.parsed_body["items"].pluck("id")).to include(document.id)
     end
 
-    it "sets pagination headers", :aggregate_failures do
-      expect(response.headers["Total"]).to eq("1")
-      expect(response.headers["Per-Page"]).to eq("25")
+    it "includes has_more in the response" do
+      expect(response.parsed_body).to have_key("has_more")
+    end
+
+    it "includes next_cursor in the response" do
+      expect(response.parsed_body).to have_key("next_cursor")
     end
   end
 
@@ -49,7 +52,7 @@ RSpec.describe API::V1::Endpoints::Documents::List do
     end
 
     it "excludes discarded documents" do
-      expect(response.parsed_body.pluck("id")).not_to include(document.id)
+      expect(response.parsed_body["items"].pluck("id")).not_to include(document.id)
     end
   end
 
@@ -63,19 +66,19 @@ RSpec.describe API::V1::Endpoints::Documents::List do
     before { do_request }
 
     it "returns only documents for that owner" do
-      expect(response.parsed_body.pluck("id")).to contain_exactly(document.id)
+      expect(response.parsed_body["items"].pluck("id")).to contain_exactly(document.id)
     end
   end
 
   context "when filtering by doc_type" do
-    let(:headers) { bearer_headers(viewer_token) }
-    let(:params)  { {doc_type: "license"} }
+    let(:headers)  { bearer_headers(viewer_token) }
+    let(:params)   { {doc_type: "license"} }
     let!(:license) { Document.create!(documentable: truck, number: "LIC-1", title: "License", doc_type: :license) }
 
     before { do_request }
 
     it "returns only documents of that kind" do
-      expect(response.parsed_body.pluck("id")).to contain_exactly(license.id)
+      expect(response.parsed_body["items"].pluck("id")).to contain_exactly(license.id)
     end
   end
 
@@ -87,6 +90,123 @@ RSpec.describe API::V1::Endpoints::Documents::List do
 
     it "returns 422" do
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  context "when filtering by date_from" do
+    let(:headers) { bearer_headers(viewer_token) }
+    let(:params)  { {date_from: "2026-06-01"} }
+    let!(:recent) do
+      Document.create!(documentable: truck, number: "REC-1", title: "Recent", issued_on: Date.new(2026, 6, 15))
+    end
+    let!(:old) do
+      Document.create!(documentable: truck, number: "OLD-1", title: "Old", issued_on: Date.new(2025, 12, 1))
+    end
+
+    before { do_request }
+
+    it "includes documents with issued_on on or after date_from" do
+      expect(response.parsed_body["items"].pluck("id")).to include(recent.id)
+    end
+
+    it "excludes documents with issued_on before date_from" do
+      expect(response.parsed_body["items"].pluck("id")).not_to include(old.id)
+    end
+  end
+
+  context "when filtering by date_to" do
+    let(:headers) { bearer_headers(viewer_token) }
+    let(:params)  { {date_to: "2025-12-31"} }
+    let!(:old) do
+      Document.create!(documentable: truck, number: "OLD-2", title: "Old2", issued_on: Date.new(2025, 11, 1))
+    end
+    let!(:recent) do
+      Document.create!(documentable: truck, number: "REC-2", title: "Recent2", issued_on: Date.new(2026, 3, 1))
+    end
+
+    before { do_request }
+
+    it "includes documents with issued_on on or before date_to" do
+      expect(response.parsed_body["items"].pluck("id")).to include(old.id)
+    end
+
+    it "excludes documents with issued_on after date_to" do
+      expect(response.parsed_body["items"].pluck("id")).not_to include(recent.id)
+    end
+  end
+
+  context "when filtering by search" do
+    let(:headers)   { bearer_headers(viewer_token) }
+    let(:params)    { {search: "Reg"} }
+    let!(:matched)  { Document.create!(documentable: truck, number: "REG-1", title: "Registration") }
+    let!(:unmatched) { Document.create!(documentable: truck, number: "INV-1", title: "Invoice", doc_type: :invoice) }
+
+    before { do_request }
+
+    it "includes documents whose title starts with the search term" do
+      expect(response.parsed_body["items"].pluck("id")).to include(matched.id)
+    end
+
+    it "excludes documents whose title does not match" do
+      expect(response.parsed_body["items"].pluck("id")).not_to include(unmatched.id)
+    end
+  end
+
+  context "when paginating with a cursor" do
+    let(:headers) { bearer_headers(viewer_token) }
+
+    before do
+      # document already exists; create 2 more so we have 3 total
+      Document.create!(documentable: truck, number: "DOC-2", title: "Doc Two")
+      Document.create!(documentable: truck, number: "DOC-3", title: "Doc Three")
+    end
+
+    context "with the first page and limit=2" do
+      let(:params) { {limit: 2} }
+
+      before { do_request }
+
+      it "returns 2 items" do
+        expect(response.parsed_body["items"].size).to eq(2)
+      end
+
+      it "sets has_more to true" do
+        expect(response.parsed_body["has_more"]).to be true
+      end
+
+      it "returns a next_cursor" do
+        expect(response.parsed_body["next_cursor"]).to be_present
+      end
+    end
+
+    context "with the second page using the cursor from the first page" do
+      before do
+        get "/api/v1/documents?limit=2", headers: headers
+        cursor = response.parsed_body["next_cursor"]
+        get "/api/v1/documents?limit=2&after=#{cursor}", headers: headers
+      end
+
+      it "returns the remaining item" do
+        expect(response.parsed_body["items"].size).to eq(1)
+      end
+
+      it "sets has_more to false" do
+        expect(response.parsed_body["has_more"]).to be false
+      end
+
+      it "returns nil next_cursor" do
+        expect(response.parsed_body["next_cursor"]).to be_nil
+      end
+    end
+
+    context "when limit is out of range" do
+      let(:params) { {limit: 200} }
+
+      before { do_request }
+
+      it "returns 422" do
+        expect(response).to have_http_status(:unprocessable_content)
+      end
     end
   end
 end

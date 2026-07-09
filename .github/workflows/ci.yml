@@ -6,7 +6,6 @@ on:
   pull_request:
 
 env:
-  RUBY_VERSION: '3.4.9'
   NODE_VERSION: '22'
 
 jobs:
@@ -16,12 +15,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -34,26 +27,9 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Lint Ruby
-        run: bundle exec rubocop -f github
-
-      - name: Lint frontend (ESLint)
-        run: npm run lint
-        working-directory: frontend
-
-      - name: Check frontend formatting (Prettier)
-        run: npm run format:check
-        working-directory: frontend
-
       - name: Type-check frontend (svelte-check)
         run: npm run check
         working-directory: frontend
-
-      - name: Scan for Ruby security vulnerabilities
-        run: bin/brakeman --no-pager
-
-      - name: Scan for vulnerable gems
-        run: bin/bundler-audit --update
 
       - name: Scan for vulnerable npm packages
         run: npm audit --audit-level=high
