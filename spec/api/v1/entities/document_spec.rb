@@ -32,4 +32,8 @@ RSpec.describe API::V1::Entities::Document do
   it "reports whether a file is attached" do
     expect(payload[:file_attached]).to be false
   end
+
+  it "exposes file_size as nil when no file is attached" do
+    expect(payload[:file_size]).to be_nil
+  end
 end
