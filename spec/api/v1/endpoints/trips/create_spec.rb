@@ -12,7 +12,6 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
   let(:viewer_token) { viewer_setup[1] }
   let(:truck)         { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}", capacity: 1_500) }
   let(:route)         { Route.create!(origin: "Conakry", destination: "Labe", rate: 1500) }
-  let(:employee)      { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
   let(:delivery_note) { {number: "DN-#{SecureRandom.hex(2)}", gasoline_quantity: 1_000, diesel_quantity: 500} }
   let(:params) do
     {truck_id: truck.id, route_id: route.id, status: "scheduled", delivery_note: delivery_note}
@@ -58,12 +57,15 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
         expect(response).to have_http_status(:created)
       end
 
-      it "returns the nested truck" do
+      it "returns the nested truck id" do
         expect(response.parsed_body.dig("truck", "id")).to eq(truck.id)
       end
 
-      it "returns the nested route with origin and destination" do
+      it "returns the nested route origin" do
         expect(response.parsed_body.dig("route", "origin")).to eq("Conakry")
+      end
+
+      it "returns the nested route destination" do
         expect(response.parsed_body.dig("route", "destination")).to eq("Labe")
       end
 
@@ -74,14 +76,15 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
       it "defaults the note's missing quantity to 0" do
         expect(response.parsed_body.dig("delivery_note", "missing_quantity")).to eq(0)
       end
-
     end
 
     context "with a driver_id" do
-      let(:params) { super().merge(driver_id: employee.id) }
+      let(:employee) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+      let(:params)   { super().merge(driver_id: employee.id) }
+
+      before { do_request }
 
       it "links the driver to the trip" do
-        expect { do_request }.to change { Trip.count }.by(1)
         expect(Trip.last.driver_id).to eq(employee.id)
       end
     end
@@ -95,10 +98,12 @@ RSpec.describe API::V1::Endpoints::Trips::Create do
         expect(response).to have_http_status(:created)
       end
 
-      it "stores the scheduled window on the trip" do
-        trip = Trip.last
-        expect(trip.scheduled_start_at).to be_present
-        expect(trip.scheduled_end_at).to be_present
+      it "stores scheduled_start_at on the trip" do
+        expect(Trip.last.scheduled_start_at).to be_present
+      end
+
+      it "stores scheduled_end_at on the trip" do
+        expect(Trip.last.scheduled_end_at).to be_present
       end
     end
 
