@@ -11,7 +11,7 @@ env:
 
 jobs:
   lint-ruby:
-    name: Lint Ruby
+    name: Rubocop
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
         run: bundle exec rubocop -f github
 
   lint-frontend:
-    name: Lint Frontend
+    name: Frontend Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
