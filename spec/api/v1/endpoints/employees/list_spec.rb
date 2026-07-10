@@ -131,5 +131,19 @@ RSpec.describe API::V1::Endpoints::Employees::List do
         expect(response.parsed_body.pluck("id")).to include(employee.id)
       end
     end
+
+    context "when searching by first name prefix" do
+      let(:params) { {search: "MAM"} }
+
+      before { do_request }
+
+      it "returns the matching employee" do
+        expect(response.parsed_body.pluck("id")).to include(employee.id)
+      end
+
+      it "excludes non-matching employees" do
+        expect(response.parsed_body.pluck("id")).not_to include(other.id)
+      end
+    end
   end
 end
