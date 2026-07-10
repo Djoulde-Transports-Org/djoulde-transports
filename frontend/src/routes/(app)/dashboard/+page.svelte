@@ -1,1 +1,7 @@
-<h1 class="text-[22px] font-bold text-dt-text p-8">Tableau de bord</h1>
+<script lang="ts">
+  import DashboardStats from '$lib/components/dashboard/DashboardStats.svelte';
+</script>
+
+<div class="p-8 flex flex-col gap-6">
+  <DashboardStats />
+</div>
