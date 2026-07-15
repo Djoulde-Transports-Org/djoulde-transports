@@ -1,14 +1,21 @@
 import {render} from '@testing-library/svelte';
 import Page from '$routes/(app)/dashboard/+page.svelte';
 
+const mockGet = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+
 describe('+page (dashboard)', () => {
-  it('renders an h1 element', () => {
-    const {container} = render(Page);
-    expect(container.querySelector('h1')).toBeInTheDocument();
+  beforeEach(() => {
+    mockGet.mockReturnValue(new Promise(() => {}));
   });
 
-  it('displays the dashboard heading', () => {
-    const {getByRole} = render(Page);
-    expect(getByRole('heading', {level: 1})).toHaveTextContent('Tableau de bord');
+  afterEach(() => vi.clearAllMocks());
+
+  it('renders DashboardStats — card labels are present', () => {
+    const {getByText} = render(Page);
+    expect(getByText('Camions actifs')).toBeInTheDocument();
+    expect(getByText('Trajets en cours')).toBeInTheDocument();
+    expect(getByText('Litres livrés')).toBeInTheDocument();
+    expect(getByText('Facturation HT')).toBeInTheDocument();
   });
 });
