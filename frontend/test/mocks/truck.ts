@@ -1,0 +1,28 @@
+import type {Truck} from '$lib/types/truck';
+
+export const makeTruck = (overrides: Partial<Truck> = {}): Truck =>
+  ({
+    id: 1,
+    plate_number: 'TRK-001',
+    status: 'ready',
+    driver: null,
+    tank: null,
+    vin: null,
+    make: 'Volvo',
+    model: 'FH',
+    year: 2020,
+    created_by_id: 1,
+    last_oil_change_on: null,
+    truck_insurance_expires_on: null,
+    truck_insurance_days_remaining: null,
+    cargo_insurance_expires_on: null,
+    cargo_insurance_days_remaining: null,
+    technical_inspection_expires_on: null,
+    technical_inspection_days_remaining: null,
+    operating_permit_expires_on: null,
+    operating_permit_days_remaining: null,
+    trips_count: 0,
+    total_km: 0,
+    total_liters_delivered: 0,
+    ...overrides,
+  }) as Truck;
