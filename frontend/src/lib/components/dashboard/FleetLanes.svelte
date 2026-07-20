@@ -11,7 +11,6 @@
   onMount(async () => {
     ({data: trucks, error: errorMsg} = await getTrucks());
     loading = false;
-    console.log(trucks);
   });
 </script>
 
@@ -62,15 +61,18 @@
           {#if truck.status === 'on_trip'}
             <span
               class="shrink-0 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20"
-            >EN ROUTE</span>
+              >EN ROUTE</span
+            >
           {:else if truck.status === 'in_maintenance'}
             <span
               class="shrink-0 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-dt-yellow/10 text-dt-yellow border border-dt-yellow/20"
-            >MAINTENANCE</span>
+              >MAINTENANCE</span
+            >
           {:else}
             <span
               class="shrink-0 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-surface-2 text-dt-text-muted border border-border"
-            >PRÊT</span>
+              >PRÊT</span
+            >
           {/if}
 
           <span class="w-32 shrink-0 text-[12px] text-dt-text-muted truncate">
