@@ -25,7 +25,14 @@ const TRUCKS: Truck[] = [
       year: null,
       capacity: 33_000,
       status: 'active',
+      conformity_certificate_expires_on: null,
+      conformity_certificate_days_remaining: 25,
     },
+    truck_insurance_days_remaining: 45,
+    cargo_insurance_days_remaining: 120,
+    technical_inspection_days_remaining: 8,
+    operating_permit_days_remaining: 200,
+    truck_registration_days_remaining: 330,
   }),
   makeTruck({
     id: 2,
@@ -36,6 +43,8 @@ const TRUCKS: Truck[] = [
     status: 'in_maintenance',
     last_oil_change_on: null,
     tank: null,
+    truck_insurance_days_remaining: -5,
+    cargo_insurance_days_remaining: null,
   }),
   makeTruck({
     id: 3,
@@ -60,6 +69,12 @@ describe('FleetTable', () => {
     expect(getByText('Citerne')).toBeInTheDocument();
     expect(getByText('Statut')).toBeInTheDocument();
     expect(getByText('Dernière vidange')).toBeInTheDocument();
+    expect(getByText('Ass. camion')).toBeInTheDocument();
+    expect(getByText('Ass. produit')).toBeInTheDocument();
+    expect(getByText('Visite tech.')).toBeInTheDocument();
+    expect(getByText('Carte de Transport')).toBeInTheDocument();
+    expect(getByText('Carte grise')).toBeInTheDocument();
+    expect(getByText('Baremage')).toBeInTheDocument();
   });
 
   it('renders the plate number', async () => {
@@ -114,5 +129,64 @@ describe('FleetTable', () => {
     mockGet.mockResolvedValue(TRUCKS);
     const {getByText} = render(FleetTable);
     await waitFor(() => expect(getByText('GN-3310-C').closest('tr')).toHaveClass('cursor-pointer'));
+  });
+
+  describe('expiry pills', () => {
+    it('shows a green pill with days remaining when more than 60 days remain', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('dans 120j'));
+      expect(pill).toHaveClass('text-dt-green');
+    });
+
+    it('shows a yellow pill with days remaining when 15 to 60 days remain', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('dans 45j'));
+      expect(pill).toHaveClass('text-dt-yellow');
+    });
+
+    it('shows a red pill with days remaining when fewer than 15 days remain', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('dans 8j'));
+      expect(pill).toHaveClass('text-dt-red');
+    });
+
+    it('shows a red Expiré pill when the document has already expired', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('Expiré'));
+      expect(pill).toHaveClass('text-dt-red');
+    });
+
+    it('shows a neutral N/A pill when no document is on file', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getAllByText} = render(FleetTable);
+      const pills = await waitFor(() => getAllByText('N/A'));
+      expect(pills.length).toBeGreaterThan(0);
+      expect(pills[0]).toHaveClass('text-dt-text-muted');
+    });
+
+    it('renders the truck registration pill', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('dans 330j'));
+      expect(pill).toHaveClass('text-dt-green');
+    });
+
+    it("renders the tank's conformity certificate pill", async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      const pill = await waitFor(() => getByText('dans 25j'));
+      expect(pill).toHaveClass('text-dt-yellow');
+    });
+
+    it('shows N/A for the conformity certificate pill when the truck has no tank', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getAllByText} = render(FleetTable);
+      const pills = await waitFor(() => getAllByText('N/A'));
+      expect(pills.length).toBeGreaterThan(0);
+    });
   });
 });

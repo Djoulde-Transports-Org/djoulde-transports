@@ -21,6 +21,8 @@ export const makeTruck = (overrides: Partial<Truck> = {}): Truck =>
     technical_inspection_days_remaining: null,
     operating_permit_expires_on: null,
     operating_permit_days_remaining: null,
+    truck_registration_expires_on: null,
+    truck_registration_days_remaining: null,
     trips_count: 0,
     total_km: 0,
     total_liters_delivered: 0,
