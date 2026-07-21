@@ -46,6 +46,24 @@ describe('DataTable', () => {
       expect(getByText('Bob')).toBeInTheDocument();
     });
 
+    it('does not add cursor-pointer to rows by default', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const {getByText} = render(DataTable, {endpoint: '/employees', columns: COLUMNS});
+      await waitFor(() =>
+        expect(getByText('Alice').closest('tr')).not.toHaveClass('cursor-pointer')
+      );
+    });
+
+    it('adds cursor-pointer to rows when rowClickable is true', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const {getByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        rowClickable: true,
+      });
+      await waitFor(() => expect(getByText('Alice').closest('tr')).toHaveClass('cursor-pointer'));
+    });
+
     it('uses render snippet for cells', async () => {
       const cols = [
         {
