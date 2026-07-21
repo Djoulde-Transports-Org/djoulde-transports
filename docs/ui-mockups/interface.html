@@ -534,6 +534,37 @@
   .ea-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
   .ea-val   { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent); letter-spacing: -0.01em; }
   .ea-sub   { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
+
+  .parts-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+
+  .part-row { display: grid; grid-template-columns: 1fr 130px 28px; gap: 8px; align-items: center; }
+
+  .part-remove {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0; transition: all 0.12s;
+  }
+
+  .part-remove:hover { background: var(--red-dim); color: var(--red); border-color: rgba(168,50,40,0.3); }
+
+  .btn-add-part {
+    display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
+    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px dashed var(--border); background: transparent; color: var(--text-muted);
+    transition: all 0.13s; letter-spacing: 0.01em; width: 100%; justify-content: center;
+  }
+
+  .btn-add-part:hover { background: var(--surface-2); border-color: rgba(212,120,42,0.35); color: var(--accent); }
+
+  .parts-total {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 12px; margin-top: 4px;
+  }
+
+  .parts-total-label { color: var(--text-muted); font-weight: 500; }
+  .parts-total-val   { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
 </style>
 
 <div class="app">
@@ -737,7 +768,7 @@
           <button class="chip">Prêts (2)</button>
           <button class="chip">Maintenance (1)</button>
           <input class="fleet-search" type="text" placeholder="Rechercher un camion...">
-          <div class="ml-auto"><button class="btn btn-primary">+ Ajouter camion</button></div>
+          <div class="ml-auto"><button class="btn btn-primary" onclick="openAddTruckDrawer()">+ Ajouter camion</button></div>
         </div>
         <div class="tbl-wrap">
           <table>
@@ -991,23 +1022,66 @@
       <div class="view" id="view-maintenance">
         <div class="filter-row">
           <button class="chip active">Tous</button><button class="chip">En cours</button><button class="chip">Terminés</button>
-          <div class="ml-auto"><button class="btn btn-primary">+ Ouvrir un chantier</button></div>
+          <input class="fleet-search" type="text" placeholder="Rechercher un chantier...">
+          <div class="ml-auto"><button class="btn btn-primary" onclick="openMaintDrawer()">+ Ouvrir un chantier</button></div>
         </div>
-        <div class="maint-card ongoing">
-          <div><div class="mc-title">GN-4478-E &nbsp;·&nbsp; Révision moteur</div><div class="mc-meta"><span>Démarré le 25/06 à 11h00</span><span>Durée estimée : 6h</span><span>Technicien : Ibrahima Konaté</span></div></div>
-          <div class="mc-right"><div class="mc-cost">850 000 GNF</div><div class="mc-dur">En cours · 3h écoulées</div><span class="badge badge-maint"><span class="bd"></span>En cours</span></div>
-        </div>
-        <div class="maint-card">
-          <div><div class="mc-title">GN-3310-C &nbsp;·&nbsp; Changement pneus (× 6)</div><div class="mc-meta"><span>Terminé le 22/06</span><span>Durée réelle : 4h</span><span>Technicien : Mamadou Touré</span></div></div>
-          <div class="mc-right"><div class="mc-cost">1 200 000 GNF</div><div class="mc-dur">Durée : 4h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
-        </div>
-        <div class="maint-card">
-          <div><div class="mc-title">GN-1892-B &nbsp;·&nbsp; Vidange + filtres</div><div class="mc-meta"><span>Terminé le 08/06</span><span>Durée réelle : 2h</span><span>Technicien : Ibrahima Konaté</span></div></div>
-          <div class="mc-right"><div class="mc-cost">320 000 GNF</div><div class="mc-dur">Durée : 2h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
-        </div>
-        <div class="maint-card">
-          <div><div class="mc-title">GN-2341-A &nbsp;·&nbsp; Réparation système hydraulique citerne</div><div class="mc-meta"><span>Terminé le 12/06</span><span>Durée réelle : 8h</span><span>Technicien : Mamadou Touré</span></div></div>
-          <div class="mc-right"><div class="mc-cost">2 100 000 GNF</div><div class="mc-dur">Durée : 8h</div><span class="badge badge-done"><span class="bd"></span>Terminé</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Camion</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Technicien</th>
+                <th>Date</th>
+                <th>Durée (h)</th>
+                <th>Coût pièces</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-strong">GN-4478-E</td>
+                <td><span class="badge badge-neutral">Réparation</span></td>
+                <td>Révision moteur</td>
+                <td class="td-id">Ibrahima Konaté</td>
+                <td class="td-id">25/06/2025</td>
+                <td class="td-num">6</td>
+                <td class="td-num">850 000 GNF</td>
+                <td><span class="badge badge-maint"><span class="bd"></span>En cours</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong">GN-3310-C</td>
+                <td><span class="badge badge-neutral">Révision</span></td>
+                <td>Changement pneus (× 6)</td>
+                <td class="td-id">Mamadou Touré</td>
+                <td class="td-id">22/06/2025</td>
+                <td class="td-num">4</td>
+                <td class="td-num">1 200 000 GNF</td>
+                <td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong">GN-1892-B</td>
+                <td><span class="badge badge-neutral">Vidange</span></td>
+                <td>Vidange + filtres</td>
+                <td class="td-id">Ibrahima Konaté</td>
+                <td class="td-id">08/06/2025</td>
+                <td class="td-num">2</td>
+                <td class="td-num">320 000 GNF</td>
+                <td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong">GN-2341-A</td>
+                <td><span class="badge badge-neutral">Réparation</span></td>
+                <td>Réparation système hydraulique citerne</td>
+                <td class="td-id">Mamadou Touré</td>
+                <td class="td-id">12/06/2025</td>
+                <td class="td-num">8</td>
+                <td class="td-num">2 100 000 GNF</td>
+                <td><span class="badge badge-done"><span class="bd"></span>Terminé</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1271,6 +1345,209 @@
     </div>
   </div>
 
+  <!-- MAINTENANCE DRAWER -->
+  <div class="drawer" id="d-maint" role="dialog" aria-modal="true" aria-label="Ouvrir un chantier">
+    <div class="d-header">
+      <div>
+        <div class="d-title">Ouvrir un chantier</div>
+        <div class="d-sub">Déclarez une intervention sur un camion de la flotte</div>
+      </div>
+      <button class="d-close" onclick="closeMaintDrawer()" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="d-body">
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">01</span><span class="fsec-title">Camion</span></div>
+        <div class="field">
+          <label class="f-label">Tracteur concerné</label>
+          <select class="f-select" id="m-truck">
+            <option value="">Choisir un camion...</option>
+            <option value="1">GN-2341-A — Volvo FH · 2019</option>
+            <option value="2">GN-1892-B — Renault T · 2020</option>
+            <option value="3">GN-3310-C — Volvo FH · 2021</option>
+            <option value="4">GN-4478-E — Mercedes Actros · 2018</option>
+            <option value="5">GN-2890-F — DAF XF · 2022</option>
+            <option value="6">GN-5521-G — Volvo FH · 2020</option>
+            <option value="7">GN-0045-D — Scania R · 2017</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">02</span><span class="fsec-title">Intervention</span></div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Type</label>
+            <select class="f-select" id="m-kind">
+              <option value="routine">Révision de routine</option>
+              <option value="repair">Réparation</option>
+              <option value="inspection">Inspection</option>
+              <option value="oil_change">Vidange</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="f-label">Date</label>
+            <input class="f-input" type="date" id="m-date" value="2025-06-26">
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Durée estimée (h) <span class="fsec-opt">(optionnel)</span></label>
+            <input class="f-input" type="number" id="m-duration" placeholder="4" min="0.5" step="0.5">
+          </div>
+          <div class="field">
+            <label class="f-label">Kilométrage <span class="fsec-opt">(optionnel)</span></label>
+            <input class="f-input" type="number" id="m-odometer" placeholder="142 000" min="0">
+          </div>
+        </div>
+        <div class="field">
+          <label class="f-label">Description <span class="fsec-opt">(optionnel)</span></label>
+          <input class="f-input" type="text" id="m-description" placeholder="Ex. remplacement filtre à huile, joints de culasse...">
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">03</span><span class="fsec-title">Technicien</span><span class="fsec-opt">(optionnel)</span></div>
+        <div class="field">
+          <label class="f-label">Responsable</label>
+          <select class="f-select" id="m-tech">
+            <option value="">Non affecté pour l'instant</option>
+            <option value="9">Ibrahima Konaté</option>
+            <option value="10">Mamadou Touré</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">04</span><span class="fsec-title">Pièces</span><span class="fsec-opt">(optionnel)</span></div>
+        <div class="parts-list" id="m-parts-list"></div>
+        <button class="btn-add-part" onclick="addPart()">+ Ajouter une pièce</button>
+        <div class="parts-total" id="m-parts-total" style="display:none">
+          <span class="parts-total-label">Total pièces estimé</span>
+          <span class="parts-total-val" id="m-total-val">0 GNF</span>
+        </div>
+      </div>
+
+      <div id="m-error" style="font-size:12px;font-weight:600;color:var(--red);display:none;padding:4px 0 8px"></div>
+
+    </div>
+
+    <div class="d-footer">
+      <button class="btn btn-ghost" onclick="closeMaintDrawer()">Annuler</button>
+      <button class="btn btn-primary" onclick="submitMaint()">Ouvrir le chantier</button>
+    </div>
+  </div>
+
+  <!-- ADD TRUCK DRAWER -->
+  <div class="drawer" id="d-add-truck" role="dialog" aria-modal="true" aria-label="Ajouter un camion">
+    <div class="d-header">
+      <div>
+        <div class="d-title">Ajouter un camion</div>
+        <div class="d-sub">Enregistrez un nouveau tracteur et sa citerne</div>
+      </div>
+      <button class="d-close" onclick="closeAddTruckDrawer()" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="d-body">
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">01</span><span class="fsec-title">Tracteur</span></div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Immatriculation</label>
+            <input class="f-input" type="text" id="at-plate" placeholder="GN-0000-X">
+          </div>
+          <div class="field">
+            <label class="f-label">VIN</label>
+            <input class="f-input" type="text" id="at-vin" placeholder="VF3XXXXXXXXXXXXXXX">
+          </div>
+        </div>
+        <div class="grid-3" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Marque</label>
+            <input class="f-input" type="text" id="at-make" placeholder="Volvo">
+          </div>
+          <div class="field">
+            <label class="f-label">Modèle</label>
+            <input class="f-input" type="text" id="at-model" placeholder="FH">
+          </div>
+          <div class="field">
+            <label class="f-label">Année</label>
+            <input class="f-input" type="number" id="at-year" placeholder="2024" min="1990" max="2030">
+          </div>
+        </div>
+        <div class="field">
+          <label class="f-label">Statut <span class="fsec-opt">(optionnel)</span></label>
+          <select class="f-select" id="at-status">
+            <option value="ready">Prêt</option>
+            <option value="in_maintenance">En maintenance</option>
+            <option value="on_trip">En route</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">02</span><span class="fsec-title">Citerne</span></div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Immatriculation</label>
+            <input class="f-input" type="text" id="at-tank-plate" placeholder="TC-000">
+          </div>
+          <div class="field">
+            <label class="f-label">Capacité (L)</label>
+            <input class="f-input" type="number" id="at-tank-cap" placeholder="33000" min="1000" step="1000">
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div class="field">
+            <label class="f-label">Marque</label>
+            <input class="f-input" type="text" id="at-tank-make" placeholder="Magyar">
+          </div>
+          <div class="field">
+            <label class="f-label">Modèle</label>
+            <input class="f-input" type="text" id="at-tank-model" placeholder="T33">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="f-label">VIN</label>
+            <input class="f-input" type="text" id="at-tank-vin" placeholder="XXXXXXXXXXXXXXXX">
+          </div>
+          <div class="field">
+            <label class="f-label">Année</label>
+            <input class="f-input" type="number" id="at-tank-year" placeholder="2024" min="1990" max="2030">
+          </div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-label"><span class="fsec-num">03</span><span class="fsec-title">Chauffeur</span><span class="fsec-opt">(optionnel)</span></div>
+        <div class="field">
+          <label class="f-label">Affectation</label>
+          <select class="f-select" id="at-driver">
+            <option value="">Non affecté pour l'instant</option>
+            <option value="1">Sekou Camara</option>
+            <option value="2">Ibrahima Sow</option>
+            <option value="3">Moussa Kouyaté</option>
+            <option value="4">Alpha Barry</option>
+            <option value="5">Fodé Diallo</option>
+            <option value="6">Oumar Baldé</option>
+            <option value="7">Thierno Bah</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="at-error" style="font-size:12px;font-weight:600;color:var(--red);display:none;padding:4px 0 8px"></div>
+
+    </div>
+
+    <div class="d-footer">
+      <button class="btn btn-ghost" onclick="closeAddTruckDrawer()">Annuler</button>
+      <button class="btn btn-primary" onclick="submitAddTruck()">Enregistrer le camion</button>
+    </div>
+  </div>
+
 <script>
   const TITLES = {
     dashboard: 'Tableau de bord', flotte: 'Flotte', employes: 'Employés', trajets: 'Trajets',
@@ -1327,7 +1604,109 @@
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
 
-  function closeAllDrawers() { closeDrawer(); closeTruckDrawer(); }
+  function closeAllDrawers() { closeDrawer(); closeTruckDrawer(); closeAddTruckDrawer(); closeMaintDrawer(); }
+
+  /* ── MAINTENANCE DRAWER ─────────────────────── */
+  let partIndex = 0;
+
+  function openMaintDrawer() {
+    document.getElementById('d-overlay').classList.add('open');
+    document.getElementById('d-maint').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('m-truck').focus();
+  }
+
+  function closeMaintDrawer() {
+    document.getElementById('d-overlay').classList.remove('open');
+    document.getElementById('d-maint').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function addPart() {
+    const i    = partIndex++;
+    const row  = document.createElement('div');
+    row.className = 'part-row';
+    row.id = 'part-row-' + i;
+    row.innerHTML =
+      '<input class="f-input" type="text" placeholder="Nom de la pièce" id="part-name-' + i + '">' +
+      '<input class="f-input" type="number" placeholder="Prix (GNF)" min="0" id="part-price-' + i + '" oninput="updatePartsTotal()">' +
+      '<button class="part-remove" onclick="removePart(' + i + ')" aria-label="Supprimer">✕</button>';
+    document.getElementById('m-parts-list').appendChild(row);
+    updatePartsTotal();
+    row.querySelector('input').focus();
+  }
+
+  function removePart(i) {
+    const row = document.getElementById('part-row-' + i);
+    if (row) row.remove();
+    updatePartsTotal();
+  }
+
+  function updatePartsTotal() {
+    const priceInputs = document.querySelectorAll('#m-parts-list .part-row input[type="number"]');
+    let total = 0;
+    priceInputs.forEach(function(inp) { total += parseFloat(inp.value) || 0; });
+    const totalEl = document.getElementById('m-parts-total');
+    if (priceInputs.length > 0) {
+      document.getElementById('m-total-val').textContent = total.toLocaleString('fr-FR') + ' GNF';
+      totalEl.style.display = 'flex';
+    } else {
+      totalEl.style.display = 'none';
+    }
+  }
+
+  function submitMaint() {
+    const truck  = document.getElementById('m-truck').value;
+    const date   = document.getElementById('m-date').value;
+    const errEl  = document.getElementById('m-error');
+
+    if (!truck || !date) {
+      errEl.textContent = 'Sélectionnez un camion et une date pour continuer.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    errEl.style.display = 'none';
+    closeMaintDrawer();
+  }
+
+  /* ── ADD TRUCK DRAWER ───────────────────────── */
+  function openAddTruckDrawer() {
+    document.getElementById('d-overlay').classList.add('open');
+    document.getElementById('d-add-truck').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('at-plate').focus();
+  }
+
+  function closeAddTruckDrawer() {
+    document.getElementById('d-overlay').classList.remove('open');
+    document.getElementById('d-add-truck').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function submitAddTruck() {
+    const plate     = document.getElementById('at-plate').value.trim();
+    const vin       = document.getElementById('at-vin').value.trim();
+    const make      = document.getElementById('at-make').value.trim();
+    const model     = document.getElementById('at-model').value.trim();
+    const year      = document.getElementById('at-year').value.trim();
+    const tankPlate = document.getElementById('at-tank-plate').value.trim();
+    const tankCap   = document.getElementById('at-tank-cap').value.trim();
+    const tankMake  = document.getElementById('at-tank-make').value.trim();
+    const tankModel = document.getElementById('at-tank-model').value.trim();
+    const tankVin   = document.getElementById('at-tank-vin').value.trim();
+    const tankYear  = document.getElementById('at-tank-year').value.trim();
+    const errEl     = document.getElementById('at-error');
+
+    if (!plate || !vin || !make || !model || !year || !tankPlate || !tankCap || !tankMake || !tankModel || !tankVin || !tankYear) {
+      errEl.textContent = 'Tous les champs obligatoires doivent être remplis.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    errEl.style.display = 'none';
+    closeAddTruckDrawer();
+  }
 
   /* ── TRUCK DETAIL DRAWER ─────────────────────── */
   const FLEET_DETAILS = {
