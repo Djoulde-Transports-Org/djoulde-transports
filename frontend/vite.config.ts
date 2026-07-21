@@ -2,18 +2,18 @@ import {sveltekit} from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vitest/config';
 
-export default defineConfig(({mode}) => ({
+export default defineConfig(() => ({
   plugins: [tailwindcss(), sveltekit()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://dev:3000',
         changeOrigin: true,
       },
     },
   },
   resolve: {
-    conditions: mode === 'test' ? ['browser'] : [],
+    conditions: ['browser'],
   },
   test: {
     include: ['test/**/*.{test,spec}.{js,ts,svelte}'],
