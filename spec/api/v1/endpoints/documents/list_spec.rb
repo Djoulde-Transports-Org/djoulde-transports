@@ -11,7 +11,7 @@ RSpec.describe API::V1::Endpoints::Documents::List do
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
   let(:viewer_token) { viewer_setup[1] }
   let(:truck)        { Truck.create!(plate_number: "T-#{SecureRandom.hex(2)}") }
-  let!(:document)    { Document.create!(documentable: truck, number: "INS-1", title: "Insurance", doc_type: :insurance) }
+  let!(:document)    { Document.create!(documentable: truck, number: "INS-1", title: "Insurance", doc_type: :truck_insurance) }
 
   context "without a token" do
     before { do_request }
@@ -72,8 +72,8 @@ RSpec.describe API::V1::Endpoints::Documents::List do
 
   context "when filtering by doc_type" do
     let(:headers)  { bearer_headers(viewer_token) }
-    let(:params)   { {doc_type: "license"} }
-    let!(:license) { Document.create!(documentable: truck, number: "LIC-1", title: "License", doc_type: :license) }
+    let(:params)   { {doc_type: "truck_registration"} }
+    let!(:license) { Document.create!(documentable: truck, number: "LIC-1", title: "License", doc_type: :truck_registration) }
 
     before { do_request }
 

@@ -82,7 +82,7 @@ RSpec.describe API::V1::Endpoints::Employees::Delete do
 
     context "when the employee has documents" do
       let!(:document) do
-        Document.create!(documentable: employee, doc_type: :license,
+        Document.create!(documentable: employee, doc_type: :driver_license,
                          number: "LIC-#{SecureRandom.hex(4)}", title: "Driver Licence",
                          issued_on: Date.current - 365, expires_on: Date.current + 365)
       end

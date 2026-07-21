@@ -54,6 +54,15 @@ module API::V1::Entities
       days_remaining(operating_permit_expires_on)
     end
 
+    expose :truck_registration_expires_on, format_with: :iso_8601_date,
+           documentation: {type: "String", desc: "Truck registration (carte grise) expiry date."} do |_, _|
+      truck_registration_expires_on
+    end
+    expose :truck_registration_days_remaining,
+           documentation: {type: "Integer", desc: "Days until truck registration expires (negative if expired)."} do |_, _|
+      days_remaining(truck_registration_expires_on)
+    end
+
     expose :trips_count,
            documentation: {type: "Integer", desc: "Total number of kept trips for this truck."} do |_, _|
       trips_count
@@ -74,19 +83,23 @@ module API::V1::Entities
     end
 
     def truck_insurance_expires_on
-      kept_expiry_for(object.documents, :insurance?, :expires_on)
+      kept_expiry_for(object.documents, :truck_insurance?, :expires_on)
     end
 
     def cargo_insurance_expires_on
-      kept_expiry_for(object.documents, :registration?, :expires_on)
+      kept_expiry_for(object.documents, :product_insurance?, :expires_on)
     end
 
     def technical_inspection_expires_on
-      kept_expiry_for(object.documents, :inspection?, :expires_on)
+      kept_expiry_for(object.documents, :technical_inspection?, :expires_on)
     end
 
     def operating_permit_expires_on
-      kept_expiry_for(object.documents, :license?, :expires_on)
+      kept_expiry_for(object.documents, :transport_card?, :expires_on)
+    end
+
+    def truck_registration_expires_on
+      kept_expiry_for(object.documents, :truck_registration?, :expires_on)
     end
 
     def trips_count
@@ -99,17 +112,6 @@ module API::V1::Entities
 
     def total_liters_delivered
       ::DeliveryNote.kept.joins(:trip).where(trips: {truck_id: object.id}).sum("diesel_quantity + gasoline_quantity")
-    end
-
-    def kept_expiry_for(association, type_predicate, date_field)
-      association.to_a
-        .select { |r| r.discarded_at.nil? && r.public_send(type_predicate) }
-        .filter_map(&date_field)
-        .max
-    end
-
-    def days_remaining(date)
-      date ? (date - Date.current).to_i : nil
     end
   end
 end

@@ -14,7 +14,7 @@ RSpec.describe API::V1::Endpoints::Documents::Create do
   let(:truck)        { Truck.create!(plate_number: "T-#{SecureRandom.hex(2)}") }
   let(:params) do
     {documentable_type: "Truck", documentable_id: truck.id, number: "INS-2026",
-     title: "Insurance 2026", doc_type: "insurance"}
+     title: "Insurance 2026", doc_type: "truck_insurance"}
   end
 
   context "without a token" do
@@ -112,6 +112,25 @@ RSpec.describe API::V1::Endpoints::Documents::Create do
 
       it "returns 422" do
         expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    context "when documentable_type is Tank" do
+      let(:tank) { build_truck_with_tank(plate: "TK-#{SecureRandom.hex(2)}").tank }
+      let(:params) do
+        {documentable_type: "Tank", documentable_id: tank.id, number: "CONF-2026",
+         title: "Certificat de baremage", doc_type: "conformity_certificate"}
+      end
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "attaches the document to the tank", :aggregate_failures do
+        expect(response.parsed_body["documentable_type"]).to eq("Tank")
+        expect(response.parsed_body["documentable_id"]).to eq(tank.id)
       end
     end
   end

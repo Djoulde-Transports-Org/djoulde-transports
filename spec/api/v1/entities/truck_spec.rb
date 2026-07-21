@@ -169,6 +169,7 @@ RSpec.describe API::V1::Entities::Truck do
         expect(payload["cargo_insurance_expires_on"]).to be_nil
         expect(payload["technical_inspection_expires_on"]).to be_nil
         expect(payload["operating_permit_expires_on"]).to be_nil
+        expect(payload["truck_registration_expires_on"]).to be_nil
       end
 
       it "returns nil for all days_remaining values", :aggregate_failures do
@@ -176,11 +177,12 @@ RSpec.describe API::V1::Entities::Truck do
         expect(payload["cargo_insurance_days_remaining"]).to be_nil
         expect(payload["technical_inspection_days_remaining"]).to be_nil
         expect(payload["operating_permit_days_remaining"]).to be_nil
+        expect(payload["truck_registration_days_remaining"]).to be_nil
       end
     end
 
     context "when a truck insurance document exists" do
-      before { create_doc(doc_type: :insurance, expires_on: future_date) }
+      before { create_doc(doc_type: :truck_insurance, expires_on: future_date) }
 
       it "returns truck_insurance_expires_on as an ISO 8601 date" do
         expect(payload["truck_insurance_expires_on"]).to eq(future_date.iso8601)
@@ -192,7 +194,7 @@ RSpec.describe API::V1::Entities::Truck do
     end
 
     context "when a technical inspection document is expired" do
-      before { create_doc(doc_type: :inspection, expires_on: past_date) }
+      before { create_doc(doc_type: :technical_inspection, expires_on: past_date) }
 
       it "returns technical_inspection_expires_on" do
         expect(payload["technical_inspection_expires_on"]).to eq(past_date.iso8601)
@@ -203,8 +205,20 @@ RSpec.describe API::V1::Entities::Truck do
       end
     end
 
+    context "when a truck registration document exists" do
+      before { create_doc(doc_type: :truck_registration, expires_on: future_date) }
+
+      it "returns truck_registration_expires_on as an ISO 8601 date" do
+        expect(payload["truck_registration_expires_on"]).to eq(future_date.iso8601)
+      end
+
+      it "returns a positive truck_registration_days_remaining" do
+        expect(payload["truck_registration_days_remaining"]).to be > 0
+      end
+    end
+
     context "when a document is discarded" do
-      before { create_doc(doc_type: :insurance, expires_on: future_date).discard }
+      before { create_doc(doc_type: :truck_insurance, expires_on: future_date).discard }
 
       it "excludes the discarded document" do
         expect(payload["truck_insurance_expires_on"]).to be_nil
@@ -215,8 +229,8 @@ RSpec.describe API::V1::Entities::Truck do
       let(:older_date) { Date.current + 30 }
 
       before do
-        create_doc(doc_type: :insurance, expires_on: older_date)
-        create_doc(doc_type: :insurance, expires_on: future_date)
+        create_doc(doc_type: :truck_insurance, expires_on: older_date)
+        create_doc(doc_type: :truck_insurance, expires_on: future_date)
       end
 
       it "returns the latest expiry date" do
