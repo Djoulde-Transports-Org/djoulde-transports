@@ -1,20 +1,13 @@
 <script lang="ts">
   import DataTable from '$lib/components/common/DataTable.svelte';
+  import TruckDrawer from '$lib/components/flotte/TruckDrawer.svelte';
   import type {Truck} from '$lib/types/truck';
   import {formatDate} from '$lib/utility/date';
   import {expiryPill} from '$lib/utility/expiry';
+  import {formatTruckModel, formatTankSummary} from '$lib/utility/truck';
   import {truckStatusMeta, truckStatusFilters} from '$lib/store/truckStatus';
 
-  const formatModel = (truck: Truck) => {
-    const makeModel = [truck.make, truck.model].filter(Boolean).join(' ');
-    if (!makeModel && !truck.year) return '—';
-    return [makeModel, truck.year].filter(Boolean).join(' · ');
-  };
-
-  const citerne = (truck: Truck) =>
-    truck.tank
-      ? `${truck.tank.plate_number} · ${truck.tank.capacity.toLocaleString('fr-FR')} L`
-      : '—';
+  let selectedTruck = $state<Truck | null>(null);
 </script>
 
 {#snippet plateCell(_value: unknown, row: Record<string, unknown>)}
@@ -24,12 +17,12 @@
 
 {#snippet modelCell(_value: unknown, row: Record<string, unknown>)}
   {@const truck = row as Truck}
-  {formatModel(truck)}
+  {formatTruckModel(truck)}
 {/snippet}
 
 {#snippet citerneCell(_value: unknown, row: Record<string, unknown>)}
   {@const truck = row as Truck}
-  {citerne(truck)}
+  {formatTankSummary(truck.tank)}
 {/snippet}
 
 {#snippet statusCell(_value: unknown, row: Record<string, unknown>)}
@@ -98,6 +91,7 @@
 <DataTable
   endpoint="/trucks?per_page=100"
   rowClickable
+  onRowClick={(row) => (selectedTruck = row as Truck)}
   clientSide
   filters={truckStatusFilters}
   searchParam="search"
@@ -128,3 +122,5 @@
     {key: 'conformity_certificate', label: 'Baremage', render: conformityCertificateCell},
   ]}
 />
+
+<TruckDrawer truck={selectedTruck} onClose={() => (selectedTruck = null)} />

@@ -34,6 +34,7 @@
     paginated = false,
     limit = 50,
     rowClickable = false,
+    onRowClick,
     actions,
     empty,
     error: errorSnippet,
@@ -47,6 +48,7 @@
     paginated?: boolean;
     limit?: number;
     rowClickable?: boolean;
+    onRowClick?: (row: Row) => void;
     actions?: Snippet;
     empty?: Snippet;
     error?: Snippet<[string]>;
@@ -253,6 +255,7 @@
         {:else}
           {#each rows as row, i (i)}
             <tr
+              onclick={() => onRowClick?.(row)}
               class="border-b border-border-soft last:border-0 hover:bg-surface-2/40 transition-colors duration-[130ms] {rowClickable
                 ? 'cursor-pointer'
                 : ''}"
