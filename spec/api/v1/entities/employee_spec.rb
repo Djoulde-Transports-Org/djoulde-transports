@@ -20,6 +20,10 @@ RSpec.describe API::V1::Entities::Employee do
     expect(payload[:last_name]).to eq("Diallo")
   end
 
+  it "exposes full_name as first and last name combined" do
+    expect(payload[:full_name]).to eq("Mamadou Diallo")
+  end
+
   it "exposes phone_number" do
     expect(payload[:phone_number]).to eq("+224 620 000 000")
   end

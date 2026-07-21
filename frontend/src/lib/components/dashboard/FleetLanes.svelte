@@ -76,7 +76,7 @@
           {/if}
 
           <span class="w-32 shrink-0 text-[12px] text-dt-text-muted truncate">
-            {truck.driver ? `${truck.driver.first_name} ${truck.driver.last_name}` : '—'}
+            {truck.driver?.full_name ?? '—'}
           </span>
         </div>
       {/each}

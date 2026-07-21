@@ -14,6 +14,9 @@ module API::V1::Entities
     expose :actual_end_at,      format_with: :iso_8601, documentation: {type: "DateTime", desc: "The actual end time."}
 
     expose :truck,           using: ::API::V1::Entities::Truck,           documentation: {type: "Object", desc: "The truck assigned to the trip."}
+    expose :driver,          using: ::API::V1::Entities::Employee,        documentation: {type: "Object", desc: "The driver assigned to the trip."} do |trip, _opts|
+      trip.driver || trip.truck.driver
+    end
     expose :route,           using: ::API::V1::Entities::Route,           documentation: {type: "Object", desc: "The route of the trip."}
     expose :delivery_note,   using: ::API::V1::Entities::DeliveryNote,    documentation: {type: "Object", desc: "The delivery note for the trip."}
     expose :billing_statement, using: ::API::V1::Entities::BillingStatement,

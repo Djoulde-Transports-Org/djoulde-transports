@@ -64,7 +64,8 @@ class Trip < ApplicationRecord
   has_many :documents,          as: :documentable, dependent: :restrict_with_error
   has_many :billing_line_items, dependent: :restrict_with_error
 
-  before_validation :default_tank_from_truck, on: :create
+  before_validation :default_tank_from_truck,   on: :create
+  before_validation :default_driver_from_truck, on: :create
 
   validates :distance_km, numericality: {greater_than_or_equal_to: 0}, allow_nil: true
   validate  :scheduled_window_ordered
@@ -111,5 +112,11 @@ class Trip < ApplicationRecord
     return if tank_id.present? || truck.blank?
 
     self.tank = truck.tank
+  end
+
+  def default_driver_from_truck
+    return if driver_id.present? || truck.blank?
+
+    self.driver = truck.driver
   end
 end

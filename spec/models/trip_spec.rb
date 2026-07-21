@@ -80,6 +80,38 @@ RSpec.describe Trip do
     expect(described_class.reflect_on_association(:delivery_note).macro).to eq(:has_one)
   end
 
+  describe "#default_driver_from_truck" do
+    context "when driver_id is given explicitly" do
+      let(:substitute) { Employee.create!(first_name: "Ibra", last_name: "Bah") }
+
+      before { truck.update!(driver: Employee.create!(first_name: "Mamadou", last_name: "Diallo")) }
+
+      it "keeps the given driver instead of the truck's" do
+        trip.driver = substitute
+        trip.save!
+        expect(trip.reload.driver).to eq(substitute)
+      end
+    end
+
+    context "when driver_id is not given and the truck has a driver" do
+      let(:truck_driver) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+
+      before { truck.update!(driver: truck_driver) }
+
+      it "defaults the driver to the truck's driver" do
+        trip.save!
+        expect(trip.reload.driver).to eq(truck_driver)
+      end
+    end
+
+    context "when driver_id is not given and the truck has no driver" do
+      it "leaves the driver nil" do
+        trip.save!
+        expect(trip.reload.driver).to be_nil
+      end
+    end
+  end
+
   describe ".started_in_month" do
     let!(:may_trip) do
       described_class.create!(truck: truck, route: route, actual_start_at: Time.zone.local(2026, 5, 15, 8))

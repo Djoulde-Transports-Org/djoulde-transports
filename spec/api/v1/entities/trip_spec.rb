@@ -38,6 +38,37 @@ RSpec.describe API::V1::Entities::Trip do
     end
   end
 
+  describe "nested driver" do
+    context "when the trip has no driver and the truck has none either" do
+      it "exposes driver as nil" do
+        expect(payload["driver"]).to be_nil
+      end
+    end
+
+    context "when the trip has its own driver" do
+      let(:trip_driver) { Employee.create!(first_name: "Ibra", last_name: "Bah") }
+      let(:trip)        { Trip.create!(truck: truck, route: route, driver: trip_driver) }
+
+      it "exposes the trip's driver" do
+        expect(payload.dig("driver", "id")).to eq(trip_driver.id)
+      end
+
+      it "exposes the driver's first_name" do
+        expect(payload.dig("driver", "first_name")).to eq("Ibra")
+      end
+    end
+
+    context "when the trip has no driver but the truck has one assigned" do
+      let(:truck_driver) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+
+      before { truck.update!(driver: truck_driver) }
+
+      it "falls back to the truck's driver" do
+        expect(payload.dig("driver", "id")).to eq(truck_driver.id)
+      end
+    end
+  end
+
   describe "nested route" do
     it "exposes route.id" do
       expect(payload.dig("route", "id")).to eq(route.id)
@@ -104,6 +135,10 @@ RSpec.describe API::V1::Entities::Trip do
 
       it "exposes gasoline_quantity" do
         expect(payload.dig("delivery_note", "gasoline_quantity")).to eq(10)
+      end
+
+      it "exposes total_quantity as gasoline and diesel combined" do
+        expect(payload.dig("delivery_note", "total_quantity")).to eq(15)
       end
 
       it "exposes diesel_quantity" do

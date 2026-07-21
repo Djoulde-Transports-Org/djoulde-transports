@@ -5,7 +5,7 @@ module API::V1::Endpoints::Trips
     helpers do
       def base_trip_scope
         policy_scope(::Trip)
-          .includes(:route, :delivery_note, billing_line_items: :billing_statement,
+          .includes(:route, :delivery_note, :driver, billing_line_items: :billing_statement,
                     truck: [ :maintenances, :documents, :tank, :driver ])
           .order("trips.id DESC")
       end
