@@ -20,6 +20,8 @@ export type TruckTank = {
   year: number | null;
   capacity: number;
   status: string;
+  conformity_certificate_expires_on: string | null;
+  conformity_certificate_days_remaining: number | null;
 };
 
 export type Truck = {
@@ -42,6 +44,8 @@ export type Truck = {
   technical_inspection_days_remaining: number | null;
   operating_permit_expires_on: string | null;
   operating_permit_days_remaining: number | null;
+  truck_registration_expires_on: string | null;
+  truck_registration_days_remaining: number | null;
   trips_count: number;
   total_km: number;
   total_liters_delivered: number;

@@ -2,6 +2,7 @@
   import DataTable from '$lib/components/common/DataTable.svelte';
   import type {Truck, TruckStatus} from '$lib/types/truck';
   import {formatDate} from '$lib/utility/date';
+  import {expiryPill} from '$lib/utility/expiry';
 
   const STATUS_BADGE: Record<TruckStatus, {label: string; classes: string}> = {
     on_trip: {label: 'En route', classes: 'bg-accent/10 text-accent border-accent/20'},
@@ -54,6 +55,54 @@
   {formatDate(truck.last_oil_change_on)}
 {/snippet}
 
+{#snippet truckInsuranceCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.truck_insurance_days_remaining)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
+{#snippet cargoInsuranceCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.cargo_insurance_days_remaining)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
+{#snippet technicalInspectionCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.technical_inspection_days_remaining)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
+{#snippet operatingPermitCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.operating_permit_days_remaining)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
+{#snippet truckRegistrationCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.truck_registration_days_remaining)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
+{#snippet conformityCertificateCell(_value: unknown, row: Record<string, unknown>)}
+  {@const truck = row as Truck}
+  {@const pill = expiryPill(truck.tank?.conformity_certificate_days_remaining ?? null)}
+  <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
+    {pill.label}
+  </span>
+{/snippet}
+
 <DataTable
   endpoint="/trucks?per_page=100"
   rowClickable
@@ -63,5 +112,23 @@
     {key: 'tank', label: 'Citerne', render: citerneCell},
     {key: 'status', label: 'Statut', render: statusCell},
     {key: 'last_oil_change_on', label: 'Dernière vidange', render: oilChangeCell},
+    {key: 'truck_insurance_days_remaining', label: 'Ass. camion', render: truckInsuranceCell},
+    {key: 'cargo_insurance_days_remaining', label: 'Ass. produit', render: cargoInsuranceCell},
+    {
+      key: 'technical_inspection_days_remaining',
+      label: 'Visite tech.',
+      render: technicalInspectionCell,
+    },
+    {
+      key: 'operating_permit_days_remaining',
+      label: 'Carte de Transport',
+      render: operatingPermitCell,
+    },
+    {
+      key: 'truck_registration_days_remaining',
+      label: 'Carte grise',
+      render: truckRegistrationCell,
+    },
+    {key: 'conformity_certificate', label: 'Baremage', render: conformityCertificateCell},
   ]}
 />
