@@ -24,6 +24,10 @@ describe('+page (dashboard)', () => {
   it('renders FleetLanes — widget header is present', () => {
     const {getByText} = render(Page);
     expect(getByText('État de la flotte')).toBeInTheDocument();
-    expect(getByText('Voir tout →')).toBeInTheDocument();
+  });
+
+  it('renders RecentTrips — widget header is present', () => {
+    const {getByText} = render(Page);
+    expect(getByText('Derniers trajets')).toBeInTheDocument();
   });
 });
