@@ -11,5 +11,20 @@ module API::V1::Entities
     expose :year, documentation: {type: "Integer", desc: "The year of the tank."}
     expose :capacity, documentation: {type: "Integer", desc: "The capacity of the tank in liters."}
     expose :status, documentation: {type: "String", desc: "The status of the tank."}
+
+    expose :conformity_certificate_expires_on, format_with: :iso_8601_date,
+           documentation: {type: "String", desc: "Conformity certificate (certificat de baremage) expiry date."} do |_, _|
+      conformity_certificate_expires_on
+    end
+    expose :conformity_certificate_days_remaining,
+           documentation: {type: "Integer", desc: "Days until the conformity certificate expires (negative if expired)."} do |_, _|
+      days_remaining(conformity_certificate_expires_on)
+    end
+
+    private
+
+    def conformity_certificate_expires_on
+      kept_expiry_for(object.documents, :conformity_certificate?, :expires_on)
+    end
   end
 end

@@ -39,11 +39,18 @@ class Document < ApplicationRecord
 
   enum :doc_type, {
     other: 0,
-    insurance: 1,
-    registration: 2,
-    license: 3,
-    inspection: 4,
-    invoice: 5,
+    truck_insurance: 1,
+    product_insurance: 2,
+    driver_license: 3,
+    driver_insurance: 4,
+    technical_inspection: 5,
+    loading_certificate: 6,
+    conformity_certificate: 7,
+    transport_card: 8,
+    truck_registration: 9,
+    invoice: 10,
+    delivery_note: 11,
+    maintenance_note: 12,
   }, default: :other
 
   belongs_to :documentable, polymorphic: true

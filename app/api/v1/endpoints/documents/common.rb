@@ -4,7 +4,7 @@ module API::V1::Endpoints::Documents
   module Common
     extend Grape::API::Helpers
 
-    DOCUMENTABLE_TYPES = %w(Truck Trip Maintenance BillingStatement).freeze
+    DOCUMENTABLE_TYPES = %w(Truck Tank Trip Maintenance BillingStatement).freeze
 
     def document
       @document ||= find_kept!(::Document)
