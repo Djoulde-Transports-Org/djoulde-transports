@@ -113,9 +113,9 @@ RSpec.describe API::V1::Endpoints::Trucks::Get do
       let(:past_date)   { Date.current - 10 }
 
       before do
-        Document.create!(documentable: truck, doc_type: :insurance, number: "INS-#{SecureRandom.hex(4)}",
+        Document.create!(documentable: truck, doc_type: :truck_insurance, number: "INS-#{SecureRandom.hex(4)}",
                          title: "Truck Insurance", issued_on: Date.current - 365, expires_on: future_date)
-        Document.create!(documentable: truck, doc_type: :inspection, number: "INS-#{SecureRandom.hex(4)}",
+        Document.create!(documentable: truck, doc_type: :technical_inspection, number: "INS-#{SecureRandom.hex(4)}",
                          title: "Technical Inspection", issued_on: Date.current - 365, expires_on: past_date)
         do_request
       end

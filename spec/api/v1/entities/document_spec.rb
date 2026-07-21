@@ -3,7 +3,7 @@
 RSpec.describe API::V1::Entities::Document do
   let(:truck)    { Truck.create!(plate_number: "T-#{SecureRandom.hex(2)}") }
   let(:document) do
-    Document.create!(documentable: truck, number: "INS-1", title: "Insurance", doc_type: :insurance,
+    Document.create!(documentable: truck, number: "INS-1", title: "Insurance", doc_type: :truck_insurance,
                      issued_on: Date.new(2026, 1, 1))
   end
   let(:payload) { described_class.represent(document).as_json }
@@ -18,7 +18,7 @@ RSpec.describe API::V1::Entities::Document do
   end
 
   it "exposes the doc_type" do
-    expect(payload[:doc_type]).to eq("insurance")
+    expect(payload[:doc_type]).to eq("truck_insurance")
   end
 
   it "exposes the number" do
