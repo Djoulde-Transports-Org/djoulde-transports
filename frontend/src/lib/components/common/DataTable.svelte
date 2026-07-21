@@ -31,6 +31,7 @@
     searchParam,
     paginated = false,
     limit = 50,
+    rowClickable = false,
     actions,
     empty,
     error: errorSnippet,
@@ -41,6 +42,7 @@
     searchParam?: string;
     paginated?: boolean;
     limit?: number;
+    rowClickable?: boolean;
     actions?: Snippet;
     empty?: Snippet;
     error?: Snippet<[string]>;
@@ -226,7 +228,9 @@
         {:else}
           {#each rows as row, i (i)}
             <tr
-              class="border-b border-border-soft last:border-0 hover:bg-surface-2/40 transition-colors duration-[130ms]"
+              class="border-b border-border-soft last:border-0 hover:bg-surface-2/40 transition-colors duration-[130ms] {rowClickable
+                ? 'cursor-pointer'
+                : ''}"
             >
               {#each columns as col (col.key)}
                 <td class="px-4 py-3 text-dt-text">

@@ -1,1 +1,7 @@
-<h1 class="text-[22px] font-bold text-dt-text p-8">Flotte</h1>
+<script lang="ts">
+  import FleetTable from '$lib/components/flotte/FleetTable.svelte';
+</script>
+
+<div class="p-8">
+  <FleetTable />
+</div>
