@@ -7,7 +7,7 @@ module API::V1::Endpoints::Trips
     def trip
       @trip ||= begin
         record = policy_scope(::Trip).kept
-                   .includes(:route, :delivery_note, billing_line_items: :billing_statement,
+                   .includes(:route, :delivery_note, :driver, billing_line_items: :billing_statement,
                              truck: [ :maintenances, :documents, :tank, :driver ])
                    .find_by(id: params[:id])
         not_found!(message: "Trip not found.") unless record
