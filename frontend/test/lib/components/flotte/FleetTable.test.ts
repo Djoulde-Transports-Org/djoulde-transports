@@ -1,4 +1,4 @@
-import {render, waitFor} from '@testing-library/svelte';
+import {render, waitFor, within, fireEvent} from '@testing-library/svelte';
 import FleetTable from '$lib/components/flotte/FleetTable.svelte';
 import type {Truck} from '$lib/types/truck';
 import {makeTruck} from '../../../mocks/truck';
@@ -103,14 +103,20 @@ describe('FleetTable', () => {
 
   it('shows En route badge for on_trip trucks', async () => {
     mockGet.mockResolvedValue(TRUCKS);
-    const {getByText} = render(FleetTable);
-    await waitFor(() => expect(getByText('En route')).toBeInTheDocument());
+    const {container} = render(FleetTable);
+    await waitFor(() => {
+      const tbody = within(container.querySelector('tbody') as HTMLElement);
+      expect(tbody.getByText('En route')).toBeInTheDocument();
+    });
   });
 
   it('shows Maintenance badge for in_maintenance trucks', async () => {
     mockGet.mockResolvedValue(TRUCKS);
-    const {getByText} = render(FleetTable);
-    await waitFor(() => expect(getByText('Maintenance')).toBeInTheDocument());
+    const {container} = render(FleetTable);
+    await waitFor(() => {
+      const tbody = within(container.querySelector('tbody') as HTMLElement);
+      expect(tbody.getByText('Maintenance')).toBeInTheDocument();
+    });
   });
 
   it('shows Prêt badge for ready trucks', async () => {
@@ -187,6 +193,64 @@ describe('FleetTable', () => {
       const {getAllByText} = render(FleetTable);
       const pills = await waitFor(() => getAllByText('N/A'));
       expect(pills.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('filters and search', () => {
+    it('renders the Tous / En route / Prêts / Maintenance filter chips', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('Tous')).toBeInTheDocument());
+      expect(getByText('Prêts')).toBeInTheDocument();
+    });
+
+    it('fetches the trucks endpoint only once regardless of filtering', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.click(getByText('Prêts'));
+      expect(mockGet).toHaveBeenCalledTimes(1);
+      expect(mockGet).toHaveBeenCalledWith('/trucks?per_page=100');
+    });
+
+    it('narrows rows to the selected status when a chip is clicked', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, queryByText, container} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.click(getByText('Prêts'));
+      const tbody = within(container.querySelector('tbody') as HTMLElement);
+      expect(tbody.getByText('GN-5521-G')).toBeInTheDocument();
+      expect(queryByText('GN-3310-C')).not.toBeInTheDocument();
+      expect(queryByText('GN-1892-B')).not.toBeInTheDocument();
+    });
+
+    it('"Tous" restores every row after a status chip was active', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.click(getByText('Prêts'));
+      await fireEvent.click(getByText('Tous'));
+      expect(getByText('GN-3310-C')).toBeInTheDocument();
+      expect(getByText('GN-1892-B')).toBeInTheDocument();
+      expect(getByText('GN-5521-G')).toBeInTheDocument();
+    });
+
+    it('filters rows by plate number in real time as the user types', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, getByPlaceholderText, queryByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: '3310'}});
+      expect(getByText('GN-3310-C')).toBeInTheDocument();
+      expect(queryByText('GN-1892-B')).not.toBeInTheDocument();
+    });
+
+    it('filters rows by model in real time as the user types', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, getByPlaceholderText, queryByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: 'fh'}});
+      expect(getByText('GN-3310-C')).toBeInTheDocument();
+      expect(queryByText('GN-5521-G')).not.toBeInTheDocument();
     });
   });
 });
