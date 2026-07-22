@@ -1,8 +1,14 @@
 <script lang="ts">
   import DataTable from '$lib/components/common/DataTable.svelte';
+  import AddTruckDrawer from '$lib/components/flotte/AddTruckDrawer.svelte';
   import type {Truck, TruckStatus} from '$lib/types/truck';
   import {formatDate} from '$lib/utility/date';
   import {expiryPill} from '$lib/utility/expiry';
+
+  let table: ReturnType<typeof DataTable> | undefined = $state();
+  let drawerOpen = $state(false);
+
+  const handleCreated = () => table?.refresh();
 
   const STATUS_BADGE: Record<TruckStatus, {label: string; classes: string}> = {
     on_trip: {label: 'En route', classes: 'bg-accent/10 text-accent border-accent/20'},
@@ -103,9 +109,20 @@
   </span>
 {/snippet}
 
+{#snippet addTruckAction()}
+  <button
+    onclick={() => (drawerOpen = true)}
+    class="px-3 py-1.5 text-[13px] font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors duration-[130ms]"
+  >
+    Ajouter un camion
+  </button>
+{/snippet}
+
 <DataTable
+  bind:this={table}
   endpoint="/trucks?per_page=100"
   rowClickable
+  actions={addTruckAction}
   columns={[
     {key: 'plate_number', label: 'Immatriculation', render: plateCell},
     {key: 'model', label: 'Modèle', render: modelCell},
@@ -132,3 +149,5 @@
     {key: 'conformity_certificate', label: 'Baremage', render: conformityCertificateCell},
   ]}
 />
+
+<AddTruckDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} onCreated={handleCreated} />
