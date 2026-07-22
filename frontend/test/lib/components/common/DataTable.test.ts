@@ -64,6 +64,24 @@ describe('DataTable', () => {
       await waitFor(() => expect(getByText('Alice').closest('tr')).toHaveClass('cursor-pointer'));
     });
 
+    it('calls onRowClick with the row data when a row is clicked', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const onRowClick = vi.fn();
+      const {getByText} = render(DataTable, {endpoint: '/employees', columns: COLUMNS, onRowClick});
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      await fireEvent.click(getByText('Alice').closest('tr') as HTMLElement);
+      expect(onRowClick).toHaveBeenCalledWith(ROWS[0]);
+    });
+
+    it('does not throw when a row is clicked and onRowClick is not provided', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const {getByText} = render(DataTable, {endpoint: '/employees', columns: COLUMNS});
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      await expect(
+        fireEvent.click(getByText('Alice').closest('tr') as HTMLElement)
+      ).resolves.not.toThrow();
+    });
+
     it('uses render snippet for cells', async () => {
       const cols = [
         {
