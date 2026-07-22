@@ -1,26 +1,18 @@
 <script lang="ts">
   import DataTable from '$lib/components/common/DataTable.svelte';
   import AddTruckDrawer from '$lib/components/flotte/AddTruckDrawer.svelte';
+  import TruckDrawer from '$lib/components/flotte/TruckDrawer.svelte';
   import type {Truck} from '$lib/types/truck';
   import {formatDate} from '$lib/utility/date';
   import {expiryPill} from '$lib/utility/expiry';
+  import {formatTruckModel, formatTankSummary} from '$lib/utility/truck';
   import {truckStatusMeta, truckStatusFilters} from '$lib/store/truckStatus';
 
   let table: ReturnType<typeof DataTable> | undefined = $state();
   let drawerOpen = $state(false);
+  let selectedTruck = $state<Truck | null>(null);
 
   const handleCreated = () => table?.refresh();
-
-  const formatModel = (truck: Truck) => {
-    const makeModel = [truck.make, truck.model].filter(Boolean).join(' ');
-    if (!makeModel && !truck.year) return '—';
-    return [makeModel, truck.year].filter(Boolean).join(' · ');
-  };
-
-  const citerne = (truck: Truck) =>
-    truck.tank
-      ? `${truck.tank.plate_number} · ${truck.tank.capacity.toLocaleString('fr-FR')} L`
-      : '—';
 </script>
 
 {#snippet plateCell(_value: unknown, row: Record<string, unknown>)}
@@ -30,12 +22,12 @@
 
 {#snippet modelCell(_value: unknown, row: Record<string, unknown>)}
   {@const truck = row as Truck}
-  {formatModel(truck)}
+  {formatTruckModel(truck)}
 {/snippet}
 
 {#snippet citerneCell(_value: unknown, row: Record<string, unknown>)}
   {@const truck = row as Truck}
-  {citerne(truck)}
+  {formatTankSummary(truck.tank)}
 {/snippet}
 
 {#snippet statusCell(_value: unknown, row: Record<string, unknown>)}
@@ -115,6 +107,7 @@
   endpoint="/trucks?per_page=100"
   rowClickable
   actions={addTruckAction}
+  onRowClick={(row) => (selectedTruck = row as Truck)}
   clientSide
   filters={truckStatusFilters}
   searchParam="search"
@@ -147,3 +140,4 @@
 />
 
 <AddTruckDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} onCreated={handleCreated} />
+<TruckDrawer truck={selectedTruck} onClose={() => (selectedTruck = null)} />

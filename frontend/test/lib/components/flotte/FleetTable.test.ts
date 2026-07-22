@@ -299,4 +299,33 @@ describe('FleetTable', () => {
       expect(queryByText('GN-5521-G')).not.toBeInTheDocument();
     });
   });
+
+  describe('truck detail drawer', () => {
+    it('does not show the drawer before a row is clicked', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, container} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      expect(container.querySelector('[role="dialog"]')).not.toBeInTheDocument();
+    });
+
+    it("opens the drawer with the clicked row's truck when a row is clicked", async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, container} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.click(getByText('GN-3310-C').closest('tr') as HTMLElement);
+      const dialog = container.querySelector('[role="dialog"]');
+      expect(dialog).toBeInTheDocument();
+      expect(within(dialog as HTMLElement).getByText('GN-3310-C')).toBeInTheDocument();
+      expect(within(dialog as HTMLElement).getByText('Volvo FH · 2019')).toBeInTheDocument();
+    });
+
+    it('closes the drawer when its close button is clicked', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, getByLabelText, container} = render(FleetTable);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.click(getByText('GN-3310-C').closest('tr') as HTMLElement);
+      await fireEvent.click(getByLabelText('Fermer'));
+      expect(container.querySelector('[role="dialog"]')).not.toBeInTheDocument();
+    });
+  });
 });
