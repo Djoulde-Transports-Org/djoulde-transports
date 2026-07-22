@@ -135,6 +135,8 @@
     load(null);
     return () => clearTimeout(searchTimer);
   });
+
+  export const refresh = () => resetAndLoad();
 </script>
 
 <div class="flex flex-col gap-3">
