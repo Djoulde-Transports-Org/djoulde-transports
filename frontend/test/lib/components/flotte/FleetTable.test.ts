@@ -1,10 +1,11 @@
-import {render, waitFor} from '@testing-library/svelte';
+import {render, fireEvent, waitFor} from '@testing-library/svelte';
 import FleetTable from '$lib/components/flotte/FleetTable.svelte';
 import type {Truck} from '$lib/types/truck';
 import {makeTruck} from '../../../mocks/truck';
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+const mockPost = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', () => ({api: {get: mockGet, post: mockPost}}));
 
 const TRUCKS: Truck[] = [
   makeTruck({
@@ -187,6 +188,51 @@ describe('FleetTable', () => {
       const {getAllByText} = render(FleetTable);
       const pills = await waitFor(() => getAllByText('N/A'));
       expect(pills.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('add truck drawer', () => {
+    it('renders the "Ajouter un camion" button', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('Ajouter un camion')).toBeInTheDocument());
+    });
+
+    it('opens the drawer when the button is clicked', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, getAllByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('Ajouter un camion')).toBeInTheDocument());
+      await fireEvent.click(getByText('Ajouter un camion'));
+      expect(getAllByText('Ajouter un camion').length).toBe(2); // button + drawer title
+    });
+
+    it('closes the drawer when Annuler is clicked', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      const {getByText, queryByText} = render(FleetTable);
+      await waitFor(() => expect(getByText('Ajouter un camion')).toBeInTheDocument());
+      await fireEvent.click(getByText('Ajouter un camion'));
+      await fireEvent.click(getByText('Annuler'));
+      expect(queryByText('Annuler')).not.toBeInTheDocument();
+    });
+
+    it('refetches the fleet after a truck is successfully created', async () => {
+      mockGet.mockResolvedValue(TRUCKS);
+      mockPost.mockResolvedValue(makeTruck());
+      const truckCalls = () =>
+        mockGet.mock.calls.filter(([url]) => url.startsWith('/trucks')).length;
+      const {getByText, getAllByLabelText, getByLabelText} = render(FleetTable);
+      await waitFor(() => expect(truckCalls()).toBe(1));
+
+      await fireEvent.click(getByText('Ajouter un camion'));
+      await fireEvent.input(getAllByLabelText('Immatriculation')[0], {target: {value: 'NEW-001'}});
+      await fireEvent.input(getAllByLabelText('Modèle')[0], {target: {value: 'FH'}});
+      await fireEvent.input(getAllByLabelText('Année')[0], {target: {value: '2024'}});
+      await fireEvent.input(getAllByLabelText('Immatriculation')[1], {target: {value: 'TK-001'}});
+      await fireEvent.input(getByLabelText('Capacité (L)'), {target: {value: '30000'}});
+      await fireEvent.click(getByText('Créer le camion'));
+
+      await waitFor(() => expect(mockPost).toHaveBeenCalled());
+      await waitFor(() => expect(truckCalls()).toBe(2));
     });
   });
 });

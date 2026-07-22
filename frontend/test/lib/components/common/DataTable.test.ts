@@ -95,6 +95,16 @@ describe('DataTable', () => {
     });
   });
 
+  describe('refresh()', () => {
+    it('refetches the current page when called', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const {component} = render(DataTable, {endpoint: '/employees', columns: COLUMNS});
+      await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1));
+      component.refresh();
+      await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2));
+    });
+  });
+
   describe('empty state', () => {
     it('shows default empty message when rows are empty', async () => {
       mockGet.mockResolvedValue([]);

@@ -1,8 +1,8 @@
 import {api} from '$lib/api/client';
-import {getTrucks} from '$lib/api/trucks';
+import {getTrucks, createTruck, type CreateTruckPayload} from '$lib/api/trucks';
 import {makeTruck} from '../../mocks/truck';
 
-vi.mock('$lib/api/client', () => ({api: {get: vi.fn()}}));
+vi.mock('$lib/api/client', () => ({api: {get: vi.fn(), post: vi.fn()}}));
 
 describe('getTrucks', () => {
   afterEach(() => vi.clearAllMocks());
@@ -38,6 +38,45 @@ describe('getTrucks', () => {
     vi.mocked(api.get).mockRejectedValue('oops');
     const result = await getTrucks();
     expect(result.data).toEqual([]);
+    expect(result.error).toBe('Une erreur est survenue.');
+  });
+});
+
+describe('createTruck', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  const payload: CreateTruckPayload = {
+    plate_number: 'NEW-001',
+    model: 'FH',
+    year: 2024,
+    tank: {plate_number: 'TK-001', capacity: 30_000},
+  };
+
+  it('calls api.post with /trucks/create and the payload', async () => {
+    vi.mocked(api.post).mockResolvedValue(makeTruck());
+    await createTruck(payload);
+    expect(api.post).toHaveBeenCalledWith('/trucks/create', payload);
+  });
+
+  it('returns data and null error on success', async () => {
+    const truck = makeTruck();
+    vi.mocked(api.post).mockResolvedValue(truck);
+    const result = await createTruck(payload);
+    expect(result.data).toEqual(truck);
+    expect(result.error).toBeNull();
+  });
+
+  it('returns the error message and null data when the API throws', async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error('Validation failed'));
+    const result = await createTruck(payload);
+    expect(result.data).toBeNull();
+    expect(result.error).toBe('Validation failed');
+  });
+
+  it('returns a fallback message for non-Error throws', async () => {
+    vi.mocked(api.post).mockRejectedValue('oops');
+    const result = await createTruck(payload);
+    expect(result.data).toBeNull();
     expect(result.error).toBe('Une erreur est survenue.');
   });
 });
