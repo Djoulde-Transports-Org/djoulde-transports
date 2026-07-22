@@ -1,23 +1,15 @@
 <script lang="ts">
   import DataTable from '$lib/components/common/DataTable.svelte';
   import AddTruckDrawer from '$lib/components/flotte/AddTruckDrawer.svelte';
-  import type {Truck, TruckStatus} from '$lib/types/truck';
+  import type {Truck} from '$lib/types/truck';
   import {formatDate} from '$lib/utility/date';
   import {expiryPill} from '$lib/utility/expiry';
+  import {truckStatusMeta, truckStatusFilters} from '$lib/store/truckStatus';
 
   let table: ReturnType<typeof DataTable> | undefined = $state();
   let drawerOpen = $state(false);
 
   const handleCreated = () => table?.refresh();
-
-  const STATUS_BADGE: Record<TruckStatus, {label: string; classes: string}> = {
-    on_trip: {label: 'En route', classes: 'bg-accent/10 text-accent border-accent/20'},
-    in_maintenance: {
-      label: 'Maintenance',
-      classes: 'bg-dt-yellow/10 text-dt-yellow border-dt-yellow/20',
-    },
-    ready: {label: 'Prêt', classes: 'bg-dt-green/10 text-dt-green border-dt-green/20'},
-  };
 
   const formatModel = (truck: Truck) => {
     const makeModel = [truck.make, truck.model].filter(Boolean).join(' ');
@@ -49,10 +41,10 @@
 {#snippet statusCell(_value: unknown, row: Record<string, unknown>)}
   {@const truck = row as Truck}
   <span
-    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {STATUS_BADGE[truck.status]
+    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {truckStatusMeta[truck.status]
       .classes}"
   >
-    {STATUS_BADGE[truck.status].label}
+    {truckStatusMeta[truck.status].label}
   </span>
 {/snippet}
 
@@ -123,6 +115,10 @@
   endpoint="/trucks?per_page=100"
   rowClickable
   actions={addTruckAction}
+  clientSide
+  filters={truckStatusFilters}
+  searchParam="search"
+  searchFields={['plate_number', 'model']}
   columns={[
     {key: 'plate_number', label: 'Immatriculation', render: plateCell},
     {key: 'model', label: 'Modèle', render: modelCell},

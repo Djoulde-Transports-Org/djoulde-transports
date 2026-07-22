@@ -29,6 +29,8 @@
     columns,
     filters = [],
     searchParam,
+    searchFields,
+    clientSide = false,
     paginated = false,
     limit = 50,
     rowClickable = false,
@@ -40,6 +42,8 @@
     columns: Column[];
     filters?: FilterChip[];
     searchParam?: string;
+    searchFields?: string[];
+    clientSide?: boolean;
     paginated?: boolean;
     limit?: number;
     rowClickable?: boolean;
@@ -48,11 +52,28 @@
     error?: Snippet<[string]>;
   } = $props();
 
-  let rows = $state<Row[]>([]);
+  let allRows = $state<Row[]>([]);
   let loading = $state(true);
   let errorMsg = $state<string | null>(null);
   let search = $state('');
   let activeFilters = $state<Record<string, string>>({});
+
+  const matchesFilters = (row: Row) =>
+    Object.entries(activeFilters).every(([key, value]) => row[key] === value);
+
+  const matchesSearch = (row: Row) => {
+    const term = search.trim().toLowerCase();
+    if (!term) return true;
+    return (searchFields ?? []).some((field) =>
+      String(row[field] ?? '')
+        .toLowerCase()
+        .includes(term)
+    );
+  };
+
+  const rows = $derived(
+    clientSide ? allRows.filter((row) => matchesFilters(row) && matchesSearch(row)) : allRows
+  );
 
   let cursorStack = $state<(string | null)[]>([null]);
   let page = $state(0);
@@ -60,11 +81,13 @@
 
   const buildUrl = (cursor: string | null) => {
     const parts: string[] = [];
-    for (const [k, v] of Object.entries(activeFilters)) {
-      parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
-    }
-    if (searchParam && search.trim()) {
-      parts.push(`${encodeURIComponent(searchParam)}=${encodeURIComponent(search.trim())}`);
+    if (!clientSide) {
+      for (const [k, v] of Object.entries(activeFilters)) {
+        parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+      }
+      if (searchParam && search.trim()) {
+        parts.push(`${encodeURIComponent(searchParam)}=${encodeURIComponent(search.trim())}`);
+      }
     }
     if (paginated) {
       parts.push(`limit=${limit}`);
@@ -80,13 +103,13 @@
       const url = buildUrl(cursor);
       if (paginated) {
         const res = await api.get<PaginatedResponse>(url);
-        rows = res.data;
+        allRows = res.data;
         hasMore = res.has_more;
         if (res.next_cursor) {
           cursorStack = [...cursorStack.slice(0, page + 1), res.next_cursor];
         }
       } else {
-        rows = await api.get<Row[]>(url);
+        allRows = await api.get<Row[]>(url);
       }
     } catch (e) {
       errorMsg = e instanceof Error ? e.message : 'Une erreur est survenue.';
@@ -104,16 +127,17 @@
 
   const toggleFilter = (chip: FilterChip) => {
     const next = {...activeFilters};
-    if (next[chip.key] === chip.value) delete next[chip.key];
+    if (chip.value === '' || next[chip.key] === chip.value) delete next[chip.key];
     else next[chip.key] = chip.value;
     activeFilters = next;
-    resetAndLoad();
+    if (!clientSide) resetAndLoad();
   };
 
   let searchTimer: ReturnType<typeof setTimeout>;
 
   const onSearchInput = (e: Event) => {
     search = (e.target as HTMLInputElement).value;
+    if (clientSide) return;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(resetAndLoad, 300);
   };
@@ -159,7 +183,8 @@
       {/if}
 
       {#each filters as chip (chip.key + chip.value)}
-        {@const active = activeFilters[chip.key] === chip.value}
+        {@const active =
+          chip.value === '' ? !(chip.key in activeFilters) : activeFilters[chip.key] === chip.value}
         <button
           onclick={() => toggleFilter(chip)}
           class="px-3 py-1 text-[12px] font-medium rounded-full border transition-colors duration-[130ms]

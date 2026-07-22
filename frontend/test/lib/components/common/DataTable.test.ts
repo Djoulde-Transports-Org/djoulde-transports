@@ -245,6 +245,104 @@ describe('DataTable', () => {
     });
   });
 
+  describe('clientSide filtering and search', () => {
+    const CLIENT_ROWS = [
+      {id: 1, name: 'Alice', role: 'driver'},
+      {id: 2, name: 'Bob', role: 'mechanic'},
+      {id: 3, name: 'Ali', role: 'driver'},
+    ];
+    const clientFilters = [
+      {key: 'role', label: 'Tous', value: ''},
+      {key: 'role', label: 'Chauffeur', value: 'driver'},
+      {key: 'role', label: 'Mécanicien', value: 'mechanic'},
+    ];
+
+    it('fetches the bare endpoint once, ignoring filters and search in the URL', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        filters: clientFilters,
+        searchParam: 'search',
+        searchFields: ['name'],
+      });
+      await waitFor(() => expect(mockGet).toHaveBeenCalledWith('/employees'));
+      expect(mockGet).toHaveBeenCalledTimes(1);
+    });
+
+    it('filters already-loaded rows in-memory on chip click without refetching', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      const {getByText, queryByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        filters: clientFilters,
+      });
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      await fireEvent.click(getByText('Chauffeur'));
+      expect(getByText('Alice')).toBeInTheDocument();
+      expect(getByText('Ali')).toBeInTheDocument();
+      expect(queryByText('Bob')).not.toBeInTheDocument();
+      expect(mockGet).toHaveBeenCalledTimes(1);
+    });
+
+    it('the "Tous" (empty value) chip clears the active filter and is active by default', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      const {getByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        filters: clientFilters,
+      });
+      await waitFor(() => expect(getByText('Tous').closest('button')).toHaveClass('text-accent'));
+      await fireEvent.click(getByText('Mécanicien'));
+      await waitFor(() =>
+        expect(getByText('Mécanicien').closest('button')).toHaveClass('text-accent')
+      );
+      await fireEvent.click(getByText('Tous'));
+      await waitFor(() => expect(getByText('Tous').closest('button')).toHaveClass('text-accent'));
+      expect(getByText('Alice')).toBeInTheDocument();
+      expect(getByText('Bob')).toBeInTheDocument();
+    });
+
+    it('filters already-loaded rows in real time on search input across searchFields', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      const {getByPlaceholderText, getByText, queryByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        searchParam: 'search',
+        searchFields: ['name'],
+      });
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      const input = getByPlaceholderText('Rechercher...');
+      await fireEvent.input(input, {target: {value: 'ali'}});
+      expect(getByText('Alice')).toBeInTheDocument();
+      expect(getByText('Ali')).toBeInTheDocument();
+      expect(queryByText('Bob')).not.toBeInTheDocument();
+      expect(mockGet).toHaveBeenCalledTimes(1);
+    });
+
+    it('combines an active filter chip and search term', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      const {getByPlaceholderText, getByText, queryByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        filters: clientFilters,
+        searchParam: 'search',
+        searchFields: ['name'],
+      });
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      await fireEvent.click(getByText('Chauffeur'));
+      const input = getByPlaceholderText('Rechercher...');
+      await fireEvent.input(input, {target: {value: 'bob'}});
+      expect(queryByText('Bob')).not.toBeInTheDocument();
+      expect(queryByText('Alice')).not.toBeInTheDocument();
+    });
+  });
+
   describe('actions snippet', () => {
     it('renders the actions snippet in the toolbar', () => {
       mockGet.mockReturnValue(new Promise(() => {}));
