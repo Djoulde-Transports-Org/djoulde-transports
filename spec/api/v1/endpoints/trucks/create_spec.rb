@@ -172,5 +172,71 @@ RSpec.describe API::V1::Endpoints::Trucks::Create do
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
+
+    context "without vin, make on the truck and vin, make, model, year on the tank" do
+      let(:params) do
+        {
+          plate_number: "NEW-#{SecureRandom.hex(2)}",
+          model:        "FH",
+          year:         2022,
+          tank:         {plate_number: "TK-#{SecureRandom.hex(2)}", capacity: 30_000},
+        }
+      end
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context "with a last_oil_change_on" do
+      let(:params) { super().merge(last_oil_change_on: "2026-01-15") }
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "returns the last oil change date" do
+        expect(response.parsed_body["last_oil_change_on"]).to eq("2026-01-15")
+      end
+    end
+
+    context "with document expiry dates" do
+      let(:params) do
+        super().merge(
+          documents: {
+            truck_insurance_expires_on:      "2027-01-01",
+            cargo_insurance_expires_on:      "2027-02-01",
+            technical_inspection_expires_on: "2027-03-01",
+            operating_permit_expires_on:     "2027-04-01",
+            truck_registration_expires_on:   "2027-05-01",
+          }
+        )
+      end
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "returns each document's expiry date", :aggregate_failures do
+        body = response.parsed_body
+        expect(body["truck_insurance_expires_on"]).to eq("2027-01-01")
+        expect(body["cargo_insurance_expires_on"]).to eq("2027-02-01")
+        expect(body["technical_inspection_expires_on"]).to eq("2027-03-01")
+        expect(body["operating_permit_expires_on"]).to eq("2027-04-01")
+        expect(body["truck_registration_expires_on"]).to eq("2027-05-01")
+      end
+    end
+
+    context "without document expiry dates" do
+      it "creates no documents" do
+        expect { do_request }.not_to change { Document.count }
+      end
+    end
   end
 end
