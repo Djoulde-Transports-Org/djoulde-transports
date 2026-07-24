@@ -23,4 +23,18 @@
   --color-dt-green: #2e7a52;
   --color-dt-yellow: #c09820;
   --color-dt-red: #c03018;
+
+  --animate-slide: slide 2.5s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% {
+    left: 4%;
+  }
+  50% {
+    left: 88%;
+  }
+  100% {
+    left: 4%;
+  }
 }
