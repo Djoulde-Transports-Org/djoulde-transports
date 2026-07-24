@@ -18,11 +18,11 @@ import {page} from '$app/stores';
 import {authStore} from '$lib/store/session/auth';
 
 const makeSession = (roles: Session['roles'] = ['dispatcher']): Session => ({
-  access_token: 'tok_test',
-  token_type: 'Bearer',
-  expires_in: 7200,
-  created_at: 1700000000,
-  user_id: 1,
+  accessToken: 'tok_test',
+  tokenType: 'Bearer',
+  expiresIn: 7200,
+  createdAt: 1700000000,
+  userId: 1,
   roles,
 });
 

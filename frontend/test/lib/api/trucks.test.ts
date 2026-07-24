@@ -1,5 +1,6 @@
 import {api} from '$lib/api/client';
-import {getTrucks, createTruck, type CreateTruckPayload} from '$lib/api/trucks';
+import {getTrucks, createTruck} from '$lib/api/trucks';
+import type {CreateTruckPayload} from '$lib/types/truck';
 import {makeTruck} from '../../mocks/truck';
 
 vi.mock('$lib/api/client', () => ({api: {get: vi.fn(), post: vi.fn()}}));
@@ -46,10 +47,10 @@ describe('createTruck', () => {
   afterEach(() => vi.clearAllMocks());
 
   const payload: CreateTruckPayload = {
-    plate_number: 'NEW-001',
+    plateNumber: 'NEW-001',
     model: 'FH',
     year: 2024,
-    tank: {plate_number: 'TK-001', capacity: 30_000},
+    tank: {plateNumber: 'TK-001', capacity: 30_000},
   };
 
   it('calls api.post with /trucks/create and the payload', async () => {

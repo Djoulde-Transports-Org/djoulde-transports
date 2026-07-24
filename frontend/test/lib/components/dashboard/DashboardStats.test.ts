@@ -10,10 +10,10 @@ vi.mock('$app/navigation', () => ({goto: vi.fn()}));
 vi.mock('$app/paths', () => ({resolve: (p: string) => p}));
 
 const METRICS = {
-  trucks: {total: 7, ready: 2, on_trip: 4, in_maintenance: 1},
-  trips_in_progress: 3,
-  liters_delivered_this_month: 12500,
-  billing_amount_ht_this_month: 850000,
+  trucks: {total: 7, ready: 2, onTrip: 4, inMaintenance: 1},
+  tripsInProgress: 3,
+  litersDeliveredThisMonth: 12500,
+  billingAmountHtThisMonth: 850000,
 };
 
 describe('DashboardStats', () => {

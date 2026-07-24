@@ -25,16 +25,16 @@ describe('formatTankSummary', () => {
   it('combines the tank plate number and capacity', () => {
     const summary = formatTankSummary({
       id: 1,
-      truck_id: 1,
-      plate_number: 'TC-041',
+      truckId: 1,
+      plateNumber: 'TC-041',
       vin: null,
       make: null,
       model: null,
       year: null,
       capacity: 33_000,
       status: 'active',
-      conformity_certificate_expires_on: null,
-      conformity_certificate_days_remaining: null,
+      conformityCertificateExpiresOn: null,
+      conformityCertificateDaysRemaining: null,
     });
     // toLocaleString('fr-FR') uses a narrow no-break space (U+202F) as the
     // thousands separator; normalize it before comparing against a plain string.
@@ -46,23 +46,23 @@ describe('formatTankSummary', () => {
 describe('truckDocumentRows', () => {
   it('returns the 6 tracked documents in order with their days remaining', () => {
     const truck = makeTruck({
-      truck_insurance_days_remaining: 45,
-      cargo_insurance_days_remaining: 120,
-      technical_inspection_days_remaining: 8,
-      operating_permit_days_remaining: 200,
-      truck_registration_days_remaining: 330,
+      truckInsuranceDaysRemaining: 45,
+      cargoInsuranceDaysRemaining: 120,
+      technicalInspectionDaysRemaining: 8,
+      operatingPermitDaysRemaining: 200,
+      truckRegistrationDaysRemaining: 330,
       tank: {
         id: 1,
-        truck_id: 1,
-        plate_number: 'TC-041',
+        truckId: 1,
+        plateNumber: 'TC-041',
         vin: null,
         make: null,
         model: null,
         year: null,
         capacity: 33_000,
         status: 'active',
-        conformity_certificate_expires_on: null,
-        conformity_certificate_days_remaining: 25,
+        conformityCertificateExpiresOn: null,
+        conformityCertificateDaysRemaining: 25,
       },
     });
 

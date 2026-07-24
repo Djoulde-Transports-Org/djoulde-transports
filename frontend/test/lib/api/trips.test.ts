@@ -8,20 +8,20 @@ describe('getTrips', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('calls api.get with /trips and the default limit of 6', async () => {
-    vi.mocked(api.get).mockResolvedValue({items: [], next_cursor: null, has_more: false});
+    vi.mocked(api.get).mockResolvedValue({items: [], nextCursor: null, hasMore: false});
     await getTrips();
     expect(api.get).toHaveBeenCalledWith('/trips?limit=6');
   });
 
   it('calls api.get with the supplied limit', async () => {
-    vi.mocked(api.get).mockResolvedValue({items: [], next_cursor: null, has_more: false});
+    vi.mocked(api.get).mockResolvedValue({items: [], nextCursor: null, hasMore: false});
     await getTrips(10);
     expect(api.get).toHaveBeenCalledWith('/trips?limit=10');
   });
 
   it('returns the items and null error on success', async () => {
     const trips = [makeTrip()];
-    vi.mocked(api.get).mockResolvedValue({items: trips, next_cursor: null, has_more: false});
+    vi.mocked(api.get).mockResolvedValue({items: trips, nextCursor: null, hasMore: false});
     const result = await getTrips();
     expect(result.data).toEqual(trips);
     expect(result.error).toBeNull();

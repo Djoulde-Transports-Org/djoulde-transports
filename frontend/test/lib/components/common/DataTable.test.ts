@@ -387,8 +387,8 @@ describe('DataTable', () => {
   });
 
   describe('pagination (paginated=true)', () => {
-    const paginatedResponse = {data: ROWS, next_cursor: 'cur-abc', has_more: true};
-    const lastPageResponse = {data: ROWS, next_cursor: null, has_more: false};
+    const paginatedResponse = {data: ROWS, nextCursor: 'cur-abc', hasMore: true};
+    const lastPageResponse = {data: ROWS, nextCursor: null, hasMore: false};
 
     it('shows Précédent and Suivant buttons', async () => {
       mockGet.mockResolvedValue(lastPageResponse);

@@ -74,7 +74,7 @@ describe('AddTruckDrawer', () => {
     });
 
     it('shows the fetched drivers when the affectation field is focused', async () => {
-      mockGet.mockResolvedValue([makeEmployee({id: 1, full_name: 'Ibrahima Bah'})]);
+      mockGet.mockResolvedValue([makeEmployee({id: 1, fullName: 'Ibrahima Bah'})]);
       const {getByLabelText, getByText} = render(AddTruckDrawer, {
         open: true,
         onClose: vi.fn(),
@@ -86,8 +86,8 @@ describe('AddTruckDrawer', () => {
 
     it('filters the driver list as text is typed', async () => {
       mockGet.mockResolvedValue([
-        makeEmployee({id: 1, full_name: 'Ibrahima Bah'}),
-        makeEmployee({id: 2, full_name: 'Mamadou Diallo'}),
+        makeEmployee({id: 1, fullName: 'Ibrahima Bah'}),
+        makeEmployee({id: 2, fullName: 'Mamadou Diallo'}),
       ]);
       const {getByLabelText, getByText, queryByText} = render(AddTruckDrawer, {
         open: true,
@@ -179,11 +179,11 @@ describe('AddTruckDrawer', () => {
 
         await waitFor(() => expect(mockPost).toHaveBeenCalled());
         expect(mockPost).toHaveBeenCalledWith('/trucks/create', {
-          plate_number: 'NEW-001',
+          plateNumber: 'NEW-001',
           model: 'FH',
           year: 2024,
           status: 'ready',
-          tank: {plate_number: 'TK-001', capacity: 30_000},
+          tank: {plateNumber: 'TK-001', capacity: 30_000},
           documents: {},
         });
       });
@@ -237,13 +237,13 @@ describe('AddTruckDrawer', () => {
         expect(mockPost).toHaveBeenCalledWith(
           '/trucks/create',
           expect.objectContaining({
-            documents: {truck_insurance_expires_on: '2027-01-01'},
+            documents: {truckInsuranceExpiresOn: '2027-01-01'},
           })
         );
       });
 
-      it('includes the selected driver_id', async () => {
-        mockGet.mockResolvedValue([makeEmployee({id: 7, full_name: 'Ibrahima Bah'})]);
+      it('includes the selected driverId', async () => {
+        mockGet.mockResolvedValue([makeEmployee({id: 7, fullName: 'Ibrahima Bah'})]);
         mockPost.mockResolvedValue(makeTruck());
         const {getAllByLabelText, getByLabelText, getByText} = render(AddTruckDrawer, {
           open: true,
@@ -260,12 +260,12 @@ describe('AddTruckDrawer', () => {
         await waitFor(() => expect(mockPost).toHaveBeenCalled());
         expect(mockPost).toHaveBeenCalledWith(
           '/trucks/create',
-          expect.objectContaining({driver_id: 7})
+          expect.objectContaining({driverId: 7})
         );
       });
 
       it('shows the chosen driver name after selection', async () => {
-        mockGet.mockResolvedValue([makeEmployee({id: 7, full_name: 'Ibrahima Bah'})]);
+        mockGet.mockResolvedValue([makeEmployee({id: 7, fullName: 'Ibrahima Bah'})]);
         const {getByLabelText, getByText} = render(AddTruckDrawer, {
           open: true,
           onClose: vi.fn(),

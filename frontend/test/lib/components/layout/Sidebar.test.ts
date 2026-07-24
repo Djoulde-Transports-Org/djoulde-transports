@@ -17,11 +17,11 @@ vi.mock('$lib/api/sessions', () => ({
 }));
 
 const makeSession = (overrides?: Partial<Session>): Session => ({
-  access_token: 'tok_abc',
-  token_type: 'Bearer',
-  expires_in: 7200,
-  created_at: 1700000000,
-  user_id: 42,
+  accessToken: 'tok_abc',
+  tokenType: 'Bearer',
+  expiresIn: 7200,
+  createdAt: 1700000000,
+  userId: 42,
   roles: ['dispatcher'],
   ...overrides,
 });
@@ -86,7 +86,7 @@ describe('Sidebar', () => {
 
   describe('user row — authenticated', () => {
     it('shows the user id', () => {
-      authStore.setSession(makeSession({user_id: 42}));
+      authStore.setSession(makeSession({userId: 42}));
       const {getByText} = render(Sidebar);
       expect(getByText('Utilisateur #42')).toBeInTheDocument();
     });

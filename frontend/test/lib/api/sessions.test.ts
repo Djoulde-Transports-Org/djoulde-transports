@@ -7,11 +7,11 @@ vi.mock('$lib/api/client', () => ({
 }));
 
 const mockSession = (overrides?: Partial<Session>): Session => ({
-  access_token: 'tok_abc',
-  token_type: 'Bearer',
-  expires_in: 7200,
-  created_at: 1700000000,
-  user_id: 1,
+  accessToken: 'tok_abc',
+  tokenType: 'Bearer',
+  expiresIn: 7200,
+  createdAt: 1700000000,
+  userId: 1,
   roles: [],
   ...overrides,
 });
