@@ -4,6 +4,7 @@ import {goto} from '$app/navigation';
 import {resolve} from '$app/paths';
 import {page} from '$app/stores';
 import {authStore} from '$lib/store/session/auth';
+import {toCamelCase, toSnakeCase} from '$lib/utility/case';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
@@ -19,7 +20,7 @@ export class ApiRequestError extends Error {
 }
 
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
-  const token = get(authStore)?.access_token;
+  const token = get(authStore)?.accessToken;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -40,7 +41,9 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
     throw new ApiRequestError('unauthorized', 'Session expirée. Veuillez vous reconnecter.');
   }
 
-  const data = await response.json();
+  const data = toCamelCase<{error?: {code?: string; message?: string; details?: unknown}}>(
+    await response.json()
+  );
 
   if (!response.ok) {
     throw new ApiRequestError(
@@ -53,13 +56,15 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
   return data as T;
 };
 
+const withBody = (method: string, body: unknown): RequestInit => ({
+  method,
+  body: JSON.stringify(toSnakeCase(body)),
+});
+
 export const api = {
-  post: <T>(path: string, body: unknown) =>
-    request<T>(path, {method: 'POST', body: JSON.stringify(body)}),
+  post: <T>(path: string, body: unknown) => request<T>(path, withBody('POST', body)),
   get: <T>(path: string) => request<T>(path, {method: 'GET'}),
-  put: <T>(path: string, body: unknown) =>
-    request<T>(path, {method: 'PUT', body: JSON.stringify(body)}),
-  patch: <T>(path: string, body: unknown) =>
-    request<T>(path, {method: 'PATCH', body: JSON.stringify(body)}),
+  put: <T>(path: string, body: unknown) => request<T>(path, withBody('PUT', body)),
+  patch: <T>(path: string, body: unknown) => request<T>(path, withBody('PATCH', body)),
   delete: <T>(path: string) => request<T>(path, {method: 'DELETE'}),
 };

@@ -1,7 +1,7 @@
 import {api} from './client';
 import type {Trip} from '$lib/types/trip';
 
-type TripsResponse = {items: Trip[]; next_cursor: number | null; has_more: boolean};
+type TripsResponse = {items: Trip[]; nextCursor: number | null; hasMore: boolean};
 
 type TripsResult = {data: Trip[]; error: string | null};
 
