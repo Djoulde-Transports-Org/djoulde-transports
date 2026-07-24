@@ -1,4 +1,4 @@
-import type {TruckStatus} from '$lib/types/truck';
+import type {TruckStatus, TruckStatusOption} from '$lib/types/truck';
 
 export const truckStatusMeta: Record<TruckStatus, {label: string; classes: string}> = {
   on_trip: {label: 'En route', classes: 'bg-accent/10 text-accent border-accent/20'},
@@ -12,6 +12,13 @@ export const truckStatusMeta: Record<TruckStatus, {label: string; classes: strin
 const FILTER_LABEL_OVERRIDES: Partial<Record<TruckStatus, string>> = {
   ready: 'Prêts',
 };
+
+const STATUS_OPTION_ORDER: TruckStatus[] = ['ready', 'in_maintenance', 'on_trip'];
+
+export const truckStatusOptions: TruckStatusOption[] = STATUS_OPTION_ORDER.map((status) => ({
+  value: status,
+  label: truckStatusMeta[status].label,
+}));
 
 export const truckStatusFilters = [
   {key: 'status', label: 'Tous', value: ''},
