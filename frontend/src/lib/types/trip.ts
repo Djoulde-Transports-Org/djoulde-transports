@@ -11,13 +11,13 @@ export type TripRoute = {
 
 export type TripDeliveryNote = {
   id: number;
-  trip_id: number;
+  tripId: number;
   number: string;
-  delivered_on: string | null;
-  gasoline_quantity: number;
-  diesel_quantity: number;
-  total_quantity: number;
-  missing_quantity: number | null;
+  deliveredOn: string | null;
+  gasolineQuantity: number;
+  dieselQuantity: number;
+  totalQuantity: number;
+  missingQuantity: number | null;
   product: string;
 };
 
@@ -26,27 +26,27 @@ export type TripBillingStatement = {
   number: string;
   status: string;
   month: string;
-  starts_on: string;
-  ends_on: string;
-  issued_on: string | null;
-  due_on: string | null;
-  total_amount: number;
-  total_tva: number;
-  grand_total: number;
+  startsOn: string;
+  endsOn: string;
+  issuedOn: string | null;
+  dueOn: string | null;
+  totalAmount: number;
+  totalTva: number;
+  grandTotal: number;
 };
 
 export type Trip = {
   id: number;
   status: TripStatus;
-  cargo_description: string | null;
-  distance_km: number | null;
-  scheduled_start_at: string | null;
-  scheduled_end_at: string | null;
-  actual_start_at: string | null;
-  actual_end_at: string | null;
+  cargoDescription: string | null;
+  distanceKm: number | null;
+  scheduledStartAt: string | null;
+  scheduledEndAt: string | null;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
   truck: Truck;
   driver: TruckDriver | null;
   route: TripRoute;
-  delivery_note: TripDeliveryNote | null;
-  billing_statement: TripBillingStatement | null;
+  deliveryNote: TripDeliveryNote | null;
+  billingStatement: TripBillingStatement | null;
 };

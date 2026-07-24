@@ -1,52 +1,105 @@
 export type TruckStatus = 'ready' | 'on_trip' | 'in_maintenance';
 
+export type TruckStatusOption = {
+  value: TruckStatus;
+  label: string;
+};
+
 export type TruckDriver = {
   id: number;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  phone_number: string | null;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phoneNumber: string | null;
   role: string;
-  user_id: number | null;
+  userId: number | null;
 };
 
 export type TruckTank = {
   id: number;
-  truck_id: number;
-  plate_number: string;
+  truckId: number;
+  plateNumber: string;
   vin: string | null;
   make: string | null;
   model: string | null;
   year: number | null;
   capacity: number;
   status: string;
-  conformity_certificate_expires_on: string | null;
-  conformity_certificate_days_remaining: number | null;
+  conformityCertificateExpiresOn: string | null;
+  conformityCertificateDaysRemaining: number | null;
 };
 
 export type Truck = {
   id: number;
-  plate_number: string;
+  plateNumber: string;
   vin: string | null;
   make: string | null;
   model: string | null;
   year: number | null;
   status: TruckStatus;
-  created_by_id: number;
+  createdById: number;
   tank: TruckTank | null;
   driver: TruckDriver | null;
-  last_oil_change_on: string | null;
-  truck_insurance_expires_on: string | null;
-  truck_insurance_days_remaining: number | null;
-  cargo_insurance_expires_on: string | null;
-  cargo_insurance_days_remaining: number | null;
-  technical_inspection_expires_on: string | null;
-  technical_inspection_days_remaining: number | null;
-  operating_permit_expires_on: string | null;
-  operating_permit_days_remaining: number | null;
-  truck_registration_expires_on: string | null;
-  truck_registration_days_remaining: number | null;
-  trips_count: number;
-  total_km: number;
-  total_liters_delivered: number;
+  lastOilChangeOn: string | null;
+  truckInsuranceExpiresOn: string | null;
+  truckInsuranceDaysRemaining: number | null;
+  cargoInsuranceExpiresOn: string | null;
+  cargoInsuranceDaysRemaining: number | null;
+  technicalInspectionExpiresOn: string | null;
+  technicalInspectionDaysRemaining: number | null;
+  operatingPermitExpiresOn: string | null;
+  operatingPermitDaysRemaining: number | null;
+  truckRegistrationExpiresOn: string | null;
+  truckRegistrationDaysRemaining: number | null;
+  tripsCount: number;
+  totalKm: number;
+  totalLitersDelivered: number;
+};
+
+export type CreateTruckPayload = {
+  plateNumber: string;
+  vin?: string;
+  make?: string;
+  model: string;
+  year: number;
+  status?: string;
+  driverId?: number;
+  lastOilChangeOn?: string;
+  tank: {
+    plateNumber: string;
+    capacity: number;
+    vin?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+  };
+  documents?: {
+    truckInsuranceExpiresOn?: string;
+    cargoInsuranceExpiresOn?: string;
+    technicalInspectionExpiresOn?: string;
+    operatingPermitExpiresOn?: string;
+    truckRegistrationExpiresOn?: string;
+  };
+};
+
+export type AddTruckValues = {
+  plateNumber: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: string;
+  status: string;
+  tankPlateNumber: string;
+  tankCapacity: string;
+  tankMake: string;
+  tankModel: string;
+  tankVin: string;
+  tankYear: string;
+  driverId: string;
+  lastOilChangeOn: string;
+  truckInsuranceExpiresOn: string;
+  cargoInsuranceExpiresOn: string;
+  technicalInspectionExpiresOn: string;
+  operatingPermitExpiresOn: string;
+  truckRegistrationExpiresOn: string;
 };
