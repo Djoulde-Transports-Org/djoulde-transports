@@ -1,36 +1,60 @@
 <script lang="ts">
+  import type {Snippet} from 'svelte';
   import DataTable from '$lib/components/common/DataTable.svelte';
   import AddTruckDrawer from '$lib/components/flotte/AddTruckDrawer.svelte';
   import TruckDrawer from '$lib/components/flotte/TruckDrawer.svelte';
   import type {Truck} from '$lib/types/truck';
+  import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
   import {expiryPill} from '$lib/utility/expiry';
   import {formatTruckModel, formatTankSummary} from '$lib/utility/truck';
   import {truckStatusMeta, truckStatusFilters} from '$lib/store/truckStatus';
+  import {fleetColumns} from '$lib/store/fleetColumns';
+  import type {FleetColumnCell} from '$lib/types/fleetColumns';
 
   let table: ReturnType<typeof DataTable> | undefined = $state();
   let drawerOpen = $state(false);
   let selectedTruck = $state<Truck | null>(null);
 
   const handleCreated = () => table?.refresh();
+
+  const cellRenderers: Record<FleetColumnCell, Snippet<[unknown, Row]>> = {
+    plate: plateCell,
+    model: modelCell,
+    citerne: citerneCell,
+    status: statusCell,
+    oilChange: oilChangeCell,
+    truckInsurance: truckInsuranceCell,
+    cargoInsurance: cargoInsuranceCell,
+    technicalInspection: technicalInspectionCell,
+    operatingPermit: operatingPermitCell,
+    truckRegistration: truckRegistrationCell,
+    conformityCertificate: conformityCertificateCell,
+  };
+
+  const columns = fleetColumns.map((c) => ({
+    key: c.key,
+    label: c.label,
+    render: cellRenderers[c.cell],
+  }));
 </script>
 
-{#snippet plateCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet plateCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  <span class="font-bold text-dt-text">{truck.plate_number}</span>
+  <span class="font-bold text-dt-text">{truck.plateNumber}</span>
 {/snippet}
 
-{#snippet modelCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet modelCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
   {formatTruckModel(truck)}
 {/snippet}
 
-{#snippet citerneCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet citerneCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
   {formatTankSummary(truck.tank)}
 {/snippet}
 
-{#snippet statusCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet statusCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
   <span
     class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {truckStatusMeta[truck.status]
@@ -40,54 +64,54 @@
   </span>
 {/snippet}
 
-{#snippet oilChangeCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet oilChangeCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {formatDate(truck.last_oil_change_on)}
+  {formatDate(truck.lastOilChangeOn)}
 {/snippet}
 
-{#snippet truckInsuranceCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet truckInsuranceCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.truck_insurance_days_remaining)}
+  {@const pill = expiryPill(truck.truckInsuranceDaysRemaining)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
 {/snippet}
 
-{#snippet cargoInsuranceCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet cargoInsuranceCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.cargo_insurance_days_remaining)}
+  {@const pill = expiryPill(truck.cargoInsuranceDaysRemaining)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
 {/snippet}
 
-{#snippet technicalInspectionCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet technicalInspectionCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.technical_inspection_days_remaining)}
+  {@const pill = expiryPill(truck.technicalInspectionDaysRemaining)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
 {/snippet}
 
-{#snippet operatingPermitCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet operatingPermitCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.operating_permit_days_remaining)}
+  {@const pill = expiryPill(truck.operatingPermitDaysRemaining)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
 {/snippet}
 
-{#snippet truckRegistrationCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet truckRegistrationCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.truck_registration_days_remaining)}
+  {@const pill = expiryPill(truck.truckRegistrationDaysRemaining)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
 {/snippet}
 
-{#snippet conformityCertificateCell(_value: unknown, row: Record<string, unknown>)}
+{#snippet conformityCertificateCell(_value: unknown, row: Row)}
   {@const truck = row as Truck}
-  {@const pill = expiryPill(truck.tank?.conformity_certificate_days_remaining ?? null)}
+  {@const pill = expiryPill(truck.tank?.conformityCertificateDaysRemaining ?? null)}
   <span class="exp text-[11px] font-semibold px-2 py-0.5 rounded-full border {pill.classes}">
     {pill.label}
   </span>
@@ -111,32 +135,8 @@
   clientSide
   filters={truckStatusFilters}
   searchParam="search"
-  searchFields={['plate_number', 'model']}
-  columns={[
-    {key: 'plate_number', label: 'Immatriculation', render: plateCell},
-    {key: 'model', label: 'Modèle', render: modelCell},
-    {key: 'tank', label: 'Citerne', render: citerneCell},
-    {key: 'status', label: 'Statut', render: statusCell},
-    {key: 'last_oil_change_on', label: 'Dernière vidange', render: oilChangeCell},
-    {key: 'truck_insurance_days_remaining', label: 'Ass. camion', render: truckInsuranceCell},
-    {key: 'cargo_insurance_days_remaining', label: 'Ass. produit', render: cargoInsuranceCell},
-    {
-      key: 'technical_inspection_days_remaining',
-      label: 'Visite tech.',
-      render: technicalInspectionCell,
-    },
-    {
-      key: 'operating_permit_days_remaining',
-      label: 'Carte de Transport',
-      render: operatingPermitCell,
-    },
-    {
-      key: 'truck_registration_days_remaining',
-      label: 'Carte grise',
-      render: truckRegistrationCell,
-    },
-    {key: 'conformity_certificate', label: 'Baremage', render: conformityCertificateCell},
-  ]}
+  searchFields={['plateNumber', 'model']}
+  {columns}
 />
 
 <AddTruckDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} onCreated={handleCreated} />

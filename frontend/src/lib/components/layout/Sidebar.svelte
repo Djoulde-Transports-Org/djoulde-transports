@@ -65,7 +65,7 @@
     </div>
     <div class="flex flex-col gap-0 min-w-0 flex-1">
       <span class="text-[12px] font-semibold text-dt-text-mid truncate">
-        Utilisateur #{session?.user_id ?? '—'}
+        Utilisateur #{session?.userId ?? '—'}
       </span>
       <span class="text-[11px] text-dt-text-muted">{roleLabel}</span>
     </div>

@@ -3,26 +3,7 @@
   import {onMount} from 'svelte';
   import {api} from '$lib/api/client';
   import Icon from '$lib/components/common/Icon.svelte';
-
-  type Row = Record<string, unknown>;
-
-  type Column = {
-    key: string;
-    label: string;
-    render?: Snippet<[unknown, Row]>;
-  };
-
-  type FilterChip = {
-    key: string;
-    label: string;
-    value: string;
-  };
-
-  type PaginatedResponse = {
-    data: Row[];
-    next_cursor: string | null;
-    has_more: boolean;
-  };
+  import type {Row, Column, FilterChip, PaginatedResponse} from '$lib/types/dataTable';
 
   let {
     endpoint,
@@ -106,9 +87,9 @@
       if (paginated) {
         const res = await api.get<PaginatedResponse>(url);
         allRows = res.data;
-        hasMore = res.has_more;
-        if (res.next_cursor) {
-          cursorStack = [...cursorStack.slice(0, page + 1), res.next_cursor];
+        hasMore = res.hasMore;
+        if (res.nextCursor) {
+          cursorStack = [...cursorStack.slice(0, page + 1), res.nextCursor];
         }
       } else {
         allRows = await api.get<Row[]>(url);

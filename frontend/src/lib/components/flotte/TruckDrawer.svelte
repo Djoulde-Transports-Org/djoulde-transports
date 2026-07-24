@@ -43,7 +43,7 @@
   >
     <div class="flex items-center justify-between px-5 py-4 border-b border-border">
       <div>
-        <div class="text-[16px] font-bold font-mono text-dt-text">{t.plate_number}</div>
+        <div class="text-[16px] font-bold font-mono text-dt-text">{t.plateNumber}</div>
         <div class="text-[12px] text-dt-text-muted">{formatTruckModel(t)}</div>
       </div>
       <div class="flex items-center gap-3">
@@ -76,7 +76,7 @@
             Dernière vidange
           </div>
           <div class="text-[13px] text-dt-text font-medium">
-            {formatDate(t.last_oil_change_on)}
+            {formatDate(t.lastOilChangeOn)}
           </div>
         </div>
       </div>
@@ -88,16 +88,16 @@
             <div
               class="w-9 h-9 rounded-full bg-accent/10 text-accent border border-accent/20 flex items-center justify-center text-[12px] font-bold shrink-0"
             >
-              {initials(t.driver.full_name)}
+              {initials(t.driver.fullName)}
             </div>
             <div class="min-w-0">
-              <div class="text-[13px] font-medium text-dt-text truncate">{t.driver.full_name}</div>
+              <div class="text-[13px] font-medium text-dt-text truncate">{t.driver.fullName}</div>
               <div class="text-[12px] text-dt-text-muted flex items-center gap-2">
                 <span>ID {t.driver.id}</span>
-                {#if t.driver.phone_number}
+                {#if t.driver.phoneNumber}
                   <span class="flex items-center gap-1">
                     <Icon name="phone" size={11} />
-                    {t.driver.phone_number}
+                    {t.driver.phoneNumber}
                   </span>
                 {/if}
               </div>
@@ -129,14 +129,14 @@
         <div class="text-[13px] font-semibold text-dt-text mb-2">Statistiques</div>
         <div class="grid grid-cols-3 gap-3">
           <div class="border border-border rounded-lg p-3 text-center">
-            <div class="text-[18px] font-bold text-dt-text">{t.trips_count}</div>
+            <div class="text-[18px] font-bold text-dt-text">{t.tripsCount}</div>
             <div class="text-[10px] text-dt-text-muted uppercase tracking-wider mt-1">
               Trajets effectués
             </div>
           </div>
           <div class="border border-border rounded-lg p-3 text-center">
             <div class="text-[18px] font-bold text-dt-text">
-              {t.total_km.toLocaleString('fr-FR')}
+              {t.totalKm.toLocaleString('fr-FR')}
             </div>
             <div class="text-[10px] text-dt-text-muted uppercase tracking-wider mt-1">
               Km parcourus
@@ -144,7 +144,7 @@
           </div>
           <div class="border border-border rounded-lg p-3 text-center">
             <div class="text-[18px] font-bold text-dt-text">
-              {t.total_liters_delivered.toLocaleString('fr-FR')}
+              {t.totalLitersDelivered.toLocaleString('fr-FR')}
             </div>
             <div class="text-[10px] text-dt-text-muted uppercase tracking-wider mt-1">
               Litres livrés

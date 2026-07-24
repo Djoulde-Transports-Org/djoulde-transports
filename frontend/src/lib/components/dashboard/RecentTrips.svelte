@@ -19,9 +19,9 @@
   const tripNumber = (id: number) => `#TRJ-${String(id).padStart(4, '0')}`;
 
   const quantity = (trip: Trip) =>
-    trip.delivery_note ? `${trip.delivery_note.total_quantity.toLocaleString('fr-FR')} L` : '—';
+    trip.deliveryNote ? `${trip.deliveryNote.totalQuantity.toLocaleString('fr-FR')} L` : '—';
 
-  const driverName = (trip: Trip) => trip.driver?.full_name ?? '—';
+  const driverName = (trip: Trip) => trip.driver?.fullName ?? '—';
 
   onMount(async () => {
     ({data: trips, error: errorMsg} = await getTrips());
@@ -84,7 +84,7 @@
                 {tripNumber(trip.id)}
               </td>
               <td class="px-4 py-3 font-bold text-dt-text whitespace-nowrap">
-                {trip.truck.plate_number}
+                {trip.truck.plateNumber}
               </td>
               <td class="px-4 py-3 text-dt-text whitespace-nowrap">
                 {trip.route.origin} → {trip.route.destination}
@@ -105,7 +105,7 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-dt-text-muted whitespace-nowrap">
-                {formatShortDate(trip.scheduled_start_at)}
+                {formatShortDate(trip.scheduledStartAt)}
               </td>
             </tr>
           {/each}

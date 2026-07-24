@@ -1,5 +1,4 @@
 <script lang="ts">
-  import * as yup from 'yup';
   import Icon from '$lib/components/common/Icon.svelte';
   import Form from '$lib/components/common/Form.svelte';
   import Select from '$lib/components/common/Select.svelte';
@@ -7,72 +6,13 @@
   import {getEmployees} from '$lib/api/employees';
   import {createTruck} from '$lib/api/trucks';
   import type {Employee} from '$lib/types/employee';
+  import type {AddTruckValues, CreateTruckPayload} from '$lib/types/truck';
+  import {truckStatusOptions} from '$lib/store/truckStatus';
+  import {addTruckSchema} from '$lib/store/addTruck';
+  import {compact} from '$lib/utility/object';
 
   let {open, onClose, onCreated}: {open: boolean; onClose: () => void; onCreated: () => void} =
     $props();
-
-  type AddTruckValues = {
-    plate_number: string;
-    vin: string;
-    make: string;
-    model: string;
-    year: string;
-    status: string;
-    tank_plate_number: string;
-    tank_capacity: string;
-    tank_make: string;
-    tank_model: string;
-    tank_vin: string;
-    tank_year: string;
-    driver_id: string;
-    last_oil_change_on: string;
-    truck_insurance_expires_on: string;
-    cargo_insurance_expires_on: string;
-    technical_inspection_expires_on: string;
-    operating_permit_expires_on: string;
-    truck_registration_expires_on: string;
-  };
-
-  const STATUS_OPTIONS = [
-    {value: 'ready', label: 'Prêt'},
-    {value: 'in_maintenance', label: 'Maintenance'},
-    {value: 'on_trip', label: 'En route'},
-  ];
-
-  const currentYear = new Date().getFullYear();
-
-  const schema = yup.object({
-    plate_number: yup.string().required("L'immatriculation est requise"),
-    vin: yup.string().optional(),
-    make: yup.string().optional(),
-    model: yup.string().required('Le modèle est requis'),
-    year: yup
-      .string()
-      .required("L'année est requise")
-      .matches(/^\d{4}$/, {message: 'Année invalide', excludeEmptyString: true})
-      .test('year-range', 'Année invalide', (value) => {
-        if (!value) return true;
-        const year = Number(value);
-        return year > 1900 && year <= currentYear + 1;
-      }),
-    status: yup.string().optional(),
-    tank_plate_number: yup.string().required("L'immatriculation de la citerne est requise"),
-    tank_capacity: yup
-      .string()
-      .required('La capacité est requise')
-      .matches(/^\d+$/, {message: 'Capacité invalide', excludeEmptyString: true}),
-    tank_make: yup.string().optional(),
-    tank_model: yup.string().optional(),
-    tank_vin: yup.string().optional(),
-    tank_year: yup.string().optional(),
-    driver_id: yup.string().optional(),
-    last_oil_change_on: yup.string().optional(),
-    truck_insurance_expires_on: yup.string().optional(),
-    cargo_insurance_expires_on: yup.string().optional(),
-    technical_inspection_expires_on: yup.string().optional(),
-    operating_permit_expires_on: yup.string().optional(),
-    truck_registration_expires_on: yup.string().optional(),
-  });
 
   let drivers = $state<Employee[]>([]);
   let apiError = $state<string | null>(null);
@@ -100,40 +40,32 @@
   const handleSubmit = async (values: AddTruckValues) => {
     apiError = null;
     const {data, error} = await createTruck({
-      plate_number: values.plate_number,
-      model: values.model,
-      year: Number(values.year),
-      ...(values.vin ? {vin: values.vin} : {}),
-      ...(values.make ? {make: values.make} : {}),
-      ...(values.status ? {status: values.status} : {}),
-      tank: {
-        plate_number: values.tank_plate_number,
-        capacity: Number(values.tank_capacity),
-        ...(values.tank_vin ? {vin: values.tank_vin} : {}),
-        ...(values.tank_make ? {make: values.tank_make} : {}),
-        ...(values.tank_model ? {model: values.tank_model} : {}),
-        ...(values.tank_year ? {year: Number(values.tank_year)} : {}),
-      },
-      ...(values.driver_id ? {driver_id: Number(values.driver_id)} : {}),
-      ...(values.last_oil_change_on ? {last_oil_change_on: values.last_oil_change_on} : {}),
-      documents: {
-        ...(values.truck_insurance_expires_on
-          ? {truck_insurance_expires_on: values.truck_insurance_expires_on}
-          : {}),
-        ...(values.cargo_insurance_expires_on
-          ? {cargo_insurance_expires_on: values.cargo_insurance_expires_on}
-          : {}),
-        ...(values.technical_inspection_expires_on
-          ? {technical_inspection_expires_on: values.technical_inspection_expires_on}
-          : {}),
-        ...(values.operating_permit_expires_on
-          ? {operating_permit_expires_on: values.operating_permit_expires_on}
-          : {}),
-        ...(values.truck_registration_expires_on
-          ? {truck_registration_expires_on: values.truck_registration_expires_on}
-          : {}),
-      },
-    });
+      ...compact({
+        plateNumber: values.plateNumber,
+        model: values.model,
+        year: Number(values.year),
+        vin: values.vin,
+        make: values.make,
+        status: values.status,
+        driverId: values.driverId ? Number(values.driverId) : undefined,
+        lastOilChangeOn: values.lastOilChangeOn,
+      }),
+      tank: compact({
+        plateNumber: values.tankPlateNumber,
+        capacity: Number(values.tankCapacity),
+        vin: values.tankVin,
+        make: values.tankMake,
+        model: values.tankModel,
+        year: values.tankYear ? Number(values.tankYear) : undefined,
+      }),
+      documents: compact({
+        truckInsuranceExpiresOn: values.truckInsuranceExpiresOn,
+        cargoInsuranceExpiresOn: values.cargoInsuranceExpiresOn,
+        technicalInspectionExpiresOn: values.technicalInspectionExpiresOn,
+        operatingPermitExpiresOn: values.operatingPermitExpiresOn,
+        truckRegistrationExpiresOn: values.truckRegistrationExpiresOn,
+      }),
+    } as CreateTruckPayload);
 
     if (error) {
       apiError = error;
@@ -209,14 +141,19 @@
       </button>
     </div>
 
-    <Form id="add-truck" {schema} onSubmit={handleSubmit} class="flex-1 flex flex-col min-h-0">
+    <Form
+      id="add-truck"
+      schema={addTruckSchema}
+      onSubmit={handleSubmit}
+      class="flex-1 flex flex-col min-h-0"
+    >
       {#snippet children({errors, isValid, isSubmitting})}
         <div class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-6">
           <div>
             {@render sectionHeader('01', 'Tracteur')}
             <div class="flex flex-col gap-4">
               <div class="grid grid-cols-2 gap-4">
-                {@render field('plate_number', 'Immatriculation', errors.plate_number)}
+                {@render field('plateNumber', 'Immatriculation', errors.plateNumber)}
                 {@render field('vin', 'VIN', errors.vin)}
               </div>
               <div class="grid grid-cols-3 gap-4">
@@ -228,7 +165,7 @@
                 id="status"
                 name="status"
                 label="Statut (optionnel)"
-                options={STATUS_OPTIONS}
+                options={truckStatusOptions}
                 value="ready"
                 error={errors.status}
               />
@@ -239,16 +176,16 @@
             {@render sectionHeader('02', 'Citerne')}
             <div class="flex flex-col gap-4">
               <div class="grid grid-cols-2 gap-4">
-                {@render field('tank_plate_number', 'Immatriculation', errors.tank_plate_number)}
-                {@render field('tank_capacity', 'Capacité (L)', errors.tank_capacity, 'number')}
+                {@render field('tankPlateNumber', 'Immatriculation', errors.tankPlateNumber)}
+                {@render field('tankCapacity', 'Capacité (L)', errors.tankCapacity, 'number')}
               </div>
               <div class="grid grid-cols-2 gap-4">
-                {@render field('tank_make', 'Marque', errors.tank_make)}
-                {@render field('tank_model', 'Modèle', errors.tank_model)}
+                {@render field('tankMake', 'Marque', errors.tankMake)}
+                {@render field('tankModel', 'Modèle', errors.tankModel)}
               </div>
               <div class="grid grid-cols-2 gap-4">
-                {@render field('tank_vin', 'VIN', errors.tank_vin)}
-                {@render field('tank_year', 'Année', errors.tank_year, 'number')}
+                {@render field('tankVin', 'VIN', errors.tankVin)}
+                {@render field('tankYear', 'Année', errors.tankYear, 'number')}
               </div>
             </div>
           </div>
@@ -256,52 +193,47 @@
           <div>
             {@render sectionHeader('03', 'Chauffeur', true)}
             <Combobox
-              id="driver_id"
-              name="driver_id"
+              id="driverId"
+              name="driverId"
               label="Affectation"
-              options={drivers.map((driver) => ({value: driver.id, label: driver.full_name}))}
+              options={drivers.map((driver) => ({value: driver.id, label: driver.fullName}))}
               emptyLabel="Non affecté pour l'instant"
-              error={errors.driver_id}
+              error={errors.driverId}
             />
           </div>
 
           <div>
             {@render sectionHeader('04', 'Documents')}
             <div class="grid grid-cols-2 gap-4">
+              {@render field('lastOilChangeOn', 'Dernière vidange', errors.lastOilChangeOn, 'date')}
               {@render field(
-                'last_oil_change_on',
-                'Dernière vidange',
-                errors.last_oil_change_on,
-                'date'
-              )}
-              {@render field(
-                'truck_insurance_expires_on',
+                'truckInsuranceExpiresOn',
                 'Ass. camion',
-                errors.truck_insurance_expires_on,
+                errors.truckInsuranceExpiresOn,
                 'date'
               )}
               {@render field(
-                'cargo_insurance_expires_on',
+                'cargoInsuranceExpiresOn',
                 'Ass. produit',
-                errors.cargo_insurance_expires_on,
+                errors.cargoInsuranceExpiresOn,
                 'date'
               )}
               {@render field(
-                'technical_inspection_expires_on',
+                'technicalInspectionExpiresOn',
                 'Visite tech.',
-                errors.technical_inspection_expires_on,
+                errors.technicalInspectionExpiresOn,
                 'date'
               )}
               {@render field(
-                'operating_permit_expires_on',
+                'operatingPermitExpiresOn',
                 'Carte de Transport',
-                errors.operating_permit_expires_on,
+                errors.operatingPermitExpiresOn,
                 'date'
               )}
               {@render field(
-                'truck_registration_expires_on',
+                'truckRegistrationExpiresOn',
                 'Carte grise',
-                errors.truck_registration_expires_on,
+                errors.truckRegistrationExpiresOn,
                 'date'
               )}
             </div>

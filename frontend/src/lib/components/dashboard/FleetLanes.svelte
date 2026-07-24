@@ -38,13 +38,13 @@
       {#each trucks as truck (truck.id)}
         <div class="flex items-center gap-4 px-5 py-3.5">
           <span class="w-28 shrink-0 font-mono text-[13px] font-bold text-dt-text truncate">
-            {truck.plate_number}
+            {truck.plateNumber}
           </span>
 
           <div class="relative flex-1 h-1.5 rounded-full bg-surface-2">
             {#if truck.status === 'on_trip'}
               <div
-                class="truck-node absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_6px_rgba(232,98,30,0.7)]"
+                class="animate-slide absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_6px_rgba(232,98,30,0.7)]"
               ></div>
             {:else if truck.status === 'in_maintenance'}
               <div
@@ -76,28 +76,10 @@
           {/if}
 
           <span class="w-32 shrink-0 text-[12px] text-dt-text-muted truncate">
-            {truck.driver?.full_name ?? '—'}
+            {truck.driver?.fullName ?? '—'}
           </span>
         </div>
       {/each}
     {/if}
   </div>
 </div>
-
-<style>
-  .truck-node {
-    animation: slide 2.5s ease-in-out infinite;
-  }
-
-  @keyframes slide {
-    0% {
-      left: 4%;
-    }
-    50% {
-      left: 88%;
-    }
-    100% {
-      left: 4%;
-    }
-  }
-</style>
