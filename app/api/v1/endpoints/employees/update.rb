@@ -17,9 +17,15 @@ module API::V1::Endpoints::Employees
           optional :first_name,   type: String, documentation: {desc: "The first name of the employee."}
           optional :last_name,    type: String, documentation: {desc: "The last name of the employee."}
           optional :phone_number, type: String, documentation: {desc: "The phone number of the employee."}
+          optional :address,      type: String, documentation: {desc: "The home address of the employee."}
+          optional :hire_date,    type: Date, documentation: {desc: "The date the employee was hired."}
           optional :role, type: String, values: ::Employee.roles.keys,
                           documentation: {desc: "The role of the employee."}
+          optional :status, type: String, values: ::Employee.statuses.keys,
+                            documentation: {desc: "The status of the employee."}
           optional :user_id, type: Integer, documentation: {desc: "The ID of the user account to link. Pass null to unlink."}
+          optional :truck_id, type: Integer,
+                              documentation: {desc: "The ID of the truck to assign to this driver. Pass null to unassign."}
         end
         patch "/update" do
           authorize!(employee, :update)
