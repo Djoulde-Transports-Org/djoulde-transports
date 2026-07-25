@@ -121,5 +121,52 @@ RSpec.describe API::V1::Endpoints::Employees::Create do
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
+
+    context "with address, hire_date and status" do
+      let(:params) do
+        super().merge(address: "12 Rue du Port, Conakry", hire_date: "2024-03-01", status: "on_leave")
+      end
+
+      before { do_request }
+
+      it "returns the address" do
+        expect(response.parsed_body["address"]).to eq("12 Rue du Port, Conakry")
+      end
+
+      it "returns the hire_date" do
+        expect(response.parsed_body["hire_date"]).to eq("2024-03-01")
+      end
+
+      it "returns the status" do
+        expect(response.parsed_body["status"]).to eq("on_leave")
+      end
+    end
+
+    context "with a truck_id" do
+      let(:truck)  { Truck.create!(plate_number: "GN-1000-A") }
+      let(:params) { super().merge(truck_id: truck.id) }
+
+      before { do_request }
+
+      it "assigns the truck to the new employee" do
+        expect(truck.reload.driver_id).to eq(response.parsed_body["id"])
+      end
+
+      it "returns the assigned_truck" do
+        expect(response.parsed_body["assigned_truck"]).to eq(
+          {"id" => truck.id, "plate_number" => "GN-1000-A"}
+        )
+      end
+    end
+
+    context "with a non-existent truck_id" do
+      let(:params) { super().merge(truck_id: 999_999) }
+
+      before { do_request }
+
+      it "returns 404" do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
   end
 end

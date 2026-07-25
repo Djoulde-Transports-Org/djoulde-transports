@@ -106,5 +106,57 @@ RSpec.describe API::V1::Endpoints::Employees::Update do
         expect(response).to have_http_status(:not_found)
       end
     end
+
+    context "with address, hire_date and status" do
+      let(:params) do
+        {address: "45 Avenue de la République, Kindia", hire_date: "2023-09-01", status: "inactive"}
+      end
+
+      before { do_request }
+
+      it "returns the updated address" do
+        expect(response.parsed_body["address"]).to eq("45 Avenue de la République, Kindia")
+      end
+
+      it "returns the updated hire_date" do
+        expect(response.parsed_body["hire_date"]).to eq("2023-09-01")
+      end
+
+      it "returns the updated status" do
+        expect(response.parsed_body["status"]).to eq("inactive")
+      end
+    end
+
+    context "when assigning a truck_id" do
+      let(:truck)  { Truck.create!(plate_number: "GN-2000-B") }
+      let(:params) { {truck_id: truck.id} }
+
+      before { do_request }
+
+      it "assigns the truck to the employee" do
+        expect(truck.reload.driver).to eq(employee)
+      end
+    end
+
+    context "when unassigning via truck_id: null" do
+      let!(:truck) { Truck.create!(plate_number: "GN-5000-E", driver: employee) }
+      let(:params) { {truck_id: nil} }
+
+      before { do_request }
+
+      it "unassigns the truck" do
+        expect(truck.reload.driver).to be_nil
+      end
+    end
+
+    context "with a non-existent truck_id" do
+      let(:params) { {truck_id: 999_999} }
+
+      before { do_request }
+
+      it "returns 404" do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
   end
 end
