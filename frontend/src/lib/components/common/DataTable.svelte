@@ -19,6 +19,7 @@
     actions,
     empty,
     error: errorSnippet,
+    showAllCount = false,
   }: {
     endpoint: string;
     columns: Column[];
@@ -33,6 +34,7 @@
     actions?: Snippet;
     empty?: Snippet;
     error?: Snippet<[string]>;
+    showAllCount?: boolean;
   } = $props();
 
   let allRows = $state<Row[]>([]);
@@ -42,7 +44,9 @@
   let activeFilters = $state<Record<string, string>>({});
 
   const matchesFilters = (row: Row) =>
-    Object.entries(activeFilters).every(([key, value]) => row[key] === value);
+    Object.entries(activeFilters).every(([key, value]) =>
+      value.split(',').includes(String(row[key]))
+    );
 
   const matchesSearch = (row: Row) => {
     const term = search.trim().toLowerCase();
@@ -168,6 +172,10 @@
       {#each filters as chip (chip.key + chip.value)}
         {@const active =
           chip.value === '' ? !(chip.key in activeFilters) : activeFilters[chip.key] === chip.value}
+        {@const label =
+          showAllCount && chip.value === ''
+            ? `${chip.label} (${allRows.filter(matchesSearch).length})`
+            : chip.label}
         <button
           onclick={() => toggleFilter(chip)}
           class="px-3 py-1 text-[12px] font-medium rounded-full border transition-colors duration-[130ms]
@@ -175,7 +183,7 @@
             ? 'bg-accent/10 text-accent border-accent/50'
             : 'bg-surface border-border text-dt-text-muted hover:text-dt-text hover:border-dt-text-muted'}"
         >
-          {chip.label}
+          {label}
         </button>
       {/each}
 

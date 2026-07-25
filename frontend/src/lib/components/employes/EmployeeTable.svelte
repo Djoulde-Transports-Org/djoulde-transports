@@ -4,7 +4,7 @@
   import type {Employee} from '$lib/types/employee';
   import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
-  import {employeeRoleMeta} from '$lib/store/employeeRole';
+  import {employeeRoleMeta, employeeRoleFilters} from '$lib/store/employeeRole';
   import {employeeStatusMeta} from '$lib/store/employeeStatus';
   import {employeeColumns} from '$lib/store/employeeColumns';
   import type {EmployeeColumnCell} from '$lib/types/employeeColumns';
@@ -35,9 +35,8 @@
 {#snippet roleCell(_value: unknown, row: Row)}
   {@const employee = row as Employee}
   <span
-    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {employeeRoleMeta[
-      employee.role
-    ].classes}"
+    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {employeeRoleMeta[employee.role]
+      .classes}"
   >
     {employeeRoleMeta[employee.role].label}
   </span>
@@ -74,4 +73,12 @@
   {employee.assignedTruck?.plateNumber ?? '—'}
 {/snippet}
 
-<DataTable endpoint="/employees?per_page=100" {columns} />
+<DataTable
+  endpoint="/employees?per_page=100"
+  clientSide
+  filters={employeeRoleFilters}
+  searchParam="search"
+  searchFields={['fullName', 'id']}
+  showAllCount
+  {columns}
+/>
