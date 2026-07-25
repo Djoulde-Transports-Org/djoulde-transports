@@ -6,11 +6,14 @@
 # Database name: primary
 #
 #  id              :bigint           not null, primary key
+#  address         :string(255)
 #  discarded_at    :datetime
 #  first_name      :string(255)      not null
+#  hire_date       :date
 #  last_name       :string(255)      not null
 #  phone_number    :string(255)
 #  role            :integer          default("driver"), not null
+#  status          :integer          default("active"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  created_by_id   :bigint
@@ -23,6 +26,7 @@
 #  index_employees_on_discarded_at     (discarded_at)
 #  index_employees_on_discarded_by_id  (discarded_by_id)
 #  index_employees_on_role             (role)
+#  index_employees_on_status           (status)
 #  index_employees_on_user_id          (user_id) UNIQUE
 #
 # Foreign Keys
@@ -36,6 +40,7 @@ class Employee < ApplicationRecord
   audited
 
   enum :role, {driver: 0, mechanic: 1, dispatcher: 2, manager: 3}, default: :driver
+  enum :status, {active: 0, on_leave: 1, inactive: 2}, default: :active
 
   belongs_to :user,         optional: true
   belongs_to :created_by,   class_name: "User", optional: true
