@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_08_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -163,20 +163,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_08_120000) do
   end
 
   create_table "employees", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "address"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.string "first_name", null: false
+    t.date "hire_date"
     t.string "last_name", null: false
     t.string "phone_number"
     t.integer "role", default: 0, null: false
+    t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.index ["created_by_id"], name: "index_employees_on_created_by_id"
     t.index ["discarded_at"], name: "index_employees_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_employees_on_discarded_by_id"
     t.index ["role"], name: "index_employees_on_role"
+    t.index ["status"], name: "index_employees_on_status"
     t.index ["user_id"], name: "index_employees_on_user_id", unique: true
   end
 
