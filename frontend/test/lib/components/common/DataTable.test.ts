@@ -359,6 +359,77 @@ describe('DataTable', () => {
       expect(queryByText('Bob')).not.toBeInTheDocument();
       expect(queryByText('Alice')).not.toBeInTheDocument();
     });
+
+    it('matches a chip whose value lists several comma-separated options', async () => {
+      mockGet.mockResolvedValue(CLIENT_ROWS);
+      const {getByText, queryByText} = render(DataTable, {
+        endpoint: '/employees',
+        columns: COLUMNS,
+        clientSide: true,
+        filters: [
+          {key: 'role', label: 'Tous', value: ''},
+          {key: 'role', label: 'Non-chauffeur', value: 'mechanic,dispatcher'},
+        ],
+      });
+      await waitFor(() => expect(getByText('Bob')).toBeInTheDocument());
+      await fireEvent.click(getByText('Non-chauffeur'));
+      expect(getByText('Bob')).toBeInTheDocument();
+      expect(queryByText('Alice')).not.toBeInTheDocument();
+      expect(queryByText('Ali')).not.toBeInTheDocument();
+    });
+
+    describe('showAllCount', () => {
+      it('does not append a count to the "Tous" chip by default', async () => {
+        mockGet.mockResolvedValue(CLIENT_ROWS);
+        const {getByText} = render(DataTable, {
+          endpoint: '/employees',
+          columns: COLUMNS,
+          clientSide: true,
+          filters: clientFilters,
+        });
+        await waitFor(() => expect(getByText('Tous')).toBeInTheDocument());
+      });
+
+      it('appends the total row count to the "Tous" chip when enabled', async () => {
+        mockGet.mockResolvedValue(CLIENT_ROWS);
+        const {getByText} = render(DataTable, {
+          endpoint: '/employees',
+          columns: COLUMNS,
+          clientSide: true,
+          filters: clientFilters,
+          showAllCount: true,
+        });
+        await waitFor(() => expect(getByText('Tous (3)')).toBeInTheDocument());
+      });
+
+      it('updates the count in real time as the search term narrows the rows', async () => {
+        mockGet.mockResolvedValue(CLIENT_ROWS);
+        const {getByText, getByPlaceholderText} = render(DataTable, {
+          endpoint: '/employees',
+          columns: COLUMNS,
+          clientSide: true,
+          filters: clientFilters,
+          searchParam: 'search',
+          searchFields: ['name'],
+          showAllCount: true,
+        });
+        await waitFor(() => expect(getByText('Tous (3)')).toBeInTheDocument());
+        await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: 'ali'}});
+        expect(getByText('Tous (2)')).toBeInTheDocument();
+      });
+
+      it('does not append a count to non-empty-value chips', async () => {
+        mockGet.mockResolvedValue(CLIENT_ROWS);
+        const {getByText} = render(DataTable, {
+          endpoint: '/employees',
+          columns: COLUMNS,
+          clientSide: true,
+          filters: clientFilters,
+          showAllCount: true,
+        });
+        await waitFor(() => expect(getByText('Chauffeur')).toBeInTheDocument());
+      });
+    });
   });
 
   describe('actions snippet', () => {
