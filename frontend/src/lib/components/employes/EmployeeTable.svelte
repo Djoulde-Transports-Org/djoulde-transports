@@ -35,9 +35,8 @@
 {#snippet roleCell(_value: unknown, row: Row)}
   {@const employee = row as Employee}
   <span
-    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {employeeRoleMeta[
-      employee.role
-    ].classes}"
+    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {employeeRoleMeta[employee.role]
+      .classes}"
   >
     {employeeRoleMeta[employee.role].label}
   </span>
