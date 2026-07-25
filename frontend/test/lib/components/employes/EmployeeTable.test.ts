@@ -1,4 +1,4 @@
-import {render, waitFor, within} from '@testing-library/svelte';
+import {render, waitFor, within, fireEvent} from '@testing-library/svelte';
 import EmployeeTable from '$lib/components/employes/EmployeeTable.svelte';
 import type {Employee} from '$lib/types/employee';
 import {makeEmployee} from '../../../mocks/employee';
@@ -38,6 +38,15 @@ const EMPLOYEES: Employee[] = [
     fullName: 'Fatou Camara',
     role: 'dispatcher',
     status: 'inactive',
+    assignedTruck: null,
+  }),
+  makeEmployee({
+    id: 33,
+    firstName: 'Alpha',
+    lastName: 'Barry',
+    fullName: 'Alpha Barry',
+    role: 'manager',
+    status: 'active',
     assignedTruck: null,
   }),
 ];
@@ -118,13 +127,92 @@ describe('EmployeeTable', () => {
     });
   });
 
+  describe('filters and search', () => {
+    it('renders the Tous / Chauffeurs / Techniciens / Admin filter chips', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, getByRole} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Tous (4)')).toBeInTheDocument());
+      expect(getByText('Chauffeurs')).toBeInTheDocument();
+      expect(getByText('Techniciens')).toBeInTheDocument();
+      expect(getByRole('button', {name: 'Admin'})).toBeInTheDocument();
+    });
+
+    it('fetches the employees endpoint only once regardless of filtering', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.click(getByText('Chauffeurs'));
+      expect(mockGet).toHaveBeenCalledTimes(1);
+      expect(mockGet).toHaveBeenCalledWith('/employees?per_page=100');
+    });
+
+    it('narrows rows to the selected role when a chip is clicked', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, queryByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.click(getByText('Chauffeurs'));
+      expect(getByText('Mamadou Diallo')).toBeInTheDocument();
+      expect(queryByText('Ibra Sow')).not.toBeInTheDocument();
+    });
+
+    it('the Admin chip matches both dispatcher and manager roles', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, getByRole, queryByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.click(getByRole('button', {name: 'Admin'}));
+      expect(getByText('Fatou Camara')).toBeInTheDocument();
+      expect(getByText('Alpha Barry')).toBeInTheDocument();
+      expect(queryByText('Mamadou Diallo')).not.toBeInTheDocument();
+    });
+
+    it('"Tous" restores every row after a role chip was active', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.click(getByText('Chauffeurs'));
+      await fireEvent.click(getByText('Tous (4)'));
+      expect(getByText('Mamadou Diallo')).toBeInTheDocument();
+      expect(getByText('Ibra Sow')).toBeInTheDocument();
+      expect(getByText('Fatou Camara')).toBeInTheDocument();
+      expect(getByText('Alpha Barry')).toBeInTheDocument();
+    });
+
+    it('filters rows by name in real time as the user types', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, getByPlaceholderText, queryByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: 'sow'}});
+      expect(getByText('Ibra Sow')).toBeInTheDocument();
+      expect(queryByText('Mamadou Diallo')).not.toBeInTheDocument();
+    });
+
+    it('filters rows by employee ID in real time as the user types', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, getByPlaceholderText, queryByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: '21'}});
+      expect(getByText('Fatou Camara')).toBeInTheDocument();
+      expect(queryByText('Mamadou Diallo')).not.toBeInTheDocument();
+    });
+
+    it('updates the count in the "Tous" chip as the search narrows results', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText, getByPlaceholderText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Tous (4)')).toBeInTheDocument());
+      await fireEvent.input(getByPlaceholderText('Rechercher...'), {target: {value: 'sow'}});
+      expect(getByText('Tous (1)')).toBeInTheDocument();
+    });
+  });
+
   describe('status badges', () => {
     it('shows a green Actif badge for active employees', async () => {
       mockGet.mockResolvedValue(EMPLOYEES);
       const {container} = render(EmployeeTable);
       await waitFor(() => {
         const tbody = within(container.querySelector('tbody') as HTMLElement);
-        expect(tbody.getByText('Actif')).toHaveClass('text-dt-green');
+        const badges = tbody.getAllByText('Actif');
+        expect(badges.length).toBe(2);
+        expect(badges[0]).toHaveClass('text-dt-green');
       });
     });
 

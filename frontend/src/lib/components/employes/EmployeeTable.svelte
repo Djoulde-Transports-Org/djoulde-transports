@@ -4,7 +4,7 @@
   import type {Employee} from '$lib/types/employee';
   import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
-  import {employeeRoleMeta} from '$lib/store/employeeRole';
+  import {employeeRoleMeta, employeeRoleFilters} from '$lib/store/employeeRole';
   import {employeeStatusMeta} from '$lib/store/employeeStatus';
   import {employeeColumns} from '$lib/store/employeeColumns';
   import type {EmployeeColumnCell} from '$lib/types/employeeColumns';
@@ -73,4 +73,12 @@
   {employee.assignedTruck?.plateNumber ?? '—'}
 {/snippet}
 
-<DataTable endpoint="/employees?per_page=100" {columns} />
+<DataTable
+  endpoint="/employees?per_page=100"
+  clientSide
+  filters={employeeRoleFilters}
+  searchParam="search"
+  searchFields={['fullName', 'id']}
+  showAllCount
+  {columns}
+/>
