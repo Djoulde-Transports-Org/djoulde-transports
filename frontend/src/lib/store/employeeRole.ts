@@ -13,3 +13,10 @@ export const employeeRoleFilters = [
   {key: 'role', label: 'Techniciens', value: 'mechanic'},
   {key: 'role', label: 'Admin', value: 'dispatcher,manager'},
 ];
+
+const ROLE_OPTION_ORDER: EmployeeRole[] = ['driver', 'mechanic', 'dispatcher', 'manager'];
+
+export const employeeRoleOptions = ROLE_OPTION_ORDER.map((role) => ({
+  value: role,
+  label: employeeRoleMeta[role].label,
+}));

@@ -20,3 +20,25 @@ export type Employee = {
   userId: number | null;
   assignedTruck: AssignedTruck | null;
 };
+
+export type EmployeePayload = {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  address?: string;
+  hireDate?: string;
+  role?: string;
+  status?: string;
+  truckId?: number | null;
+};
+
+export type EmployeeFormValues = {
+  firstName: string;
+  lastName: string;
+  role: string;
+  phoneNumber: string;
+  address: string;
+  hireDate: string;
+  status: string;
+  truckId: string;
+};
