@@ -6,7 +6,11 @@ export const makeEmployee = (overrides: Partial<Employee> = {}): Employee => ({
   lastName: 'Bah',
   fullName: 'Ibrahima Bah',
   phoneNumber: null,
+  address: null,
+  hireDate: null,
   role: 'driver',
+  status: 'active',
   userId: null,
+  assignedTruck: null,
   ...overrides,
 });
