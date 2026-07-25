@@ -6,7 +6,7 @@
     name,
     label,
     options,
-    value = '',
+    value = $bindable(''),
     placeholder = 'Sélectionner...',
     error,
   }: {
@@ -34,12 +34,13 @@
   <select
     {id}
     {name}
+    bind:value
     class="w-full px-3 py-2 text-[13px] rounded-lg border bg-surface text-dt-text focus:outline-none focus:ring-1 transition-colors
       {errorMessage ? 'border-dt-red focus:ring-dt-red/40' : 'border-border focus:ring-accent/40'}"
   >
-    <option value="" selected={value === ''}>{placeholder}</option>
+    <option value="">{placeholder}</option>
     {#each options as option (option.value)}
-      <option value={option.value} selected={value === option.value}>{option.label}</option>
+      <option value={option.value}>{option.label}</option>
     {/each}
   </select>
   {#if errorMessage}

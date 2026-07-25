@@ -5,3 +5,10 @@ export const employeeStatusMeta: Record<EmployeeStatus, {label: string; classes:
   on_leave: {label: 'En congé', classes: 'bg-dt-yellow/10 text-dt-yellow border-dt-yellow/20'},
   inactive: {label: 'Inactif', classes: 'bg-surface-2 text-dt-text-muted border-border'},
 };
+
+const STATUS_OPTION_ORDER: EmployeeStatus[] = ['active', 'on_leave', 'inactive'];
+
+export const employeeStatusOptions = STATUS_OPTION_ORDER.map((status) => ({
+  value: status,
+  label: employeeStatusMeta[status].label,
+}));

@@ -4,7 +4,11 @@ import type {Employee} from '$lib/types/employee';
 import {makeEmployee} from '../../../mocks/employee';
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+const mockPost = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', () => ({api: {get: mockGet, post: mockPost}}));
+
+const withTrucks = (employees: Employee[]) => (url: string) =>
+  Promise.resolve(url.startsWith('/trucks') ? [] : employees);
 
 const EMPLOYEES: Employee[] = [
   makeEmployee({
@@ -228,6 +232,67 @@ describe('EmployeeTable', () => {
       const {getByText} = render(EmployeeTable);
       const badge = await waitFor(() => getByText('Inactif'));
       expect(badge).toHaveClass('text-dt-text-muted');
+    });
+  });
+
+  describe('add/edit drawer', () => {
+    it('renders the "Ajouter un employé" button', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Ajouter un employé')).toBeInTheDocument());
+    });
+
+    it('opens the drawer in add mode when the button is clicked', async () => {
+      mockGet.mockImplementation(withTrucks(EMPLOYEES));
+      const {getByText, getAllByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Ajouter un employé')).toBeInTheDocument());
+      await fireEvent.click(getByText('Ajouter un employé'));
+      expect(getAllByText('Ajouter un employé').length).toBe(2); // button + drawer title
+    });
+
+    it('closes the drawer when Annuler is clicked', async () => {
+      mockGet.mockImplementation(withTrucks(EMPLOYEES));
+      const {getByText, queryByText} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Ajouter un employé')).toBeInTheDocument());
+      await fireEvent.click(getByText('Ajouter un employé'));
+      await fireEvent.click(getByText('Annuler'));
+      expect(queryByText('Annuler')).not.toBeInTheDocument();
+    });
+
+    it("opens the drawer in edit mode with the clicked row's employee prefilled", async () => {
+      mockGet.mockImplementation(withTrucks(EMPLOYEES));
+      const {getByText, getByLabelText, container} = render(EmployeeTable);
+      await waitFor(() => expect(getByText('Mamadou Diallo')).toBeInTheDocument());
+      await fireEvent.click(getByText('Mamadou Diallo').closest('tr') as HTMLElement);
+      const dialog = container.querySelector('[role="dialog"]');
+      expect(dialog).toBeInTheDocument();
+      expect(getByText("Modifier l'employé")).toBeInTheDocument();
+      expect(getByLabelText('Prénom')).toHaveValue('Mamadou');
+    });
+
+    it('signals clickable rows with a pointer cursor', async () => {
+      mockGet.mockResolvedValue(EMPLOYEES);
+      const {getByText} = render(EmployeeTable);
+      await waitFor(() =>
+        expect(getByText('Mamadou Diallo').closest('tr')).toHaveClass('cursor-pointer')
+      );
+    });
+
+    it('refetches the employee list after a successful save', async () => {
+      mockGet.mockImplementation(withTrucks(EMPLOYEES));
+      mockPost.mockResolvedValue(EMPLOYEES[0]);
+      const employeeCalls = () =>
+        mockGet.mock.calls.filter(([url]) => url.startsWith('/employees')).length;
+      const {getByText, getByLabelText} = render(EmployeeTable);
+      await waitFor(() => expect(employeeCalls()).toBe(1));
+
+      await fireEvent.click(getByText('Ajouter un employé'));
+      await fireEvent.input(getByLabelText('Prénom'), {target: {value: 'Test'}});
+      await fireEvent.input(getByLabelText('Nom'), {target: {value: 'Employee'}});
+      await fireEvent.click(getByText("Créer l'employé"));
+
+      await waitFor(() => expect(mockPost).toHaveBeenCalled());
+      await waitFor(() => expect(employeeCalls()).toBe(2));
     });
   });
 });
