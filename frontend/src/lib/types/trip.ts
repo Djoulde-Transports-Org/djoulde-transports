@@ -49,4 +49,5 @@ export type Trip = {
   route: TripRoute;
   deliveryNote: TripDeliveryNote | null;
   billingStatement: TripBillingStatement | null;
+  pretaxAmount: number | null;
 };

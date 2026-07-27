@@ -90,7 +90,7 @@
       const url = buildUrl(cursor);
       if (paginated) {
         const res = await api.get<PaginatedResponse>(url);
-        allRows = res.data;
+        allRows = res.items;
         hasMore = res.hasMore;
         if (res.nextCursor) {
           cursorStack = [...cursorStack.slice(0, page + 1), res.nextCursor];
