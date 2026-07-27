@@ -1,1 +1,7 @@
-<h1 class="text-[22px] font-bold text-dt-text p-8">Trajets</h1>
+<script lang="ts">
+  import TripTable from '$lib/components/trajets/TripTable.svelte';
+</script>
+
+<div class="p-8">
+  <TripTable />
+</div>
