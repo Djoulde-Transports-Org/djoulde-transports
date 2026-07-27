@@ -16,5 +16,6 @@ export const makeTrip = (overrides: Partial<Trip> = {}): Trip =>
     route: {id: 1, origin: 'Conakry', destination: 'Mamou', rate: 1500},
     deliveryNote: null,
     billingStatement: null,
+    pretaxAmount: null,
     ...overrides,
   }) as Trip;

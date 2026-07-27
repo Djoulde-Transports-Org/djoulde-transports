@@ -146,4 +146,39 @@ RSpec.describe API::V1::Entities::Trip do
       end
     end
   end
+
+  describe "pretax_amount" do
+    context "when there is no delivery note yet" do
+      it "exposes pretax_amount as nil" do
+        expect(payload["pretax_amount"]).to be_nil
+      end
+    end
+
+    context "when a delivery note exists but the trip has not been billed" do
+      before { DeliveryNote.create!(trip: trip, number: "DN-002", gasoline_quantity: 0, diesel_quantity: 5_000) }
+
+      it "estimates pretax_amount from quantities x route rate" do
+        expect(payload["pretax_amount"]).to eq(7_500_000)
+      end
+    end
+
+    context "when the trip has been billed" do
+      before do
+        DeliveryNote.create!(trip: trip, number: "DN-003", gasoline_quantity: 0, diesel_quantity: 5_000)
+        statement = BillingStatement.create!(number: "BS-002", month: Date.new(2026, 6, 1),
+                                             starts_on: Date.new(2026, 6, 1), ends_on: Date.new(2026, 6, 30))
+        BillingLineItem.create!(
+          billing_statement: statement, trip: trip,
+          delivery_note_number: "DN-003", started_on: Date.new(2026, 6, 10),
+          origin: "Conakry", destination: "Labe",
+          gasoline_quantity: 0, diesel_quantity: 5_000,
+          rate: 1500, amount: 8_000_000, tva: 900_000
+        )
+      end
+
+      it "exposes the locked-in billed amount instead of the estimate" do
+        expect(payload["pretax_amount"]).to eq(8_000_000)
+      end
+    end
+  end
 end
