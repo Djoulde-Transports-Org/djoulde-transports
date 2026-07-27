@@ -23,5 +23,27 @@ module API::V1::Entities
            documentation: {type: "Object", desc: "The billing statement for the trip."} do |trip, _opts|
       trip.billing_line_items.first&.billing_statement
     end
+
+    expose :pretax_amount,
+           documentation: {type: "Integer",
+                           desc: "Pre-tax amount (montant HT). Uses the locked-in billed " \
+                                 "amount once invoiced, otherwise an estimate from " \
+                                 "quantities x route rate."} do |_trip, _opts|
+      pretax_amount
+    end
+
+    private
+
+    def pretax_amount
+      object.billing_line_items.first&.amount || estimated_pretax_amount
+    end
+
+    def estimated_pretax_amount
+      note  = object.delivery_note
+      route = object.route
+      return nil unless note && route
+
+      ((note.gasoline_quantity + note.diesel_quantity) * route.rate).round.to_i
+    end
   end
 end
