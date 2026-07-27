@@ -15,7 +15,7 @@ export type FilterChip = {
 };
 
 export type PaginatedResponse = {
-  data: Row[];
+  items: Row[];
   nextCursor: string | null;
   hasMore: boolean;
 };
