@@ -7,6 +7,7 @@
     name,
     label,
     options,
+    value = $bindable(''),
     emptyLabel = 'Aucune sélection',
     searchPlaceholder = 'Rechercher...',
     error,
@@ -15,15 +16,16 @@
     name: string;
     label: string;
     options: Option[];
+    value?: OptionValue;
     emptyLabel?: string;
     searchPlaceholder?: string;
     error?: string | string[] | null;
   } = $props();
 
-  let selected = $state<Option | null>(null);
   let query = $state('');
   let open = $state(false);
 
+  const selected = $derived(options.find((option) => option.value === value) ?? null);
   const errorMessage = $derived(Array.isArray(error) ? error[0] : error);
 
   const filtered = $derived(
@@ -46,7 +48,7 @@
 
   const choose = (option: Option | null) => (event: MouseEvent) => {
     event.preventDefault();
-    selected = option;
+    value = option?.value ?? '';
     closeList();
   };
 
@@ -64,7 +66,7 @@
   >
     {label}
   </label>
-  <input type="hidden" {name} value={selected?.value ?? ''} />
+  <input type="hidden" {name} {value} />
   <input
     {id}
     type="text"

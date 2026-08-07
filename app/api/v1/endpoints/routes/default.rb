@@ -5,6 +5,7 @@ module API::V1::Endpoints::Routes
     before { authenticate! }
 
     mount API::V1::Endpoints::Routes::List
+    mount API::V1::Endpoints::Routes::Origins
     mount API::V1::Endpoints::Routes::Create
     mount API::V1::Endpoints::Routes::Get
     mount API::V1::Endpoints::Routes::Update

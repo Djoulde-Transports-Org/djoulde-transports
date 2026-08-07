@@ -96,4 +96,31 @@ RSpec.describe API::V1::Endpoints::Routes::List do
       expect(response.headers["Per-Page"]).to eq("100")
     end
   end
+
+  context "with an origin filter" do
+    let(:headers) { bearer_headers(viewer_token) }
+    let!(:other_route) { Route.create!(origin: "Kankan", destination: "Siguiri", rate: 900) }
+    let(:params) { {origin: "Conakry"} }
+
+    before { do_request }
+
+    it "returns only routes with that exact origin" do
+      expect(response.parsed_body.pluck("id")).to contain_exactly(route.id)
+    end
+
+    it "excludes routes with a different origin" do
+      expect(response.parsed_body.pluck("id")).not_to include(other_route.id)
+    end
+  end
+
+  context "with an origin filter that matches nothing" do
+    let(:headers) { bearer_headers(viewer_token) }
+    let(:params)  { {origin: "Nzerekore"} }
+
+    before { do_request }
+
+    it "returns an empty array" do
+      expect(response.parsed_body).to eq([])
+    end
+  end
 end

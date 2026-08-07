@@ -3,7 +3,7 @@
   import Form from '$lib/components/common/Form.svelte';
   import Select from '$lib/components/common/Select.svelte';
   import {createEmployee, updateEmployee} from '$lib/api/employees';
-  import {getTrucks} from '$lib/api/trucks';
+  import {getAllTrucks} from '$lib/api/trucks';
   import type {Employee, EmployeeFormValues, EmployeePayload} from '$lib/types/employee';
   import type {Truck} from '$lib/types/truck';
   import {employeeRoleOptions} from '$lib/store/employeeRole';
@@ -30,7 +30,7 @@
   const isEdit = $derived(employee !== null);
 
   const loadTrucks = async () => {
-    const {data} = await getTrucks(100);
+    const {data} = await getAllTrucks();
     trucks = data;
   };
 
