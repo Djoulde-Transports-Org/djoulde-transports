@@ -2,6 +2,7 @@ import type {TripColumn} from '$lib/types/tripColumns';
 
 export const tripColumns: TripColumn[] = [
   {key: 'id', label: 'N° trajet', cell: 'number'},
+  {key: 'deliveryNoteNumber', label: 'N° bon de livraison', cell: 'deliveryNoteNumber'},
   {key: 'truck', label: 'Camion/Citerne', cell: 'truckTank'},
   {key: 'route', label: 'Route', cell: 'route'},
   {key: 'driver', label: 'Chauffeur', cell: 'driver'},

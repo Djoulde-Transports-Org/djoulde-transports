@@ -1,5 +1,6 @@
 export type TripColumnCell =
   | 'number'
+  | 'deliveryNoteNumber'
   | 'truckTank'
   | 'route'
   | 'driver'
