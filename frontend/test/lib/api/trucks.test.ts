@@ -1,5 +1,5 @@
 import {api} from '$lib/api/client';
-import {getTrucks, createTruck} from '$lib/api/trucks';
+import {getTrucks, getAllTrucks, createTruck} from '$lib/api/trucks';
 import type {CreateTruckPayload} from '$lib/types/truck';
 import {makeTruck} from '../../mocks/truck';
 
@@ -38,6 +38,88 @@ describe('getTrucks', () => {
   it('returns a fallback message for non-Error throws', async () => {
     vi.mocked(api.get).mockRejectedValue('oops');
     const result = await getTrucks();
+    expect(result.data).toEqual([]);
+    expect(result.error).toBe('Une erreur est survenue.');
+  });
+});
+
+describe('getAllTrucks', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('calls api.get once with page 1 when the first page is not full', async () => {
+    const trucks = [makeTruck({id: 1}), makeTruck({id: 2})];
+    vi.mocked(api.get).mockResolvedValue(trucks);
+    const result = await getAllTrucks();
+    expect(api.get).toHaveBeenCalledTimes(1);
+    expect(api.get).toHaveBeenCalledWith('/trucks?per_page=100&page=1');
+    expect(result.data).toEqual(trucks);
+    expect(result.error).toBeNull();
+  });
+
+  it('walks every page until a short page is returned', async () => {
+    const page1 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 1}));
+    const page2 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 101}));
+    const page3 = [makeTruck({id: 201})];
+    vi.mocked(api.get)
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2)
+      .mockResolvedValueOnce(page3);
+
+    const result = await getAllTrucks();
+
+    expect(api.get).toHaveBeenCalledTimes(3);
+    expect(api.get).toHaveBeenNthCalledWith(1, '/trucks?per_page=100&page=1');
+    expect(api.get).toHaveBeenNthCalledWith(2, '/trucks?per_page=100&page=2');
+    expect(api.get).toHaveBeenNthCalledWith(3, '/trucks?per_page=100&page=3');
+    expect(result.data).toHaveLength(201);
+    expect(result.error).toBeNull();
+  });
+
+  it('fetches a trailing empty page when the count is an exact multiple of 100', async () => {
+    const page1 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 1}));
+    const page2 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 101}));
+    const page3 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 201}));
+    vi.mocked(api.get)
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2)
+      .mockResolvedValueOnce(page3)
+      .mockResolvedValueOnce([]);
+
+    const result = await getAllTrucks();
+
+    expect(api.get).toHaveBeenCalledTimes(4);
+    expect(api.get).toHaveBeenNthCalledWith(4, '/trucks?per_page=100&page=4');
+    expect(result.data).toHaveLength(300);
+    expect(result.error).toBeNull();
+  });
+
+  it('finds a truck that would be past the first page', async () => {
+    const page1 = Array.from({length: 100}, (_, i) => makeTruck({id: i + 1}));
+    const farTruck = makeTruck({id: 150, plateNumber: 'FAR-001'});
+    vi.mocked(api.get).mockResolvedValueOnce(page1).mockResolvedValueOnce([farTruck]);
+
+    const result = await getAllTrucks();
+
+    expect(result.data.some((t) => t.plateNumber === 'FAR-001')).toBe(true);
+  });
+
+  it('returns an empty array when there are no trucks', async () => {
+    vi.mocked(api.get).mockResolvedValue([]);
+    const result = await getAllTrucks();
+    expect(result.data).toEqual([]);
+    expect(api.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the error message and empty data when the API throws', async () => {
+    vi.mocked(api.get).mockRejectedValue(new Error('Network error'));
+    const result = await getAllTrucks();
+    expect(result.data).toEqual([]);
+    expect(result.error).toBe('Network error');
+  });
+
+  it('returns a fallback message for non-Error throws', async () => {
+    vi.mocked(api.get).mockRejectedValue('oops');
+    const result = await getAllTrucks();
     expect(result.data).toEqual([]);
     expect(result.error).toBe('Une erreur est survenue.');
   });
