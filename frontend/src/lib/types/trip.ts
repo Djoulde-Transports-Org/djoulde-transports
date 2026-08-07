@@ -1,13 +1,9 @@
 import type {Truck, TruckDriver} from './truck';
+import type {Route} from './route';
 
 export type TripStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
-export type TripRoute = {
-  id: number;
-  origin: string;
-  destination: string;
-  rate: number;
-};
+export type TripRoute = Route;
 
 export type TripDeliveryNote = {
   id: number;
@@ -50,4 +46,28 @@ export type Trip = {
   deliveryNote: TripDeliveryNote | null;
   billingStatement: TripBillingStatement | null;
   pretaxAmount: number | null;
+};
+
+export type CreateTripPayload = {
+  truckId: number;
+  routeId: number;
+  driverId?: number;
+  scheduledStartAt?: string;
+  scheduledEndAt?: string;
+  deliveryNote: {
+    number: string;
+    gasolineQuantity?: number;
+    dieselQuantity?: number;
+  };
+};
+
+export type NewTripValues = {
+  truckId: string;
+  routeId: string;
+  driverId: string;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  deliveryNoteNumber: string;
+  gasolineQuantity: string;
+  dieselQuantity: string;
 };
