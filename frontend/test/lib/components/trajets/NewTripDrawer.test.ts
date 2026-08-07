@@ -283,6 +283,40 @@ describe('NewTripDrawer', () => {
       });
     });
 
+    describe('tank fill visualizer', () => {
+      it('does not show the bar before a truck is selected', () => {
+        mockGetByUrl();
+        const {queryByTestId} = render(NewTripDrawer, {
+          open: true,
+          onClose: vi.fn(),
+          onCreated: vi.fn(),
+        });
+        expect(queryByTestId('tank-fill-bar')).not.toBeInTheDocument();
+      });
+
+      it('reads the capacity from the selected truck and updates as quantities are entered', async () => {
+        mockGetByUrl();
+        const {getByLabelText, getByText, getByTestId} = render(NewTripDrawer, {
+          open: true,
+          onClose: vi.fn(),
+          onCreated: vi.fn(),
+        });
+        await fireEvent.focus(getByLabelText('Camion'));
+        await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+        await fireEvent.mouseDown(getByText('GN-3310-C'));
+
+        expect(getByTestId('tank-fill-bar')).toBeInTheDocument();
+        expect(getByText('33 000 L')).toBeInTheDocument();
+        expect(
+          getByText('Renseignez les quantités pour visualiser le remplissage')
+        ).toBeInTheDocument();
+
+        await fireEvent.input(getByLabelText('Gasoil (L)'), {target: {value: '20000'}});
+        await fireEvent.input(getByLabelText('Essence (L)'), {target: {value: '13000'}});
+        expect(getByText('Citerne remplie exactement')).toBeInTheDocument();
+      });
+    });
+
     it('calls onClose when clicking the overlay', async () => {
       mockGet.mockReturnValue(new Promise(() => {}));
       const onClose = vi.fn();
