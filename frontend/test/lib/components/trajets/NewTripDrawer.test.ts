@@ -317,6 +317,61 @@ describe('NewTripDrawer', () => {
       });
     });
 
+    describe('billing preview', () => {
+      it('does not show the preview before a route and quantities are set', () => {
+        mockGetByUrl();
+        const {queryByTestId} = render(NewTripDrawer, {
+          open: true,
+          onClose: vi.fn(),
+          onCreated: vi.fn(),
+        });
+        expect(queryByTestId('billing-preview')).not.toBeInTheDocument();
+      });
+
+      it('computes HT, TVA and TTC from the route rate and total liters', async () => {
+        mockGetByUrl();
+        const {getByLabelText, getByText, getByTestId, queryByTestId} = render(NewTripDrawer, {
+          open: true,
+          onClose: vi.fn(),
+          onCreated: vi.fn(),
+        });
+        await fireEvent.focus(getByLabelText('Origine'));
+        await waitFor(() => expect(getByText('Conakry')).toBeInTheDocument());
+        await fireEvent.mouseDown(getByText('Conakry'));
+        await fireEvent.focus(getByLabelText('Destination'));
+        await fireEvent.mouseDown(getByText('Labe'));
+
+        expect(queryByTestId('billing-preview')).not.toBeInTheDocument();
+        await fireEvent.input(getByLabelText('Gasoil (L)'), {target: {value: '800'}});
+        await fireEvent.input(getByLabelText('Essence (L)'), {target: {value: '200'}});
+
+        expect(getByTestId('billing-preview')).toBeInTheDocument();
+        expect(getByText('1 500 000 GNF')).toBeInTheDocument();
+        expect(getByText('270 000 GNF')).toBeInTheDocument();
+        expect(getByText('1 770 000 GNF')).toBeInTheDocument();
+      });
+
+      it('hides again if quantities are cleared', async () => {
+        mockGetByUrl();
+        const {getByLabelText, getByText, queryByTestId} = render(NewTripDrawer, {
+          open: true,
+          onClose: vi.fn(),
+          onCreated: vi.fn(),
+        });
+        await fireEvent.focus(getByLabelText('Origine'));
+        await waitFor(() => expect(getByText('Conakry')).toBeInTheDocument());
+        await fireEvent.mouseDown(getByText('Conakry'));
+        await fireEvent.focus(getByLabelText('Destination'));
+        await fireEvent.mouseDown(getByText('Labe'));
+        await fireEvent.input(getByLabelText('Gasoil (L)'), {target: {value: '800'}});
+
+        expect(queryByTestId('billing-preview')).toBeInTheDocument();
+
+        await fireEvent.input(getByLabelText('Gasoil (L)'), {target: {value: ''}});
+        expect(queryByTestId('billing-preview')).not.toBeInTheDocument();
+      });
+    });
+
     it('calls onClose when clicking the overlay', async () => {
       mockGet.mockReturnValue(new Promise(() => {}));
       const onClose = vi.fn();

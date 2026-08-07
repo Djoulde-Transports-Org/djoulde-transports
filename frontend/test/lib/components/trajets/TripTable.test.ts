@@ -94,6 +94,7 @@ describe('TripTable', () => {
     mockGet.mockReturnValue(new Promise(() => {}));
     const {getByText} = render(TripTable);
     expect(getByText('N° trajet')).toBeInTheDocument();
+    expect(getByText('N° bon de livraison')).toBeInTheDocument();
     expect(getByText('Camion/Citerne')).toBeInTheDocument();
     expect(getByText('Route')).toBeInTheDocument();
     expect(getByText('Chauffeur')).toBeInTheDocument();
@@ -115,6 +116,12 @@ describe('TripTable', () => {
     const {getByText} = render(TripTable);
     await waitFor(() => expect(getByText('#TRJ-0094')).toBeInTheDocument());
     expect(getByText('#TRJ-0092')).toBeInTheDocument();
+  });
+
+  it('renders the delivery note number, or a dash when there is no delivery note', async () => {
+    mockGet.mockResolvedValue(page());
+    const {getByText} = render(TripTable);
+    await waitFor(() => expect(getByText('DN-001')).toBeInTheDocument());
   });
 
   it('renders the truck plate and tank summary', async () => {
