@@ -3,6 +3,7 @@
   import Form from '$lib/components/common/Form.svelte';
   import Combobox from '$lib/components/common/Combobox.svelte';
   import TankFillBar from '$lib/components/trajets/TankFillBar.svelte';
+  import BillingPreview from '$lib/components/trajets/BillingPreview.svelte';
   import {getEmployees} from '$lib/api/employees';
   import {getAllTrucks} from '$lib/api/trucks';
   import {getRoutes, getRouteOrigins} from '$lib/api/routes';
@@ -40,6 +41,8 @@
   const selectedRoute = $derived(
     destinationRoutes.find((r) => r.destination === destination) ?? null
   );
+
+  const totalLiters = $derived((Number(dieselQuantity) || 0) + (Number(gasolineQuantity) || 0));
 
   const loadOptions = async () => {
     const [truckRes, originsRes, driverRes] = await Promise.all([
@@ -325,6 +328,7 @@
                 dieselQuantity={Number(dieselQuantity) || 0}
                 gasolineQuantity={Number(gasolineQuantity) || 0}
               />
+              <BillingPreview rate={selectedRoute?.rate ?? null} {totalLiters} />
             </div>
           </div>
 

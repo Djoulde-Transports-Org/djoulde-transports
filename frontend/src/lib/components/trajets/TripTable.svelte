@@ -19,6 +19,7 @@
 
   const cellRenderers: Record<TripColumnCell, Snippet<[unknown, Row]>> = {
     number: numberCell,
+    deliveryNoteNumber: deliveryNoteNumberCell,
     truckTank: truckTankCell,
     route: routeCell,
     driver: driverCell,
@@ -39,6 +40,11 @@
 {#snippet numberCell(_value: unknown, row: Row)}
   {@const trip = row as Trip}
   <span class="font-mono text-dt-text-muted">{tripNumber(trip.id)}</span>
+{/snippet}
+
+{#snippet deliveryNoteNumberCell(_value: unknown, row: Row)}
+  {@const trip = row as Trip}
+  {trip.deliveryNote?.number ?? '—'}
 {/snippet}
 
 {#snippet truckTankCell(_value: unknown, row: Row)}
