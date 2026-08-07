@@ -5,7 +5,21 @@ import {makeTrip} from '../../../mocks/trip';
 import {makeTruck} from '../../../mocks/truck';
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+const mockPost = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', async () => {
+  const actual = await vi.importActual<typeof import('$lib/api/client')>('$lib/api/client');
+  return {...actual, api: {get: mockGet, post: mockPost}};
+});
+
+const withDrawerOptions = (tripsPage: unknown) => (url: string) => {
+  if (url.startsWith('/trips')) return Promise.resolve(tripsPage);
+  if (url.startsWith('/trucks')) return Promise.resolve([makeTruck({id: 1})]);
+  if (url.startsWith('/routes/origins')) return Promise.resolve(['Conakry']);
+  if (url.startsWith('/routes')) {
+    return Promise.resolve([{id: 1, origin: 'Conakry', destination: 'Labe', rate: 1500}]);
+  }
+  return Promise.resolve([]);
+};
 
 const TRIPS: Trip[] = [
   makeTrip({
@@ -239,6 +253,54 @@ describe('TripTable', () => {
       mockGet.mockResolvedValue(page([]));
       const {getByText} = render(TripTable);
       await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+    });
+  });
+
+  describe('new trip drawer', () => {
+    it('renders the "Nouveau trajet" button', async () => {
+      mockGet.mockResolvedValue(page());
+      const {getByText} = render(TripTable);
+      await waitFor(() => expect(getByText('Nouveau trajet')).toBeInTheDocument());
+    });
+
+    it('opens the drawer when the button is clicked', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page()));
+      const {getByText, getAllByText} = render(TripTable);
+      await waitFor(() => expect(getByText('Nouveau trajet')).toBeInTheDocument());
+      await fireEvent.click(getByText('Nouveau trajet'));
+      expect(getAllByText('Nouveau trajet').length).toBe(2); // button + drawer title
+    });
+
+    it('closes the drawer when Annuler is clicked', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page()));
+      const {getByText, queryByText} = render(TripTable);
+      await waitFor(() => expect(getByText('Nouveau trajet')).toBeInTheDocument());
+      await fireEvent.click(getByText('Nouveau trajet'));
+      await fireEvent.click(getByText('Annuler'));
+      expect(queryByText('Annuler')).not.toBeInTheDocument();
+    });
+
+    it('refetches the trip list after a trip is successfully created', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page()));
+      mockPost.mockResolvedValue(TRIPS[0]);
+      const tripCalls = () => mockGet.mock.calls.filter(([url]) => url.startsWith('/trips')).length;
+      const {getByText, getByLabelText} = render(TripTable);
+      await waitFor(() => expect(tripCalls()).toBe(1));
+
+      await fireEvent.click(getByText('Nouveau trajet'));
+      await fireEvent.focus(getByLabelText('Camion'));
+      await waitFor(() => expect(getByText('TRK-001')).toBeInTheDocument());
+      await fireEvent.mouseDown(getByText('TRK-001'));
+      await fireEvent.focus(getByLabelText('Origine'));
+      await waitFor(() => expect(getByText('Conakry')).toBeInTheDocument());
+      await fireEvent.mouseDown(getByText('Conakry'));
+      await fireEvent.focus(getByLabelText('Destination'));
+      await fireEvent.mouseDown(getByText('Labe'));
+      await fireEvent.input(getByLabelText('Numéro'), {target: {value: 'DN-001'}});
+      await fireEvent.click(getByText('Créer le trajet'));
+
+      await waitFor(() => expect(mockPost).toHaveBeenCalled());
+      await waitFor(() => expect(tripCalls()).toBe(2));
     });
   });
 });

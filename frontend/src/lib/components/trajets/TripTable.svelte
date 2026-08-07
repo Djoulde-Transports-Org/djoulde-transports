@@ -1,6 +1,7 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
   import DataTable from '$lib/components/common/DataTable.svelte';
+  import NewTripDrawer from '$lib/components/trajets/NewTripDrawer.svelte';
   import type {Trip} from '$lib/types/trip';
   import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
@@ -8,6 +9,11 @@
   import {tripStatusMeta, tripStatusFilters} from '$lib/store/tripStatus';
   import {tripColumns} from '$lib/store/tripColumns';
   import type {TripColumnCell} from '$lib/types/tripColumns';
+
+  let table: ReturnType<typeof DataTable> | undefined = $state();
+  let drawerOpen = $state(false);
+
+  const handleCreated = () => table?.refresh();
 
   const tripNumber = (id: number) => `#TRJ-${String(id).padStart(4, '0')}`;
 
@@ -81,4 +87,22 @@
   {formatDate(trip.scheduledStartAt)}
 {/snippet}
 
-<DataTable endpoint="/trips" paginated filters={tripStatusFilters} {columns} />
+{#snippet newTripAction()}
+  <button
+    onclick={() => (drawerOpen = true)}
+    class="px-3 py-1.5 text-[13px] font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors duration-[130ms]"
+  >
+    Nouveau trajet
+  </button>
+{/snippet}
+
+<DataTable
+  bind:this={table}
+  endpoint="/trips"
+  paginated
+  actions={newTripAction}
+  filters={tripStatusFilters}
+  {columns}
+/>
+
+<NewTripDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} onCreated={handleCreated} />

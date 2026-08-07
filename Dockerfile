@@ -17,6 +17,7 @@ RUN apt-get update -qq \
       curl \
       default-mysql-client \
       libjemalloc2 \
+      libvips42 \
       tzdata \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 

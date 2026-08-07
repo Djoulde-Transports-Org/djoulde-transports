@@ -64,7 +64,7 @@ describe('EmployeeFormDrawer', () => {
     it('fetches trucks for the assignment field', () => {
       mockGet.mockReturnValue(new Promise(() => {}));
       render(EmployeeFormDrawer, {open: true, onClose: vi.fn(), onSaved: vi.fn()});
-      expect(mockGet).toHaveBeenCalledWith('/trucks?per_page=100');
+      expect(mockGet).toHaveBeenCalledWith('/trucks?per_page=100&page=1');
     });
 
     it('hides the truck field when role is changed away from driver', async () => {
