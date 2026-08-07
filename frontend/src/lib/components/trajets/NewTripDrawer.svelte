@@ -2,6 +2,7 @@
   import Icon from '$lib/components/common/Icon.svelte';
   import Form from '$lib/components/common/Form.svelte';
   import Combobox from '$lib/components/common/Combobox.svelte';
+  import TankFillBar from '$lib/components/trajets/TankFillBar.svelte';
   import {getEmployees} from '$lib/api/employees';
   import {getAllTrucks} from '$lib/api/trucks';
   import {getRoutes, getRouteOrigins} from '$lib/api/routes';
@@ -25,6 +26,8 @@
   let truckId = $state('');
   let origin = $state('');
   let destination = $state('');
+  let dieselQuantity = $state('');
+  let gasolineQuantity = $state('');
 
   const selectedTruck = $derived(trucks.find((t) => t.id === Number(truckId)) ?? null);
 
@@ -55,6 +58,8 @@
       truckId = '';
       origin = '';
       destination = '';
+      dieselQuantity = '';
+      gasolineQuantity = '';
       destinationRoutes = [];
       loadOptions();
     }
@@ -131,7 +136,13 @@
   </div>
 {/snippet}
 
-{#snippet field(id: string, label: string, error: string | null | undefined, type = 'text')}
+{#snippet field(
+  id: string,
+  label: string,
+  error: string | null | undefined,
+  type = 'text',
+  oninput: (event: Event) => void = () => {}
+)}
   <div>
     <label
       for={id}
@@ -145,6 +156,7 @@
       {id}
       name={id}
       {type}
+      {oninput}
       class="w-full px-3 py-2 text-[13px] rounded-lg border bg-surface text-dt-text focus:outline-none focus:ring-1 transition-colors
         {error ? 'border-dt-red focus:ring-dt-red/40' : 'border-border focus:ring-accent/40'}"
     />
@@ -293,14 +305,26 @@
             <div class="flex flex-col gap-4">
               {@render field('deliveryNoteNumber', 'Numéro', errors.deliveryNoteNumber)}
               <div class="grid grid-cols-2 gap-4">
-                {@render field('dieselQuantity', 'Gasoil (L)', errors.dieselQuantity, 'number')}
+                {@render field(
+                  'dieselQuantity',
+                  'Gasoil (L)',
+                  errors.dieselQuantity,
+                  'number',
+                  (e) => (dieselQuantity = (e.currentTarget as HTMLInputElement).value)
+                )}
                 {@render field(
                   'gasolineQuantity',
                   'Essence (L)',
                   errors.gasolineQuantity,
-                  'number'
+                  'number',
+                  (e) => (gasolineQuantity = (e.currentTarget as HTMLInputElement).value)
                 )}
               </div>
+              <TankFillBar
+                capacity={selectedTruck?.tank?.capacity ?? null}
+                dieselQuantity={Number(dieselQuantity) || 0}
+                gasolineQuantity={Number(gasolineQuantity) || 0}
+              />
             </div>
           </div>
 
