@@ -12,7 +12,19 @@ module API::V1::Entities
     expose :odometer_km,     documentation: {type: "Integer", desc: "The odometer reading in kilometers."}
     expose :estimated_duration, documentation: {type: "BigDecimal", desc: "The estimated number of hours the work takes."}
     expose :actual_duration,    documentation: {type: "BigDecimal", desc: "The actual number of hours the work took, stamped on completion."}
+    expose :duration, documentation: {type: "BigDecimal", desc: "The actual duration if completed, otherwise the estimated duration."} do |maintenance, _opts|
+      maintenance.actual_duration || maintenance.estimated_duration
+    end
     expose :description,     documentation: {type: "String", desc: "A description of the maintenance."}
+    expose :truck, documentation: {type: "Object", desc: "The truck the maintenance was performed on (id, plate_number)."} do |maintenance, _opts|
+      {id: maintenance.truck.id, plate_number: maintenance.truck.plate_number}
+    end
+    expose :technician, documentation: {type: "Object", desc: "The employee linked to the user who performed the maintenance, if any."} do |maintenance, _opts|
+      employee = maintenance.performed_by&.employee
+      next nil unless employee
+
+      {id: maintenance.performed_by_id, name: employee.full_name}
+    end
     expose :parts, using: ::API::V1::Entities::MaintenancePart, documentation: {type: "Array", desc: "The parts that were changed during the maintenance."} do |maintenance|
       maintenance.parts.kept
     end
