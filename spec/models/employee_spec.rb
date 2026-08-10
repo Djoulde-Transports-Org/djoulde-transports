@@ -43,6 +43,12 @@ RSpec.describe Employee do
     end
   end
 
+  describe "#full_name" do
+    it "combines first_name and last_name" do
+      expect(employee.full_name).to eq("Mamadou Diallo")
+    end
+  end
+
   describe "role enum" do
     it "defaults to driver" do
       employee.save!

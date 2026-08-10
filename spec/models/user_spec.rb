@@ -27,6 +27,11 @@ RSpec.describe User do
     expect(reflection.options[:as]).to eq(:owner)
   end
 
+  it "associates has_one :employee" do
+    reflection = described_class.reflect_on_association(:employee)
+    expect(reflection.macro).to eq(:has_one)
+  end
+
   describe "#active_for_authentication?" do
     it "is true for an undiscarded user" do
       expect(user.active_for_authentication?).to be(true)
