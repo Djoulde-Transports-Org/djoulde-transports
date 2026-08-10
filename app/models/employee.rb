@@ -42,7 +42,7 @@ class Employee < ApplicationRecord
   enum :role, {driver: 0, mechanic: 1, dispatcher: 2, manager: 3}, default: :driver
   enum :status, {active: 0, on_leave: 1, inactive: 2}, default: :active
 
-  belongs_to :user,         optional: true
+  belongs_to :user,         optional: true, inverse_of: :employee
   belongs_to :created_by,   class_name: "User", optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
@@ -53,4 +53,8 @@ class Employee < ApplicationRecord
   validates :first_name, presence: true
   validates :last_name,  presence: true
   validates :user_id,    uniqueness: {allow_nil: true}
+
+  def full_name
+    "#{first_name} #{last_name}"
+  end
 end

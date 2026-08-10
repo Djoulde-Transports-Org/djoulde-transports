@@ -5,7 +5,7 @@ module API::V1::Endpoints::Maintenances
     helpers do
       def base_maintenance_scope
         policy_scope(::Maintenance)
-          .includes(:parts, :truck)
+          .includes(:parts, :truck, performed_by: :employee)
           .order("maintenances.id DESC")
       end
 
@@ -17,6 +17,9 @@ module API::V1::Endpoints::Maintenances
           .then { |s| params[:date_from] ? s.where(performed_on: params[:date_from]..)         : s }
           .then { |s| params[:date_to]   ? s.where(performed_on: ..params[:date_to])           : s }
           .then { |s| params[:after]     ? s.where(maintenances: {id: ...params[:after]})      : s }
+          .then { |s| params[:search].present? ? s.joins(:truck).where(
+            "trucks.plate_number LIKE :q OR maintenances.description LIKE :q", q: "%#{params[:search]}%"
+          ) : s }
       end
 
       def paginate_maintenances(scope)
@@ -43,6 +46,7 @@ module API::V1::Endpoints::Maintenances
                              documentation: {desc: "Filter by state (started / completed)."}
         optional :date_from, type: Date,    documentation: {desc: "Return maintenances with performed_on on or after this date (YYYY-MM-DD)."}
         optional :date_to,   type: Date,    documentation: {desc: "Return maintenances with performed_on on or before this date (YYYY-MM-DD)."}
+        optional :search,    type: String,  documentation: {desc: "Filter by truck plate number or description (substring match)."}
         optional :after,     type: Integer, documentation: {desc: "Cursor: ID of the last item received. Omit for the first page."}
         optional :limit,     type: Integer, default: 50, values: (1..100),
                              documentation: {desc: "Items per page (1–100, default 50)."}

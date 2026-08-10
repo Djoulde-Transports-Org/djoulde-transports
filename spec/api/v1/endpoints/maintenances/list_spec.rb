@@ -41,6 +41,11 @@ RSpec.describe API::V1::Endpoints::Maintenances::List do
     it "includes next_cursor in the response" do
       expect(response.parsed_body).to have_key("next_cursor")
     end
+
+    it "includes the truck's plate_number for each item" do
+      item = response.parsed_body["items"].find { |i| i["id"] == maintenance.id }
+      expect(item.dig("truck", "plate_number")).to eq(truck.plate_number)
+    end
   end
 
   context "when a maintenance is discarded" do
@@ -159,6 +164,36 @@ RSpec.describe API::V1::Endpoints::Maintenances::List do
 
     it "excludes maintenances after date_to" do
       expect(response.parsed_body["items"].pluck("id")).not_to include(recent.id)
+    end
+  end
+
+  context "when filtering by search" do
+    let(:headers) { bearer_headers(viewer_token) }
+    let(:params)  { {search: "brake"} }
+    let!(:matching_description) do
+      Maintenance.create!(truck: Truck.create!(plate_number: "T-desc"), performed_on: Time.zone.today,
+                          description: "Replaced brake pads")
+    end
+    let!(:matching_plate) do
+      Maintenance.create!(truck: Truck.create!(plate_number: "BRAKE-1"), performed_on: Time.zone.today)
+    end
+    let!(:non_matching) do
+      Maintenance.create!(truck: Truck.create!(plate_number: "T-other2"), performed_on: Time.zone.today,
+                          description: "Oil change")
+    end
+
+    before { do_request }
+
+    it "includes maintenances whose description matches" do
+      expect(response.parsed_body["items"].pluck("id")).to include(matching_description.id)
+    end
+
+    it "includes maintenances whose truck plate_number matches" do
+      expect(response.parsed_body["items"].pluck("id")).to include(matching_plate.id)
+    end
+
+    it "excludes maintenances that don't match" do
+      expect(response.parsed_body["items"].pluck("id")).not_to include(non_matching.id)
     end
   end
 

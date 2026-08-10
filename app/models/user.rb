@@ -57,6 +57,8 @@ class User < ApplicationRecord
           inverse_of: :owner,
           dependent: :restrict_with_error
 
+  has_one :employee, inverse_of: :user, dependent: :nullify
+
   belongs_to :discarded_by, class_name: "User", optional: true
 
   after_discard :discard_oauth_application

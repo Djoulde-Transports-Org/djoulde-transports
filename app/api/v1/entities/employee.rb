@@ -5,9 +5,7 @@ module API::V1::Entities
     expose :id,           documentation: {type: "Integer", desc: "The ID of the employee."}
     expose :first_name,   documentation: {type: "String",  desc: "The first name of the employee."}
     expose :last_name,    documentation: {type: "String",  desc: "The last name of the employee."}
-    expose :full_name,    documentation: {type: "String",  desc: "The employee's first and last name combined."} do |employee, _opts|
-      "#{employee.first_name} #{employee.last_name}"
-    end
+    expose :full_name,    documentation: {type: "String",  desc: "The employee's first and last name combined."}
     expose :phone_number, documentation: {type: "String",  desc: "The phone number of the employee."}
     expose :address,      documentation: {type: "String",  desc: "The home address of the employee."}
     expose :hire_date,    format_with: :iso_8601_date, documentation: {type: "String", desc: "The date the employee was hired."}

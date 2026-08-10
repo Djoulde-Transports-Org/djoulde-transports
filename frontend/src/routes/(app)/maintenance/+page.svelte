@@ -1,1 +1,7 @@
-<h1 class="text-[22px] font-bold text-dt-text p-8">Maintenance</h1>
+<script lang="ts">
+  import MaintenanceList from '$lib/components/maintenance/MaintenanceList.svelte';
+</script>
+
+<div class="p-8">
+  <MaintenanceList />
+</div>

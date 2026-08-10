@@ -46,4 +46,39 @@ RSpec.describe API::V1::Entities::Maintenance do
   it "renders performed_on as a date" do
     expect(payload[:performed_on]).to eq(Time.zone.today.iso8601)
   end
+
+  it "exposes duration as the actual_duration when present" do
+    expect(payload[:duration].to_f).to eq(2.5)
+  end
+
+  it "exposes duration as the estimated_duration when there is no actual_duration" do
+    ongoing = Maintenance.create!(truck: truck, performed_on: Time.zone.today, estimated_duration: 4.0)
+    result = described_class.represent(ongoing).as_json
+    expect(result[:duration].to_f).to eq(4.0)
+  end
+
+  it "exposes the truck id and plate_number" do
+    expect(payload[:truck]).to eq({id: truck.id, plate_number: truck.plate_number})
+  end
+
+  it "exposes technician as nil when no one is linked" do
+    expect(payload[:technician]).to be_nil
+  end
+
+  it "exposes the technician's employee full_name when the performed_by user has a linked employee" do
+    user = User.create!(email: "tech@example.com", password: "password123")
+    Employee.create!(first_name: "Mamadou", last_name: "Diallo", user: user)
+    maintenance.update!(performed_by: user)
+
+    result = described_class.represent(maintenance.reload).as_json
+    expect(result[:technician]).to eq({id: user.id, name: "Mamadou Diallo"})
+  end
+
+  it "exposes technician as nil when the performed_by user has no linked employee" do
+    user = User.create!(email: "tech@example.com", password: "password123")
+    maintenance.update!(performed_by: user)
+
+    result = described_class.represent(maintenance.reload).as_json
+    expect(result[:technician]).to be_nil
+  end
 end
