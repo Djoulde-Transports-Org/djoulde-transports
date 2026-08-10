@@ -53,7 +53,7 @@ gem "discard", "~> 2.0"
 gem "audited", "~> 5.7"
 
 # Redis client and the high-performance hiredis driver
-gem "redis", "~> 5.3"
+gem "redis", "~> 6.0"
 gem "hiredis-client", "~> 0.30"
 
 # Throttling + CORS middleware (config under config/initializers/)
