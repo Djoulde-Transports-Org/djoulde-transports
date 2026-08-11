@@ -122,13 +122,35 @@ RSpec.describe API::V1::Endpoints::Maintenances::Create do
       end
     end
 
-    context "when kind is not a valid value" do
-      let(:params) { {truck_id: truck.id, performed_on: Time.zone.today.to_s, kind: "nope"} }
+    context "when kind is a brand-new value" do
+      let(:params) { {truck_id: truck.id, performed_on: Time.zone.today.to_s, kind: "brake overhaul"} }
 
-      before { do_request }
+      it "creates a new maintenance kind" do
+        expect { do_request }.to change { MaintenanceKind.count }.by(1)
+      end
 
-      it "returns 422" do
-        expect(response).to have_http_status(:unprocessable_content)
+      it "returns 201" do
+        do_request
+        expect(response).to have_http_status(:created)
+      end
+
+      it "returns the new kind" do
+        do_request
+        expect(response.parsed_body["kind"]).to eq("brake overhaul")
+      end
+    end
+
+    context "when kind matches an existing value" do
+      let!(:existing_kind) { MaintenanceKind.find_or_create_by!(name: "repair") }
+      let(:params) { {truck_id: truck.id, performed_on: Time.zone.today.to_s, kind: "repair"} }
+
+      it "does not create a new maintenance kind" do
+        expect { do_request }.not_to change { MaintenanceKind.count }
+      end
+
+      it "reuses the existing kind" do
+        do_request
+        expect(Maintenance.last.maintenance_kind).to eq(existing_kind)
       end
     end
 

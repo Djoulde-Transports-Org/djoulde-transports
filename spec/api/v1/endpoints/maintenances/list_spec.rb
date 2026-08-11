@@ -89,14 +89,18 @@ RSpec.describe API::V1::Endpoints::Maintenances::List do
     end
   end
 
-  context "when kind is not a valid value" do
+  context "when filtering by a kind that doesn't exist" do
     let(:headers) { bearer_headers(viewer_token) }
     let(:params)  { {kind: "nope"} }
 
     before { do_request }
 
-    it "returns 422" do
-      expect(response).to have_http_status(:unprocessable_content)
+    it "returns 200" do
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns no items" do
+      expect(response.parsed_body["items"]).to be_empty
     end
   end
 
