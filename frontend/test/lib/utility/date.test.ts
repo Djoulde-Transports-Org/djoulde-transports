@@ -1,4 +1,4 @@
-import {formatShortDate, formatDate} from '$lib/utility/date';
+import {formatShortDate, formatDate, formatMonth} from '$lib/utility/date';
 
 describe('formatShortDate', () => {
   it('formats an ISO datetime as DD/MM', () => {
@@ -25,5 +25,19 @@ describe('formatDate', () => {
 
   it('returns — when given null', () => {
     expect(formatDate(null)).toBe('—');
+  });
+});
+
+describe('formatMonth', () => {
+  it('formats a date as a capitalized French month and year', () => {
+    expect(formatMonth('2026-06-01')).toBe('Juin 2026');
+  });
+
+  it('formats a different month correctly', () => {
+    expect(formatMonth('2026-01-01')).toBe('Janvier 2026');
+  });
+
+  it('returns — when given null', () => {
+    expect(formatMonth(null)).toBe('—');
   });
 });
