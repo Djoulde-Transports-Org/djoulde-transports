@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_11_120000) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -184,6 +184,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
     t.index ["user_id"], name: "index_employees_on_user_id", unique: true
   end
 
+  create_table "maintenance_kinds", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_maintenance_kinds_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_maintenance_kinds_on_discarded_by_id"
+    t.index ["name"], name: "index_maintenance_kinds_on_name", unique: true
+  end
+
   create_table "maintenance_parts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -205,7 +216,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.decimal "estimated_duration", precision: 8, scale: 2
-    t.integer "kind", default: 0, null: false
+    t.bigint "maintenance_kind_id", null: false
     t.integer "odometer_km"
     t.bigint "performed_by_id"
     t.date "performed_on", null: false
@@ -214,6 +225,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_maintenances_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_maintenances_on_discarded_by_id"
+    t.index ["maintenance_kind_id"], name: "index_maintenances_on_maintenance_kind_id"
     t.index ["performed_by_id"], name: "index_maintenances_on_performed_by_id"
     t.index ["performed_on"], name: "index_maintenances_on_performed_on"
     t.index ["truck_id"], name: "index_maintenances_on_truck_id"
@@ -415,8 +427,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_120000) do
   add_foreign_key "employees", "users"
   add_foreign_key "employees", "users", column: "created_by_id"
   add_foreign_key "employees", "users", column: "discarded_by_id"
+  add_foreign_key "maintenance_kinds", "users", column: "discarded_by_id"
   add_foreign_key "maintenance_parts", "maintenances"
   add_foreign_key "maintenance_parts", "users", column: "discarded_by_id"
+  add_foreign_key "maintenances", "maintenance_kinds"
   add_foreign_key "maintenances", "trucks"
   add_foreign_key "maintenances", "users", column: "discarded_by_id"
   add_foreign_key "maintenances", "users", column: "performed_by_id"
