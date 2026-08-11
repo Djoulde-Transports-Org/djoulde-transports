@@ -113,6 +113,41 @@ describe('DataTable', () => {
     });
   });
 
+  describe('card mode', () => {
+    const cardSnippet = createRawSnippet<[Record<string, unknown>]>((getRow) => ({
+      render: () => `<div data-testid="card">${(getRow() as {name: string}).name}</div>`,
+    }));
+
+    it('renders the card snippet per row instead of a table', async () => {
+      mockGet.mockResolvedValue(ROWS);
+      const {container, getByText} = render(DataTable, {
+        endpoint: '/employees',
+        card: cardSnippet,
+      });
+      await waitFor(() => expect(getByText('Alice')).toBeInTheDocument());
+      expect(getByText('Bob')).toBeInTheDocument();
+      expect(container.querySelector('table')).not.toBeInTheDocument();
+    });
+
+    it('shows skeleton cards while loading', () => {
+      mockGet.mockReturnValue(new Promise(() => {}));
+      const {container} = render(DataTable, {endpoint: '/employees', card: cardSnippet});
+      expect(container.querySelectorAll('.animate-pulse').length).toBe(6);
+    });
+
+    it('shows the default empty message when rows are empty', async () => {
+      mockGet.mockResolvedValue([]);
+      const {getByText} = render(DataTable, {endpoint: '/employees', card: cardSnippet});
+      await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+    });
+
+    it('shows the error message on API failure', async () => {
+      mockGet.mockRejectedValue(new Error('Network error'));
+      const {getByText} = render(DataTable, {endpoint: '/employees', card: cardSnippet});
+      await waitFor(() => expect(getByText('Network error')).toBeInTheDocument());
+    });
+  });
+
   describe('refresh()', () => {
     it('refetches the current page when called', async () => {
       mockGet.mockResolvedValue(ROWS);
