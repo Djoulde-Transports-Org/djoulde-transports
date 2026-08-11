@@ -12,8 +12,8 @@
 #  hire_date       :date
 #  last_name       :string(255)      not null
 #  phone_number    :string(255)
-#  role            :integer          default("driver"), not null
-#  status          :integer          default("active"), not null
+#  role            :integer          default(0), not null
+#  status          :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  created_by_id   :bigint

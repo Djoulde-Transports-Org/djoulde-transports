@@ -7,7 +7,7 @@
 #
 #  id                :bigint           not null, primary key
 #  discarded_at      :datetime
-#  doc_type          :integer          default("other"), not null
+#  doc_type          :integer          default(0), not null
 #  documentable_type :string(255)      not null
 #  expires_on        :date
 #  issued_on         :date

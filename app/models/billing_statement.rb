@@ -14,7 +14,7 @@
 #  month           :date             not null
 #  number          :string(255)      not null
 #  starts_on       :date             not null
-#  status          :integer          default("draft"), not null
+#  status          :integer          default(0), not null
 #  total_amount    :integer          default(0), not null
 #  total_tva       :integer          default(0), not null
 #  created_at      :datetime         not null
