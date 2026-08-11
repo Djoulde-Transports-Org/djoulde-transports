@@ -5,14 +5,14 @@ module API::V1::Endpoints::Maintenances
     helpers do
       def base_maintenance_scope
         policy_scope(::Maintenance)
-          .includes(:parts, :truck, performed_by: :employee)
+          .includes(:parts, :truck, :maintenance_kind, performed_by: :employee)
           .order("maintenances.id DESC")
       end
 
       def maintenance_scope
         base_maintenance_scope
           .then { |s| params[:truck_id]  ? s.where(truck_id: params[:truck_id])                : s }
-          .then { |s| params[:kind]      ? s.where(kind: ::Maintenance.kinds[params[:kind]])    : s }
+          .then { |s| params[:kind]      ? s.joins(:maintenance_kind).where(maintenance_kinds: {name: params[:kind]}) : s }
           .then { |s| params[:state]     ? s.where(state: ::Maintenance.states[params[:state]]): s }
           .then { |s| params[:date_from] ? s.where(performed_on: params[:date_from]..)         : s }
           .then { |s| params[:date_to]   ? s.where(performed_on: ..params[:date_to])           : s }
@@ -40,8 +40,7 @@ module API::V1::Endpoints::Maintenances
       desc "List maintenances with cursor pagination."
       params do
         optional :truck_id,  type: Integer, documentation: {desc: "Filter by truck ID."}
-        optional :kind,      type: String,  values: ::Maintenance.kinds.keys,
-                             documentation: {desc: "Filter by kind."}
+        optional :kind,      type: String,  documentation: {desc: "Filter by kind (exact name match)."}
         optional :state,     type: String,  values: ::Maintenance.states.keys,
                              documentation: {desc: "Filter by state (started / completed)."}
         optional :date_from, type: Date,    documentation: {desc: "Return maintenances with performed_on on or after this date (YYYY-MM-DD)."}
