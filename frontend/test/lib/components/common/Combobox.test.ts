@@ -141,6 +141,81 @@ describe('Combobox', () => {
     });
   });
 
+  describe('creatable', () => {
+    it('does not show a create option when creatable is false', async () => {
+      const {getByLabelText, queryByText} = render(Combobox, baseProps);
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Nouveau'}});
+      expect(queryByText('+ Créer « Nouveau »')).not.toBeInTheDocument();
+    });
+
+    it('shows a create option for text that matches nothing', async () => {
+      const {getByLabelText, getByText} = render(Combobox, {...baseProps, creatable: true});
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Nouveau'}});
+      expect(getByText('+ Créer « Nouveau »')).toBeInTheDocument();
+    });
+
+    it('does not show a create option when the text exactly matches an existing option', async () => {
+      const {getByLabelText, queryByText} = render(Combobox, {...baseProps, creatable: true});
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Ibrahima Bah'}});
+      expect(queryByText('+ Créer « Ibrahima Bah »')).not.toBeInTheDocument();
+    });
+
+    it('does not show a create option when the query is empty', async () => {
+      const {getByLabelText, queryByText} = render(Combobox, {...baseProps, creatable: true});
+      await fireEvent.focus(getByLabelText('Affectation'));
+      expect(queryByText(/^\+ Créer/)).not.toBeInTheDocument();
+    });
+
+    it('uses a custom create label when provided', async () => {
+      const {getByLabelText, getByText} = render(Combobox, {
+        ...baseProps,
+        creatable: true,
+        createLabel: (query: string) => `Ajouter "${query}"`,
+      });
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Nouveau'}});
+      expect(getByText('Ajouter "Nouveau"')).toBeInTheDocument();
+    });
+
+    it('sets the hidden input to the typed text when the create option is chosen', async () => {
+      const {getByLabelText, getByText, container} = render(Combobox, {
+        ...baseProps,
+        creatable: true,
+      });
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Nouveau'}});
+      await fireEvent.mouseDown(getByText('+ Créer « Nouveau »'));
+      const hidden = container.querySelector('input[type="hidden"]');
+      expect(hidden).toHaveValue('Nouveau');
+    });
+
+    it('displays the created value as its own label after closing', async () => {
+      const {getByLabelText, getByText} = render(Combobox, {...baseProps, creatable: true});
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'Nouveau'}});
+      await fireEvent.mouseDown(getByText('+ Créer « Nouveau »'));
+      await fireEvent.blur(input);
+      expect(input).toHaveValue('Nouveau');
+    });
+
+    it('does not show the no-results message when a create option is shown instead', async () => {
+      const {getByLabelText, queryByText} = render(Combobox, {...baseProps, creatable: true});
+      const input = getByLabelText('Affectation');
+      await fireEvent.focus(input);
+      await fireEvent.input(input, {target: {value: 'zzz'}});
+      expect(queryByText('Aucun résultat')).not.toBeInTheDocument();
+    });
+  });
+
   describe('errors', () => {
     it('shows no error message when error is undefined', () => {
       const {container} = render(Combobox, baseProps);
