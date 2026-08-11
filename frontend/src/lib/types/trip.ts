@@ -1,5 +1,6 @@
 import type {Truck, TruckDriver} from './truck';
 import type {Route} from './route';
+import type {BillingStatement} from './billing';
 
 export type TripStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
@@ -17,20 +18,6 @@ export type TripDeliveryNote = {
   product: string;
 };
 
-export type TripBillingStatement = {
-  id: number;
-  number: string;
-  status: string;
-  month: string;
-  startsOn: string;
-  endsOn: string;
-  issuedOn: string | null;
-  dueOn: string | null;
-  totalAmount: number;
-  totalTva: number;
-  grandTotal: number;
-};
-
 export type Trip = {
   id: number;
   status: TripStatus;
@@ -44,7 +31,7 @@ export type Trip = {
   driver: TruckDriver | null;
   route: TripRoute;
   deliveryNote: TripDeliveryNote | null;
-  billingStatement: TripBillingStatement | null;
+  billingStatement: BillingStatement | null;
   pretaxAmount: number | null;
 };
 
