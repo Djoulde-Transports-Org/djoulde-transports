@@ -1,13 +1,19 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
   import DataTable from '$lib/components/common/DataTable.svelte';
+  import NewMaintenanceDrawer from '$lib/components/maintenance/NewMaintenanceDrawer.svelte';
   import type {Maintenance} from '$lib/types/maintenance';
   import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
   import {maintenanceStateMeta, maintenanceStateFilters} from '$lib/store/maintenanceState';
-  import {maintenanceKindLabels} from '$lib/store/maintenanceKind';
+  import {maintenanceKindLabel} from '$lib/store/maintenanceKind';
   import {maintenanceColumns} from '$lib/store/maintenanceColumns';
   import type {MaintenanceColumnCell} from '$lib/types/maintenanceColumns';
+
+  let table: ReturnType<typeof DataTable> | undefined = $state();
+  let drawerOpen = $state(false);
+
+  const handleCreated = () => table?.refresh();
 
   const cellRenderers: Record<MaintenanceColumnCell, Snippet<[unknown, Row]>> = {
     truck: truckCell,
@@ -37,7 +43,7 @@
   <span
     class="text-[11px] font-medium px-2 py-0.5 rounded-full border bg-surface-2 text-dt-text-mid border-border"
   >
-    {maintenanceKindLabels[maintenance.kind]}
+    {maintenanceKindLabel(maintenance.kind)}
   </span>
 {/snippet}
 
@@ -78,10 +84,27 @@
   </span>
 {/snippet}
 
+{#snippet openMaintenanceAction()}
+  <button
+    onclick={() => (drawerOpen = true)}
+    class="px-3 py-1.5 text-[13px] font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors duration-[130ms]"
+  >
+    + Ouvrir un chantier
+  </button>
+{/snippet}
+
 <DataTable
+  bind:this={table}
   endpoint="/maintenances"
   paginated
+  actions={openMaintenanceAction}
   filters={maintenanceStateFilters}
   searchParam="search"
   {columns}
+/>
+
+<NewMaintenanceDrawer
+  open={drawerOpen}
+  onClose={() => (drawerOpen = false)}
+  onCreated={handleCreated}
 />
