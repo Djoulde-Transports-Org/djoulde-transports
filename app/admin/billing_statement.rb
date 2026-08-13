@@ -7,7 +7,7 @@ ActiveAdmin.register BillingStatement do
 
   # Totals are derived from the kept line items (recalculate_total!), so they
   # are shown read-only here rather than edited by hand.
-  permit_params :number, :month, :status, :issued_on, :due_on
+  permit_params :number, :month, :status, :issued_on, :due_on, :paid_on
 
   filter :number
   filter :status, as: :select, collection: BillingStatement.statuses.keys
@@ -36,6 +36,7 @@ ActiveAdmin.register BillingStatement do
       row :ends_on
       row :issued_on
       row :due_on
+      row :paid_on
       row :total_amount
       row :total_tva
       row :grand_total
@@ -62,6 +63,7 @@ ActiveAdmin.register BillingStatement do
       f.input :status, as: :select, collection: BillingStatement.statuses.keys
       f.input :issued_on, as: :string, input_html: {type: "date"}
       f.input :due_on, as: :string, input_html: {type: "date"}
+      f.input :paid_on, as: :string, input_html: {type: "date"}
     end
     f.actions
   end
