@@ -31,6 +31,42 @@ RSpec.describe Maintenance do
     expect(maintenance.kind).to eq("routine")
   end
 
+  describe "#kind=" do
+    it "reuses an existing maintenance kind by name" do
+      existing = MaintenanceKind.find_or_create_by!(name: "repair")
+      maintenance.kind = "repair"
+      expect(maintenance.maintenance_kind).to eq(existing)
+    end
+
+    it "creates a new maintenance kind when the name doesn't exist yet" do
+      expect { maintenance.kind = "brake overhaul" }
+        .to change { MaintenanceKind.count }.by(1)
+    end
+
+    it "sets kind to the newly created name" do
+      maintenance.kind = "brake overhaul"
+      expect(maintenance.kind).to eq("brake overhaul")
+    end
+
+    it "requires a maintenance_kind" do
+      maintenance.kind = ""
+      maintenance.save!
+      expect(maintenance.kind).to eq("routine")
+    end
+  end
+
+  describe "#oil_change?" do
+    it "is true when the kind is oil_change" do
+      maintenance.kind = "oil_change"
+      expect(maintenance).to be_oil_change
+    end
+
+    it "is false for other kinds" do
+      maintenance.kind = "repair"
+      expect(maintenance).not_to be_oil_change
+    end
+  end
+
   it "rejects negative cost" do
     maintenance.cost = -1
     maintenance.validate

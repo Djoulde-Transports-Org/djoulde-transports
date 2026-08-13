@@ -9,7 +9,7 @@ ActiveAdmin.register Maintenance do
     :cost, :odometer_km, :estimated_duration, :actual_duration, :description
 
   filter :truck
-  filter :kind, as: :select, collection: Maintenance.kinds.keys
+  filter :maintenance_kind, as: :select, collection: -> { MaintenanceKind.kept.order(:name).pluck(:name, :id) }
   filter :state, as: :select, collection: Maintenance.states.keys
   filter :performed_on
 
@@ -50,7 +50,7 @@ ActiveAdmin.register Maintenance do
     f.inputs do
       f.input :truck
       f.input :performed_by, as: :select, collection: User.order(:email).pluck(:email, :id)
-      f.input :kind, as: :select, collection: Maintenance.kinds.keys
+      f.input :kind, as: :string, hint: "Reuses an existing kind by name, or creates a new one."
       f.input :state, as: :select, collection: Maintenance.states.keys
       f.input :performed_on, as: :string, input_html: {type: "date"}
       f.input :cost

@@ -10,7 +10,7 @@
 #  make            :string(255)
 #  model           :string(255)
 #  plate_number    :string(255)      not null
-#  status          :integer          default("ready"), not null
+#  status          :integer          default(0), not null
 #  vin             :string(255)
 #  year            :integer
 #  created_at      :datetime         not null

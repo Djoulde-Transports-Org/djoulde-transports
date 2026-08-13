@@ -16,7 +16,7 @@ module API::V1::Endpoints::Maintenances
         requires :truck_id,        type: Integer, documentation: {desc: "The truck the maintenance was performed on."}
         requires :performed_on,    type: Date, documentation: {desc: "The date the maintenance was performed."}
         optional :performed_by_id, type: Integer, documentation: {desc: "The user who performed the maintenance."}
-        optional :kind,            type: String, values: ::Maintenance.kinds.keys, documentation: {desc: "The kind of maintenance."}
+        optional :kind,            type: String, documentation: {desc: "The kind of maintenance. An unrecognized name creates a new maintenance kind."}
         optional :odometer_km,        type: Integer, documentation: {desc: "The odometer reading in kilometers."}
         optional :estimated_duration, type: BigDecimal, documentation: {desc: "The estimated number of hours the work takes."}
         optional :description,     type: String, documentation: {desc: "A description of the maintenance."}

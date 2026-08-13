@@ -1,9 +1,11 @@
 import {render, waitFor, fireEvent} from '@testing-library/svelte';
 import MaintenanceList from '$lib/components/maintenance/MaintenanceList.svelte';
 import {makeMaintenance} from '../../../mocks/maintenance';
+import {makeTruck} from '../../../mocks/truck';
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+const mockPost = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', () => ({api: {get: mockGet, post: mockPost}}));
 
 vi.mock('$app/environment', () => ({browser: true}));
 vi.mock('$app/stores', () => ({page: {subscribe: vi.fn()}}));
@@ -15,6 +17,15 @@ const page = (items: ReturnType<typeof makeMaintenance>[]) => ({
   nextCursor: null,
   hasMore: false,
 });
+
+const withDrawerOptions = (maintenancesPage: unknown) => (url: string) => {
+  if (url.startsWith('/maintenances')) return Promise.resolve(maintenancesPage);
+  if (url.startsWith('/trucks'))
+    return Promise.resolve([makeTruck({id: 1, plateNumber: 'GN-3310-C'})]);
+  if (url.startsWith('/employees')) return Promise.resolve([]);
+  if (url.startsWith('/maintenance_kinds')) return Promise.resolve([]);
+  return Promise.resolve([]);
+};
 
 describe('MaintenanceList', () => {
   afterEach(() => vi.clearAllMocks());
@@ -37,6 +48,12 @@ describe('MaintenanceList', () => {
     const {getByText} = render(MaintenanceList);
     await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
     expect(getByText('Entretien courant')).toBeInTheDocument();
+  });
+
+  it('renders a custom (non-built-in) kind under its own raw name', async () => {
+    mockGet.mockResolvedValue(page([makeMaintenance({kind: 'brake overhaul'})]));
+    const {getByText} = render(MaintenanceList);
+    await waitFor(() => expect(getByText('brake overhaul')).toBeInTheDocument());
   });
 
   it('renders the description, falling back to a dash when absent', async () => {
@@ -119,5 +136,51 @@ describe('MaintenanceList', () => {
     mockGet.mockResolvedValue(page([]));
     const {getByText} = render(MaintenanceList);
     await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+  });
+
+  describe('new maintenance drawer', () => {
+    it('renders the "+ Ouvrir un chantier" action button', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page([])));
+      const {getByText} = render(MaintenanceList);
+      await waitFor(() => expect(getByText('+ Ouvrir un chantier')).toBeInTheDocument());
+    });
+
+    it('opens the drawer when the action button is clicked', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page([])));
+      const {getByText} = render(MaintenanceList);
+      await waitFor(() => expect(getByText('+ Ouvrir un chantier')).toBeInTheDocument());
+      await fireEvent.click(getByText('+ Ouvrir un chantier'));
+      expect(getByText('Ouvrir un chantier')).toBeInTheDocument();
+    });
+
+    it('refetches the maintenance list after a maintenance is successfully created', async () => {
+      mockGet.mockImplementation(withDrawerOptions(page([])));
+      mockPost.mockResolvedValue(makeMaintenance());
+      const {getByText, getByLabelText} = render(MaintenanceList);
+      await waitFor(() => expect(mockGet).toHaveBeenCalledWith('/maintenances?limit=50'));
+      const callsBefore = mockGet.mock.calls.filter(
+        ([url]) => url === '/maintenances?limit=50'
+      ).length;
+
+      await fireEvent.click(getByText('+ Ouvrir un chantier'));
+      const truckInput = getByLabelText('Camion');
+      await fireEvent.focus(truckInput);
+      await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+      await fireEvent.mouseDown(getByText('GN-3310-C'));
+      const kindInput = getByLabelText('Type de maintenance');
+      await fireEvent.focus(kindInput);
+      await fireEvent.input(kindInput, {target: {value: 'repair'}});
+      await waitFor(() => expect(getByText('+ Créer « repair »')).toBeInTheDocument());
+      await fireEvent.mouseDown(getByText('+ Créer « repair »'));
+      await fireEvent.input(getByLabelText('Date de début'), {target: {value: '2026-06-25'}});
+      await fireEvent.click(getByText('Ouvrir le chantier'));
+
+      await waitFor(() => {
+        const callsAfter = mockGet.mock.calls.filter(
+          ([url]) => url === '/maintenances?limit=50'
+        ).length;
+        expect(callsAfter).toBeGreaterThan(callsBefore);
+      });
+    });
   });
 });

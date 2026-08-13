@@ -52,6 +52,21 @@ RSpec.describe API::V1::Endpoints::Maintenances::Update do
       end
     end
 
+    context "when updating to a kind that doesn't exist yet" do
+      let(:params) { {kind: "brake overhaul"} }
+
+      before { maintenance } # memoize first so its default "routine" kind isn't created inside the expect block
+
+      it "creates a new maintenance kind" do
+        expect { do_request }.to change { MaintenanceKind.count }.by(1)
+      end
+
+      it "updates the maintenance's kind" do
+        do_request
+        expect(maintenance.reload.kind).to eq("brake overhaul")
+      end
+    end
+
     context "when completing the maintenance" do
       let(:params) { {state: "completed"} }
 

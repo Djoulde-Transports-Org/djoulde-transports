@@ -13,7 +13,7 @@
 #  distance_km        :decimal(10, 2)
 #  scheduled_end_at   :datetime
 #  scheduled_start_at :datetime
-#  status             :integer          default("scheduled"), not null
+#  status             :integer          default(0), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  discarded_by_id    :bigint

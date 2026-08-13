@@ -10,6 +10,8 @@
     value = $bindable(''),
     emptyLabel = 'Aucune sélection',
     searchPlaceholder = 'Rechercher...',
+    creatable = false,
+    createLabel = (query: string) => `+ Créer « ${query} »`,
     error,
   }: {
     id: string;
@@ -19,19 +21,30 @@
     value?: OptionValue;
     emptyLabel?: string;
     searchPlaceholder?: string;
+    creatable?: boolean;
+    createLabel?: (query: string) => string;
     error?: string | string[] | null;
   } = $props();
 
   let query = $state('');
   let open = $state(false);
 
-  const selected = $derived(options.find((option) => option.value === value) ?? null);
+  const selected = $derived(
+    options.find((option) => option.value === value) ??
+      (creatable && value !== '' ? {value, label: String(value)} : null)
+  );
   const errorMessage = $derived(Array.isArray(error) ? error[0] : error);
 
   const filtered = $derived(
     query.trim()
       ? options.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()))
       : options
+  );
+
+  const showCreateOption = $derived(
+    creatable &&
+      query.trim().length > 0 &&
+      !options.some((option) => option.label.toLowerCase() === query.trim().toLowerCase())
   );
 
   const displayValue = $derived(open ? query : (selected?.label ?? ''));
@@ -109,7 +122,19 @@
           </button>
         </li>
       {/each}
-      {#if filtered.length === 0}
+      {#if showCreateOption}
+        {@const trimmedQuery = query.trim()}
+        <li>
+          <button
+            type="button"
+            onmousedown={choose({value: trimmedQuery, label: trimmedQuery})}
+            class="w-full text-left px-3 py-2 text-[13px] text-accent hover:bg-surface-2 transition-colors"
+          >
+            {createLabel(trimmedQuery)}
+          </button>
+        </li>
+      {/if}
+      {#if filtered.length === 0 && !showCreateOption}
         <li class="px-3 py-2 text-[13px] text-dt-text-muted">Aucun résultat</li>
       {/if}
     </ul>
