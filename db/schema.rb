@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -112,6 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_120000) do
     t.date "issued_on"
     t.date "month", null: false
     t.string "number", null: false
+    t.date "paid_on"
     t.date "starts_on", null: false
     t.integer "status", default: 0, null: false
     t.integer "total_amount", default: 0, null: false
