@@ -36,6 +36,7 @@ module Billing
     def billable_trips
       Trip
         .kept
+        .completed
         .where(actual_start_at: @month.beginning_of_day...@month.next_month.beginning_of_day)
         .joins(:delivery_note)
         .where(delivery_notes: {discarded_at: nil})
