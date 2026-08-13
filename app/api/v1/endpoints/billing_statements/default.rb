@@ -6,6 +6,7 @@ module API::V1::Endpoints::BillingStatements
 
     mount API::V1::Endpoints::BillingStatements::List
     mount API::V1::Endpoints::BillingStatements::Create
+    mount API::V1::Endpoints::BillingStatements::Generate
     mount API::V1::Endpoints::BillingStatements::Get
     mount API::V1::Endpoints::BillingStatements::Update
     mount API::V1::Endpoints::BillingStatements::Issue
