@@ -13,6 +13,7 @@
 #  issued_on       :date
 #  month           :date             not null
 #  number          :string(255)      not null
+#  paid_on         :date
 #  starts_on       :date             not null
 #  status          :integer          default(0), not null
 #  total_amount    :integer          default(0), not null

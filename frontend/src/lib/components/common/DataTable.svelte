@@ -7,7 +7,9 @@
 
   let {
     endpoint,
-    columns,
+    columns = [],
+    card,
+    cardGridClasses = 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3',
     filters = [],
     searchParam,
     searchFields,
@@ -22,7 +24,9 @@
     showAllCount = false,
   }: {
     endpoint: string;
-    columns: Column[];
+    columns?: Column[];
+    card?: Snippet<[Row]>;
+    cardGridClasses?: string;
     filters?: FilterChip[];
     searchParam?: string;
     searchFields?: string[];
@@ -195,77 +199,109 @@
     </div>
   {/if}
 
-  <div class="overflow-x-auto rounded-lg border border-border">
-    <table class="w-full text-sm min-w-full">
-      <thead>
-        <tr class="bg-surface border-b border-border">
-          {#each columns as col (col.key)}
-            <th
-              class="px-4 py-3 text-left text-[11px] font-semibold text-dt-text-muted uppercase tracking-wider whitespace-nowrap"
-            >
-              {col.label}
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#if loading}
-          {#each [0, 1, 2, 3, 4] as i (i)}
-            <tr class="border-b border-border-soft last:border-0">
-              {#each columns as col, j (col.key)}
-                <td class="px-4 py-3">
-                  <div
-                    class="h-3.5 bg-surface-2 rounded animate-pulse {j % 2 === 0
-                      ? 'w-3/4'
-                      : 'w-1/2'}"
-                  ></div>
-                </td>
-              {/each}
-            </tr>
-          {/each}
-        {:else if errorMsg}
-          <tr>
-            <td colspan={columns.length} class="px-4 py-12 text-center">
-              {#if errorSnippet}
-                {@render errorSnippet(errorMsg)}
-              {:else}
-                <p class="text-dt-text-muted text-sm">{errorMsg}</p>
-              {/if}
-            </td>
-          </tr>
-        {:else if rows.length === 0}
-          <tr>
-            <td colspan={columns.length} class="px-4 py-12 text-center">
-              {#if empty}
-                {@render empty()}
-              {:else}
-                <p class="text-dt-text-muted text-sm">Aucun résultat.</p>
-              {/if}
-            </td>
-          </tr>
+  {#if card}
+    {#if loading}
+      <div class={cardGridClasses}>
+        {#each [0, 1, 2, 3, 4, 5] as i (i)}
+          <div class="h-28 rounded-lg border border-border bg-surface animate-pulse"></div>
+        {/each}
+      </div>
+    {:else if errorMsg}
+      <div class="py-12 text-center">
+        {#if errorSnippet}
+          {@render errorSnippet(errorMsg)}
         {:else}
-          {#each rows as row, i (i)}
-            <tr
-              onclick={() => onRowClick?.(row)}
-              class="border-b border-border-soft last:border-0 hover:bg-surface-2/40 transition-colors duration-[130ms] {rowClickable
-                ? 'cursor-pointer'
-                : ''}"
-            >
-              {#each columns as col (col.key)}
-                <td class="px-4 py-3 text-dt-text">
-                  {#if col.render}
-                    {@render col.render(row[col.key], row)}
-                  {:else}
-                    {row[col.key] ?? ''}
-                  {/if}
-                </td>
-              {/each}
-            </tr>
-          {/each}
+          <p class="text-dt-text-muted text-sm">{errorMsg}</p>
         {/if}
-      </tbody>
-    </table>
-  </div>
+      </div>
+    {:else if rows.length === 0}
+      <div class="py-12 text-center">
+        {#if empty}
+          {@render empty()}
+        {:else}
+          <p class="text-dt-text-muted text-sm">Aucun résultat.</p>
+        {/if}
+      </div>
+    {:else}
+      <div class={cardGridClasses}>
+        {#each rows as row, i (i)}
+          {@render card(row)}
+        {/each}
+      </div>
+    {/if}
+  {:else}
+    <div class="overflow-x-auto rounded-lg border border-border">
+      <table class="w-full text-sm min-w-full">
+        <thead>
+          <tr class="bg-surface border-b border-border">
+            {#each columns as col (col.key)}
+              <th
+                class="px-4 py-3 text-left text-[11px] font-semibold text-dt-text-muted uppercase tracking-wider whitespace-nowrap"
+              >
+                {col.label}
+              </th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#if loading}
+            {#each [0, 1, 2, 3, 4] as i (i)}
+              <tr class="border-b border-border-soft last:border-0">
+                {#each columns as col, j (col.key)}
+                  <td class="px-4 py-3">
+                    <div
+                      class="h-3.5 bg-surface-2 rounded animate-pulse {j % 2 === 0
+                        ? 'w-3/4'
+                        : 'w-1/2'}"
+                    ></div>
+                  </td>
+                {/each}
+              </tr>
+            {/each}
+          {:else if errorMsg}
+            <tr>
+              <td colspan={columns.length} class="px-4 py-12 text-center">
+                {#if errorSnippet}
+                  {@render errorSnippet(errorMsg)}
+                {:else}
+                  <p class="text-dt-text-muted text-sm">{errorMsg}</p>
+                {/if}
+              </td>
+            </tr>
+          {:else if rows.length === 0}
+            <tr>
+              <td colspan={columns.length} class="px-4 py-12 text-center">
+                {#if empty}
+                  {@render empty()}
+                {:else}
+                  <p class="text-dt-text-muted text-sm">Aucun résultat.</p>
+                {/if}
+              </td>
+            </tr>
+          {:else}
+            {#each rows as row, i (i)}
+              <tr
+                onclick={() => onRowClick?.(row)}
+                class="border-b border-border-soft last:border-0 hover:bg-surface-2/40 transition-colors duration-[130ms] {rowClickable
+                  ? 'cursor-pointer'
+                  : ''}"
+              >
+                {#each columns as col (col.key)}
+                  <td class="px-4 py-3 text-dt-text">
+                    {#if col.render}
+                      {@render col.render(row[col.key], row)}
+                    {:else}
+                      {row[col.key] ?? ''}
+                    {/if}
+                  </td>
+                {/each}
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
+  {/if}
 
   {#if paginated}
     <div class="flex items-center justify-between px-1">
