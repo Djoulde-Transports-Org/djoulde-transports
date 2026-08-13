@@ -9,6 +9,7 @@ export type BillingStatement = {
   endsOn: string;
   issuedOn: string | null;
   dueOn: string | null;
+  paidOn: string | null;
   totalAmount: number;
   totalTva: number;
   grandTotal: number;

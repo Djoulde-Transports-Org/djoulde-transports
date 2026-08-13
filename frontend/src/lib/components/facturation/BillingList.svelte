@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {goto} from '$app/navigation';
+  import {resolve} from '$app/paths';
   import DataTable from '$lib/components/common/DataTable.svelte';
   import StatItem from '$lib/components/common/StatItem.svelte';
   import type {BillingStatement} from '$lib/types/billing';
@@ -38,6 +40,9 @@
     }
     table?.refresh();
   };
+
+  const openDetails = (billing: BillingStatement) =>
+    goto(resolve('/(app)/facturation/[id]/details', {id: String(billing.id)}));
 </script>
 
 {#snippet generateAction()}
@@ -63,7 +68,11 @@
 {#snippet billingCard(row: Row)}
   {@const billing = row as BillingStatement}
   <div
-    class="rounded-lg border border-border bg-surface p-4 flex flex-col gap-3 {borderClasses(
+    role="button"
+    tabindex="0"
+    onclick={() => openDetails(billing)}
+    onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && openDetails(billing)}
+    class="rounded-lg border border-border bg-surface p-4 flex flex-col gap-3 cursor-pointer hover:border-accent/40 transition-colors duration-[130ms] {borderClasses(
       billing
     )}"
   >
