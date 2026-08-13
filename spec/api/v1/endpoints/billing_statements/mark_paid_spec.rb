@@ -2,10 +2,11 @@
 
 RSpec.describe API::V1::Endpoints::BillingStatements::MarkPaid do
   subject(:do_request) do
-    patch "/api/v1/billing_statements/#{statement_id}/mark_paid", headers: headers
+    patch "/api/v1/billing_statements/#{statement_id}/mark_paid", params: params, headers: headers
   end
 
   let(:headers)      { {} }
+  let(:params)       { {} }
   let(:admin_setup)  { auth_setup(role: :super_admin) }
   let(:admin_token)  { admin_setup[1] }
   let(:viewer_setup) { auth_setup(role: :driver_readonly) }
@@ -47,6 +48,20 @@ RSpec.describe API::V1::Endpoints::BillingStatements::MarkPaid do
 
       it "flips the status to paid" do
         expect(statement.reload.status).to eq("paid")
+      end
+
+      it "stamps paid_on with today by default" do
+        expect(statement.reload.paid_on).to eq(Time.zone.today)
+      end
+    end
+
+    context "with an explicit paid_on" do
+      let(:params) { {paid_on: (month.next_month + 5.days).to_s} }
+
+      before { do_request }
+
+      it "uses the supplied date" do
+        expect(statement.reload.paid_on.to_s).to eq((month.next_month + 5.days).to_s)
       end
     end
 
