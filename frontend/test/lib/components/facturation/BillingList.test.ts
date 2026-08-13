@@ -4,12 +4,15 @@ import {makeBillingStatement} from '../../../mocks/billing';
 
 const mockGet = vi.hoisted(() => vi.fn());
 const mockPost = vi.hoisted(() => vi.fn());
+const mockGoto = vi.hoisted(() => vi.fn());
 vi.mock('$lib/api/client', () => ({api: {get: mockGet, post: mockPost}}));
 
 vi.mock('$app/environment', () => ({browser: true}));
 vi.mock('$app/stores', () => ({page: {subscribe: vi.fn()}}));
-vi.mock('$app/navigation', () => ({goto: vi.fn()}));
-vi.mock('$app/paths', () => ({resolve: (p: string) => p}));
+vi.mock('$app/navigation', () => ({goto: mockGoto}));
+vi.mock('$app/paths', () => ({
+  resolve: (route: string, params?: Record<string, string>) => ({route, params}),
+}));
 
 describe('BillingList', () => {
   afterEach(() => vi.clearAllMocks());
@@ -87,6 +90,33 @@ describe('BillingList', () => {
     mockGet.mockResolvedValue([]);
     const {getByText} = render(BillingList);
     await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+  });
+
+  it('navigates to the statement details page when a card is clicked', async () => {
+    mockGet.mockResolvedValue([makeBillingStatement({id: 42, number: 'S-2026-06'})]);
+    const {getByText} = render(BillingList);
+    await waitFor(() => expect(getByText('S-2026-06')).toBeInTheDocument());
+
+    await fireEvent.click(getByText('S-2026-06'));
+
+    expect(mockGoto).toHaveBeenCalledWith({
+      route: '/(app)/facturation/[id]/details',
+      params: {id: '42'},
+    });
+  });
+
+  it('navigates to the statement details page on Enter key', async () => {
+    mockGet.mockResolvedValue([makeBillingStatement({id: 7, number: 'S-2026-07'})]);
+    const {getByText} = render(BillingList);
+    await waitFor(() => expect(getByText('S-2026-07')).toBeInTheDocument());
+
+    const card = getByText('S-2026-07').closest('div.rounded-lg') as HTMLElement;
+    await fireEvent.keyDown(card, {key: 'Enter'});
+
+    expect(mockGoto).toHaveBeenCalledWith({
+      route: '/(app)/facturation/[id]/details',
+      params: {id: '7'},
+    });
   });
 
   describe('monthly billing generation', () => {
