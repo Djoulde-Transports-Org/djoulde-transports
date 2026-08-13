@@ -3,7 +3,8 @@ import BillingList from '$lib/components/facturation/BillingList.svelte';
 import {makeBillingStatement} from '../../../mocks/billing';
 
 const mockGet = vi.hoisted(() => vi.fn());
-vi.mock('$lib/api/client', () => ({api: {get: mockGet}}));
+const mockPost = vi.hoisted(() => vi.fn());
+vi.mock('$lib/api/client', () => ({api: {get: mockGet, post: mockPost}}));
 
 vi.mock('$app/environment', () => ({browser: true}));
 vi.mock('$app/stores', () => ({page: {subscribe: vi.fn()}}));
@@ -86,5 +87,44 @@ describe('BillingList', () => {
     mockGet.mockResolvedValue([]);
     const {getByText} = render(BillingList);
     await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+  });
+
+  describe('monthly billing generation', () => {
+    it('renders the month picker and the Générer button', async () => {
+      mockGet.mockResolvedValue([]);
+      const {getByText, container} = render(BillingList);
+      await waitFor(() => expect(getByText('+ Générer')).toBeInTheDocument());
+      expect(container.querySelector('input[type="month"]')).toBeInTheDocument();
+    });
+
+    it('calls the generate endpoint with the selected month and refetches on success', async () => {
+      mockGet.mockResolvedValue([]);
+      mockPost.mockResolvedValue(makeBillingStatement());
+      const {getByText, container} = render(BillingList);
+      await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1));
+
+      const monthInput = container.querySelector('input[type="month"]') as HTMLInputElement;
+      await fireEvent.input(monthInput, {target: {value: '2026-05'}});
+      await fireEvent.click(getByText('+ Générer'));
+
+      await waitFor(() =>
+        expect(mockPost).toHaveBeenCalledWith('/billing_statements/generate', {month: '2026-05-01'})
+      );
+      await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2));
+    });
+
+    it('shows an error message and does not refetch when generation fails', async () => {
+      mockGet.mockResolvedValue([]);
+      mockPost.mockRejectedValue(new Error('Aucun trajet terminé pour ce mois.'));
+      const {getByText} = render(BillingList);
+      await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1));
+
+      await fireEvent.click(getByText('+ Générer'));
+
+      await waitFor(() =>
+        expect(getByText('Aucun trajet terminé pour ce mois.')).toBeInTheDocument()
+      );
+      expect(mockGet).toHaveBeenCalledTimes(1);
+    });
   });
 });

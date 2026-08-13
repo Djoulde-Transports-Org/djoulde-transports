@@ -7,8 +7,8 @@ RSpec.describe Billing::DraftMonthlyStatement do
   let(:truck) { build_truck_with_tank(plate: "T-#{SecureRandom.hex(2)}") }
   let(:route) { Route.create!(origin: "A", destination: "B", rate: 1000) }
 
-  def trip_with_note(start_at:, gasoline: 10, diesel: 0)
-    trip = Trip.create!(truck: truck, route: route, actual_start_at: start_at)
+  def trip_with_note(start_at:, gasoline: 10, diesel: 0, status: :completed)
+    trip = Trip.create!(truck: truck, route: route, actual_start_at: start_at, status: status)
     DeliveryNote.create!(trip: trip, number: "DN-#{SecureRandom.hex(3)}",
                          gasoline_quantity: gasoline, diesel_quantity: diesel)
     trip
@@ -49,6 +49,12 @@ RSpec.describe Billing::DraftMonthlyStatement do
   it "ignores discarded trips" do
     trip = trip_with_note(start_at: month + 5.days)
     trip.discard
+    statement = described_class.call(month: month)
+    expect(statement.billing_line_items.count).to eq(0)
+  end
+
+  it "ignores trips that are not completed, even with a delivery note" do
+    trip_with_note(start_at: month + 5.days, status: :in_progress)
     statement = described_class.call(month: month)
     expect(statement.billing_line_items.count).to eq(0)
   end
