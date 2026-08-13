@@ -13,3 +13,11 @@ export const generateBillingStatement = async (month: string): Promise<BillingSt
     return {data: null, error: e instanceof Error ? e.message : 'Une erreur est survenue.'};
   }
 };
+
+export const getBillingStatement = async (id: number | string): Promise<BillingStatementResult> => {
+  try {
+    return {data: await api.get<BillingStatement>(`/billing_statements/${id}`), error: null};
+  } catch (e) {
+    return {data: null, error: e instanceof Error ? e.message : 'Une erreur est survenue.'};
+  }
+};
