@@ -2,6 +2,7 @@
   import type {Snippet} from 'svelte';
   import DataTable from '$lib/components/common/DataTable.svelte';
   import Icon from '$lib/components/common/Icon.svelte';
+  import NewDocumentDrawer from '$lib/components/documents/NewDocumentDrawer.svelte';
   import type {FleetDocument} from '$lib/types/document';
   import type {Row} from '$lib/types/dataTable';
   import {formatDate} from '$lib/utility/date';
@@ -9,6 +10,11 @@
   import {documentableTypeLabel, documentEntityFilters} from '$lib/store/documentableType';
   import {documentColumns} from '$lib/store/documentColumns';
   import type {DocumentColumnCell} from '$lib/types/documentColumns';
+
+  let table: ReturnType<typeof DataTable> | undefined = $state();
+  let drawerOpen = $state(false);
+
+  const handleCreated = () => table?.refresh();
 
   const cellRenderers: Record<DocumentColumnCell, Snippet<[unknown, Row]>> = {
     name: nameCell,
@@ -82,10 +88,27 @@
   {/if}
 {/snippet}
 
+{#snippet addDocumentAction()}
+  <button
+    onclick={() => (drawerOpen = true)}
+    class="px-3 py-1.5 text-[13px] font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors duration-[130ms]"
+  >
+    + Ajouter un document
+  </button>
+{/snippet}
+
 <DataTable
+  bind:this={table}
   endpoint="/documents"
   paginated
+  actions={addDocumentAction}
   filters={documentEntityFilters}
   searchParam="search"
   {columns}
+/>
+
+<NewDocumentDrawer
+  open={drawerOpen}
+  onClose={() => (drawerOpen = false)}
+  onCreated={handleCreated}
 />
