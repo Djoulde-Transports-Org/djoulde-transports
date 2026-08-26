@@ -146,4 +146,20 @@ describe('DocumentList', () => {
     const {getByText} = render(DocumentList);
     await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
   });
+
+  describe('new document drawer', () => {
+    it('renders the "+ Ajouter un document" action button', async () => {
+      mockGet.mockResolvedValue(page([]));
+      const {getByText} = render(DocumentList);
+      await waitFor(() => expect(getByText('+ Ajouter un document')).toBeInTheDocument());
+    });
+
+    it('opens the drawer when the action button is clicked', async () => {
+      mockGet.mockResolvedValue(page([]));
+      const {getByText} = render(DocumentList);
+      await waitFor(() => expect(getByText('+ Ajouter un document')).toBeInTheDocument());
+      await fireEvent.click(getByText('+ Ajouter un document'));
+      expect(getByText('Ajouter un document')).toBeInTheDocument();
+    });
+  });
 });
