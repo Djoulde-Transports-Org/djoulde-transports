@@ -21,9 +21,11 @@ export class ApiRequestError extends Error {
 
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   const token = get(authStore)?.accessToken;
+  const isFormData = options.body instanceof FormData;
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    // The browser must set its own multipart boundary for FormData bodies.
+    ...(isFormData ? {} : {'Content-Type': 'application/json'}),
     ...(token ? {Authorization: `Bearer ${token}`} : {}),
     ...(options.headers ?? {}),
   };
@@ -61,8 +63,11 @@ const withBody = (method: string, body: unknown): RequestInit => ({
   body: JSON.stringify(toSnakeCase(body)),
 });
 
+const withForm = (method: string, form: FormData): RequestInit => ({method, body: form});
+
 export const api = {
   post: <T>(path: string, body: unknown) => request<T>(path, withBody('POST', body)),
+  postForm: <T>(path: string, form: FormData) => request<T>(path, withForm('POST', form)),
   get: <T>(path: string) => request<T>(path, {method: 'GET'}),
   put: <T>(path: string, body: unknown) => request<T>(path, withBody('PUT', body)),
   patch: <T>(path: string, body: unknown) => request<T>(path, withBody('PATCH', body)),
