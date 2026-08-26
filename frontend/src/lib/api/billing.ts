@@ -2,6 +2,15 @@ import {api} from './client';
 import type {BillingStatement} from '$lib/types/billing';
 
 type BillingStatementResult = {data: BillingStatement | null; error: string | null};
+type BillingStatementsResult = {data: BillingStatement[]; error: string | null};
+
+export const getBillingStatements = async (): Promise<BillingStatementsResult> => {
+  try {
+    return {data: await api.get<BillingStatement[]>('/billing_statements'), error: null};
+  } catch (e) {
+    return {data: [], error: e instanceof Error ? e.message : 'Une erreur est survenue.'};
+  }
+};
 
 export const generateBillingStatement = async (month: string): Promise<BillingStatementResult> => {
   try {
