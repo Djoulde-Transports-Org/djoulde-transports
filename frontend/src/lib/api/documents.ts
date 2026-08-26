@@ -7,7 +7,7 @@ type DocumentResult = {data: FleetDocument | null; error: string | null};
 export type CreateDocumentPayload = {
   documentableType: DocumentableType;
   documentableId: number;
-  number: string;
+  number?: string;
   title: string;
   docType?: DocType;
   issuedOn: string;
