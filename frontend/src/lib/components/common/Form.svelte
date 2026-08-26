@@ -20,8 +20,15 @@
   let isValid = $state(true);
   let isSubmitting = $state(false);
 
-  const toValues = (form: HTMLFormElement): Record<string, unknown> =>
-    Object.fromEntries(new FormData(form).entries());
+  const toValues = (form: HTMLFormElement): Record<string, unknown> => {
+    const values = Object.fromEntries(new FormData(form).entries());
+    // FormData(form) does not reliably read <input type="file"> across environments — read files directly.
+    for (const input of form.querySelectorAll('input[type="file"]')) {
+      const fileInput = input as HTMLInputElement;
+      if (fileInput.name) values[fileInput.name] = fileInput.files?.[0] ?? new File([], '');
+    }
+    return values;
+  };
 
   const validate = async (form: HTMLFormElement): Promise<boolean> => {
     try {
