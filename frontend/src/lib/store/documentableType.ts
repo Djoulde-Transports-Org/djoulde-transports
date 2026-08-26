@@ -21,6 +21,11 @@ const ENTITY_FILTER_ORDER: DocumentableType[] = [
   'BillingStatement',
 ];
 
+export const documentableTypeOptions = ENTITY_FILTER_ORDER.map((type) => ({
+  value: type,
+  label: documentableTypeLabels[type],
+}));
+
 const FILTER_LABEL_OVERRIDES: Partial<Record<DocumentableType, string>> = {
   Truck: 'Camions',
   Tank: 'Citernes',

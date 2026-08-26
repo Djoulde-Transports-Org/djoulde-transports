@@ -41,3 +41,14 @@ export type FleetDocument = {
   fileSize: number | null;
   createdAt: string;
 };
+
+export type NewDocumentValues = {
+  title: string;
+  number: string;
+  documentableType: string;
+  documentableId: string;
+  docType: string;
+  issuedOn: string;
+  expiresOn: string;
+  file: File;
+};
