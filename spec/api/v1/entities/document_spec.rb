@@ -33,7 +33,32 @@ RSpec.describe API::V1::Entities::Document do
     expect(payload[:file_attached]).to be false
   end
 
+  it "exposes created_at as an ISO 8601 datetime" do
+    expect(payload[:created_at]).to eq(document.created_at.iso8601)
+  end
+
   it "exposes file_size as nil when no file is attached" do
     expect(payload[:file_size]).to be_nil
+  end
+
+  it "exposes uploaded_by as nil when no one uploaded the document" do
+    expect(payload[:uploaded_by]).to be_nil
+  end
+
+  it "exposes the uploader's employee full_name when the uploaded_by user has a linked employee" do
+    user = User.create!(email: "uploader@example.com", password: "password123")
+    Employee.create!(first_name: "Mamadou", last_name: "Diallo", user: user)
+    document.update!(uploaded_by: user)
+
+    result = described_class.represent(document.reload).as_json
+    expect(result[:uploaded_by]).to eq({id: user.id, name: "Mamadou Diallo"})
+  end
+
+  it "exposes the uploader's email when the uploaded_by user has no linked employee" do
+    user = User.create!(email: "uploader@example.com", password: "password123")
+    document.update!(uploaded_by: user)
+
+    result = described_class.represent(document.reload).as_json
+    expect(result[:uploaded_by]).to eq({id: user.id, name: "uploader@example.com"})
   end
 end

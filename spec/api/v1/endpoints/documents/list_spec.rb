@@ -82,6 +82,21 @@ RSpec.describe API::V1::Endpoints::Documents::List do
     end
   end
 
+  context "when filtering by documentable_type Employee" do
+    let(:headers)  { bearer_headers(viewer_token) }
+    let(:employee) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+    let(:params)   { {documentable_type: "Employee"} }
+    let!(:license) do
+      Document.create!(documentable: employee, number: "LIC-1", title: "License", doc_type: :driver_license)
+    end
+
+    before { do_request }
+
+    it "returns only documents attached to employees" do
+      expect(response.parsed_body["items"].pluck("id")).to contain_exactly(license.id)
+    end
+  end
+
   context "when documentable_type is not a valid value" do
     let(:headers) { bearer_headers(viewer_token) }
     let(:params)  { {documentable_type: "Spaceship"} }
