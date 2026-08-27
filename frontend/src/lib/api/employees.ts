@@ -15,6 +15,23 @@ export const getEmployees = async (role = 'driver'): Promise<EmployeesResult> =>
   }
 };
 
+export const getAllEmployees = async (): Promise<EmployeesResult> => {
+  const perPage = 100;
+  try {
+    let all: Employee[] = [];
+    let page = 1;
+    for (;;) {
+      const batch = await api.get<Employee[]>(`/employees?per_page=${perPage}&page=${page}`);
+      all = all.concat(batch);
+      if (batch.length < perPage) break;
+      page += 1;
+    }
+    return {data: all, error: null};
+  } catch (e) {
+    return {data: [], error: e instanceof Error ? e.message : 'Une erreur est survenue.'};
+  }
+};
+
 export const createEmployee = async (payload: EmployeePayload): Promise<EmployeeResult> => {
   try {
     return {data: await api.post<Employee>('/employees/create', payload), error: null};

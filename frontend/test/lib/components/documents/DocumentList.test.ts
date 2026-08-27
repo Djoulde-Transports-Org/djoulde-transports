@@ -71,7 +71,7 @@ describe('DocumentList', () => {
     expect(getByText('Camion #42')).toBeInTheDocument();
   });
 
-  it('renders the linked entity label for a document attached to an employee', async () => {
+  it('falls back to type + id when the linked entity has no resolved label', async () => {
     mockGet.mockResolvedValue(
       page([
         makeDocument({
@@ -79,11 +79,97 @@ describe('DocumentList', () => {
           docType: 'driver_license',
           documentableType: 'Employee',
           documentableId: 7,
+          documentableLabel: null,
         }),
       ])
     );
     const {getByText} = render(DocumentList);
     await waitFor(() => expect(getByText('Employé #7')).toBeInTheDocument());
+  });
+
+  it('shows the employee full name as the linked entity label', async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'Employee',
+          documentableId: 7,
+          documentableLabel: 'Ibrahima Bah',
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('Ibrahima Bah')).toBeInTheDocument());
+  });
+
+  it('shows the plate number for a Tank-linked document', async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'Tank',
+          documentableId: 3,
+          documentableLabel: 'CIT-0042',
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('CIT-0042')).toBeInTheDocument());
+  });
+
+  it("shows the associated truck's plate number for a Maintenance-linked document", async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'Maintenance',
+          documentableId: 9,
+          documentableLabel: 'GN-3310-C',
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('GN-3310-C')).toBeInTheDocument());
+  });
+
+  it('shows the delivery note number for a Trip-linked document that has one', async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'Trip',
+          documentableId: 4,
+          documentableLabel: 'DN-0042',
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('DN-0042')).toBeInTheDocument());
+  });
+
+  it('falls back to trip + id when the linked trip has no delivery note', async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'Trip',
+          documentableId: 4,
+          documentableLabel: null,
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('Trajet #4')).toBeInTheDocument());
+  });
+
+  it('shows the covered month and year for a BillingStatement-linked document', async () => {
+    mockGet.mockResolvedValue(
+      page([
+        makeDocument({
+          documentableType: 'BillingStatement',
+          documentableId: 5,
+          documentableLabel: null,
+          documentableDate: '2026-06-01',
+        }),
+      ])
+    );
+    const {getByText} = render(DocumentList);
+    await waitFor(() => expect(getByText('Juin 2026')).toBeInTheDocument());
   });
 
   it('formats the upload date and expiry date', async () => {
@@ -145,5 +231,21 @@ describe('DocumentList', () => {
     mockGet.mockResolvedValue(page([]));
     const {getByText} = render(DocumentList);
     await waitFor(() => expect(getByText('Aucun résultat.')).toBeInTheDocument());
+  });
+
+  describe('new document drawer', () => {
+    it('renders the "+ Ajouter un document" action button', async () => {
+      mockGet.mockResolvedValue(page([]));
+      const {getByText} = render(DocumentList);
+      await waitFor(() => expect(getByText('+ Ajouter un document')).toBeInTheDocument());
+    });
+
+    it('opens the drawer when the action button is clicked', async () => {
+      mockGet.mockResolvedValue(page([]));
+      const {getByText} = render(DocumentList);
+      await waitFor(() => expect(getByText('+ Ajouter un document')).toBeInTheDocument());
+      await fireEvent.click(getByText('+ Ajouter un document'));
+      expect(getByText('Ajouter un document')).toBeInTheDocument();
+    });
   });
 });

@@ -85,12 +85,13 @@ RSpec.describe API::V1::Endpoints::Documents::Create do
 
       before { do_request }
 
-      it "returns 422" do
-        expect(response).to have_http_status(:unprocessable_content)
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
       end
 
-      it "returns the validation_failed error code" do
-        expect(response.parsed_body.dig("error", "code")).to eq("validation_failed")
+      it "auto-generates a DT-<id> number" do
+        document = Document.find(response.parsed_body["id"])
+        expect(response.parsed_body["number"]).to eq("DT-#{document.id}")
       end
     end
 

@@ -11,7 +11,7 @@
 #  documentable_type :string(255)      not null
 #  expires_on        :date
 #  issued_on         :date
-#  number            :string(255)      not null
+#  number            :string(255)
 #  title             :string(255)      not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
@@ -59,9 +59,11 @@ class Document < ApplicationRecord
 
   has_one_attached :file
 
-  validates :number, presence: true, uniqueness: {case_sensitive: false}
+  validates :number, uniqueness: {case_sensitive: false}, allow_blank: true
   validates :title,  presence: true
   validate  :expiry_after_issue
+
+  after_create :assign_default_number
 
   private
 
@@ -70,5 +72,13 @@ class Document < ApplicationRecord
     return if expires_on >= issued_on
 
     errors.add(:expires_on, "must be on or after issued_on")
+  end
+
+  # Runs after the row (and its id) exist, so the generated number is
+  # guaranteed unique without a race-prone "find the max and increment" query.
+  def assign_default_number
+    return if number.present?
+
+    update!(number: "DT-#{id}")
   end
 end

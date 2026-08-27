@@ -4,7 +4,7 @@ module API::V1::Endpoints::Documents
   class List < Grape::API
     helpers do
       def base_document_scope
-        policy_scope(::Document).order("documents.id DESC")
+        policy_scope(::Document).includes(:documentable).order("documents.id DESC")
       end
 
       def document_scope
@@ -24,10 +24,26 @@ module API::V1::Endpoints::Documents
         has_more  = records.size > page_size
         records   = records.first(page_size)
 
+        entity_opts = documentable_label_lookups(records)
+
         {
-          items:       records.map { |r| ::API::V1::Entities::Document.represent(r).as_json },
+          items:       records.map { |r| ::API::V1::Entities::Document.represent(r, entity_opts).as_json },
           next_cursor: has_more ? records.last&.id : nil,
           has_more:    has_more,
+        }
+      end
+
+      # Batches the nested lookups the entity needs for Trip/Maintenance labels
+      # (one query per type present on the page) instead of querying per row.
+      def documentable_label_lookups(records)
+        trip_ids        = records.select { |r| r.documentable_type == "Trip" }.map(&:documentable_id)
+        maintenance_ids = records.select { |r| r.documentable_type == "Maintenance" }.map(&:documentable_id)
+
+        {
+          delivery_notes_by_trip_id: trip_ids.present? ?
+            ::DeliveryNote.where(trip_id: trip_ids).pluck(:trip_id, :number).to_h : {},
+          truck_plates_by_maintenance_id: maintenance_ids.present? ?
+            ::Maintenance.joins(:truck).where(id: maintenance_ids).pluck(:id, "trucks.plate_number").to_h : {},
         }
       end
     end

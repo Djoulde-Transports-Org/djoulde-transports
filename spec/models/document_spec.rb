@@ -27,17 +27,29 @@ RSpec.describe Document do
     expect(document.errors[:title]).to be_present
   end
 
-  it "requires number" do
-    document.number = nil
-    document.validate
-    expect(document.errors[:number]).to be_present
-  end
-
   it "requires a unique number (case-insensitive)" do
     described_class.create!(number: "INS-1", title: "First", documentable: truck)
     document.number = "ins-1"
     document.validate
     expect(document.errors[:number]).to be_present
+  end
+
+  it "allows a blank number" do
+    document.number = nil
+    document.validate
+    expect(document.errors[:number]).to be_empty
+  end
+
+  it "auto-generates a DT-<id> number when none is given" do
+    document.number = nil
+    document.save!
+    expect(document.number).to eq("DT-#{document.id}")
+  end
+
+  it "keeps a manually provided number" do
+    document.number = "INS-2026"
+    document.save!
+    expect(document.number).to eq("INS-2026")
   end
 
   it "rejects expires_on earlier than issued_on" do

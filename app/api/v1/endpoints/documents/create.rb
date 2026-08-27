@@ -19,7 +19,7 @@ module API::V1::Endpoints::Documents
       params do
         requires :documentable_type, type: String, values: Common::DOCUMENTABLE_TYPES, documentation: {desc: "The type of the document's owner."}
         requires :documentable_id,   type: Integer, documentation: {desc: "The id of the document's owner."}
-        requires :number,            type: String, documentation: {desc: "The document number."}
+        optional :number,            type: String, documentation: {desc: "The document number. Auto-generated as DT-<id> when omitted."}
         requires :title,             type: String, documentation: {desc: "The title of the document."}
         optional :doc_type,          type: String, values: ::Document.doc_types.keys, documentation: {desc: "The kind of document."}
         optional :issued_on,         type: Date, documentation: {desc: "The date the document was issued."}

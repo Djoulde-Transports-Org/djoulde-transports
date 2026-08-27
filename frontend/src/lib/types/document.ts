@@ -30,6 +30,8 @@ export type FleetDocument = {
   id: number;
   documentableType: DocumentableType;
   documentableId: number;
+  documentableLabel: string | null;
+  documentableDate: string | null;
   docType: DocType;
   number: string;
   title: string;
@@ -40,4 +42,15 @@ export type FleetDocument = {
   fileAttached: boolean;
   fileSize: number | null;
   createdAt: string;
+};
+
+export type NewDocumentValues = {
+  title: string;
+  number: string;
+  documentableType: string;
+  documentableId: string;
+  docType: string;
+  issuedOn: string;
+  expiresOn: string;
+  file: File;
 };

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "author_id"
     t.string "author_type"
@@ -151,7 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.string "documentable_type", null: false
     t.date "expires_on"
     t.date "issued_on"
-    t.string "number", null: false
+    t.string "number"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
