@@ -133,5 +133,24 @@ RSpec.describe API::V1::Endpoints::Documents::Create do
         expect(response.parsed_body["documentable_id"]).to eq(tank.id)
       end
     end
+
+    context "when documentable_type is Employee" do
+      let(:employee) { Employee.create!(first_name: "Mamadou", last_name: "Diallo") }
+      let(:params) do
+        {documentable_type: "Employee", documentable_id: employee.id, number: "LIC-2026",
+         title: "Permis de conduire", doc_type: "driver_license"}
+      end
+
+      before { do_request }
+
+      it "returns 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "attaches the document to the employee", :aggregate_failures do
+        expect(response.parsed_body["documentable_type"]).to eq("Employee")
+        expect(response.parsed_body["documentable_id"]).to eq(employee.id)
+      end
+    end
   end
 end

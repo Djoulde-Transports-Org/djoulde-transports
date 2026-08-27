@@ -11,11 +11,24 @@ module API::V1::Entities
     expose :issued_on,         format_with: :iso_8601_date, documentation: {type: "Date", desc: "The date the document was issued."}
     expose :expires_on,        format_with: :iso_8601_date, documentation: {type: "Date", desc: "The date the document expires."}
     expose :uploaded_by_id,    documentation: {type: "Integer", desc: "The ID of the user who uploaded the document."}
+    expose :created_at,        format_with: :iso_8601, documentation: {type: "DateTime", desc: "The date the document was uploaded."}
+    expose :uploaded_by, documentation: {type: "Object", desc: "The user who uploaded the document (id, name), if any."} do |document, _opts|
+      uploaded_by_payload(document)
+    end
     expose :file_attached, documentation: {type: "Boolean", desc: "Whether a file is attached to the document."} do |document|
       document.file.attached?
     end
     expose :file_size, documentation: {type: "Integer", desc: "The file size in bytes, or null if no file is attached."} do |document|
       document.file.attached? ? document.file.byte_size : nil
+    end
+
+    protected
+
+    def uploaded_by_payload(document)
+      user = document.uploaded_by
+      return nil unless user
+
+      {id: user.id, name: user.employee&.full_name || user.email}
     end
   end
 end

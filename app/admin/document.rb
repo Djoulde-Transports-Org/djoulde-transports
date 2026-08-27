@@ -6,7 +6,7 @@ ActiveAdmin.register Document do
   AdminResources::Discardable.install(self)
 
   # documentable is polymorphic; these are the models that `has_many :documents`.
-  DOCUMENTABLE_TYPES = %w(Truck Tank Trip Maintenance BillingStatement).freeze
+  DOCUMENTABLE_TYPES = %w(Truck Tank Trip Maintenance BillingStatement Employee).freeze
 
   permit_params :documentable_type, :documentable_id, :doc_type, :number, :title,
     :issued_on, :expires_on, :uploaded_by_id, :file

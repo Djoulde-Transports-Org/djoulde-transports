@@ -1,1 +1,7 @@
-<h1 class="text-[22px] font-bold text-dt-text p-8">Documents</h1>
+<script lang="ts">
+  import DocumentList from '$lib/components/documents/DocumentList.svelte';
+</script>
+
+<div class="p-8">
+  <DocumentList />
+</div>
