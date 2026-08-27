@@ -5,6 +5,8 @@ export const makeDocument = (overrides: Partial<FleetDocument> = {}): FleetDocum
     id: 1,
     documentableType: 'Truck',
     documentableId: 1,
+    documentableLabel: null,
+    documentableDate: null,
     docType: 'truck_insurance',
     number: 'INS-1',
     title: 'Assurance camion 2026',
