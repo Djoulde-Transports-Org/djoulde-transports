@@ -5,7 +5,7 @@
   import NewDocumentDrawer from '$lib/components/documents/NewDocumentDrawer.svelte';
   import type {FleetDocument} from '$lib/types/document';
   import type {Row} from '$lib/types/dataTable';
-  import {formatDate} from '$lib/utility/date';
+  import {formatDate, formatMonth} from '$lib/utility/date';
   import {docTypeLabel} from '$lib/store/documentType';
   import {documentableTypeLabel, documentEntityFilters} from '$lib/store/documentableType';
   import {documentColumns} from '$lib/store/documentColumns';
@@ -15,6 +15,14 @@
   let drawerOpen = $state(false);
 
   const handleCreated = () => table?.refresh();
+
+  const entityLabel = (doc: FleetDocument): string => {
+    if (doc.documentableType === 'BillingStatement' && doc.documentableDate) {
+      return formatMonth(doc.documentableDate);
+    }
+    if (doc.documentableLabel) return doc.documentableLabel;
+    return `${documentableTypeLabel(doc.documentableType)} #${doc.documentableId}`;
+  };
 
   const cellRenderers: Record<DocumentColumnCell, Snippet<[unknown, Row]>> = {
     name: nameCell,
@@ -56,7 +64,7 @@
 
 {#snippet entityCell(_value: unknown, row: Row)}
   {@const doc = row as FleetDocument}
-  {documentableTypeLabel(doc.documentableType)} #{doc.documentableId}
+  {entityLabel(doc)}
 {/snippet}
 
 {#snippet issuedOnCell(_value: unknown, row: Row)}

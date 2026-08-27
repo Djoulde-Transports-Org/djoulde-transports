@@ -30,6 +30,8 @@ export type FleetDocument = {
   id: number;
   documentableType: DocumentableType;
   documentableId: number;
+  documentableLabel: string | null;
+  documentableDate: string | null;
   docType: DocType;
   number: string;
   title: string;
