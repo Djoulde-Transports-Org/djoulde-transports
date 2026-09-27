@@ -84,7 +84,7 @@ gem "api-pagination", "~> 7.1"
 # importmap native release; its Tailwind CSS is built nodeless via the
 # tailwindcss-rails standalone CLI (no node/yarn). Session auth reuses the
 # Devise User model, gated to the super_admin role.
-gem "activeadmin", "4.0.0.beta22"
+gem "activeadmin", "4.0.0.beta23"
 gem "tailwindcss-rails", "~> 4.6"
 
 group :development, :test do
